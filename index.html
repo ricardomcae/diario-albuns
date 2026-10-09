@@ -101,6 +101,15 @@ html,body,button,a,input,select,textarea,label,[role=button]{touch-action:manipu
  .source-badges{overflow:visible!important;min-width:max-content;max-width:none!important}
  .source-badge{min-width:24px!important;padding-left:4px!important;padding-right:4px!important}
 }
+
+/* Final iPhone header fit: arrows no longer consume label width. */
+@media(max-width:760px){
+ thead .sort-btn{position:relative!important;display:flex!important;gap:0!important;font-size:8px!important;letter-spacing:0!important;line-height:1.1!important;overflow:visible!important}
+ thead .sort-mark{position:absolute!important;right:-3px!important;top:50%!important;transform:translateY(-50%)!important;font-size:7px!important;line-height:1!important;margin:0!important}
+ thead .sort-mark:empty{display:none!important}
+ th.date-col .sort-btn,th.rating-col .sort-btn,th.state-col .sort-btn{font-size:8px!important;letter-spacing:0!important}
+ thead th:nth-child(4),thead th:nth-child(5){font-size:8px!important;letter-spacing:0!important;line-height:1.1!important}
+}
 </style>
 </head>
 <body>
