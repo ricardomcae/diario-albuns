@@ -78,6 +78,22 @@ html,body,button,a,input,select,textarea,label,[role=button]{touch-action:manipu
 @media(min-width:761px){#mainFilters .source-filter-options{max-height:300px!important;overflow:auto!important;padding-right:3px!important}.source-manager-list{max-height:460px;overflow:auto;padding-right:3px}}
 
 .manager-tools{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.source-position{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;background:rgba(127,127,127,.10);font-size:11px;font-weight:750}.source-usage{font-size:10px;color:var(--muted);white-space:nowrap}.source-manager-row{grid-template-columns:28px minmax(140px,1fr) 82px 70px auto!important}.source-details-modal{width:min(420px,calc(100vw - 28px))}.source-details-list{display:flex;flex-direction:column;gap:7px;margin:14px 0}.source-details-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 10px;border:1px solid var(--line);border-radius:9px}.source-details-item strong{font-size:12px}.source-details-item span{font-size:11px;color:var(--muted)}.source-badges.has-more{cursor:pointer}.source-badges.has-more:focus{outline:2px solid var(--brand);outline-offset:2px}@media(max-width:760px){.source-manager-row{grid-template-columns:28px 1fr 70px!important}.source-manager-row .source-usage{grid-column:2/4}.source-manager-actions{grid-column:1/-1!important}.manager-tools{display:grid;grid-template-columns:1fr}.source-details-modal{width:calc(100vw - 20px);padding:18px}}
+
+/* iPhone table fit: preserve Estado label and always show the source counter. */
+.source-badges-desktop,.source-badges-mobile{display:flex;align-items:center;gap:4px;min-width:0}.source-badges-mobile{display:none}
+@media(max-width:760px){
+ table col:nth-child(4){width:17%!important}
+ table col:nth-child(5){width:12%!important}
+ table col:nth-child(6){width:8%!important}
+ table col:nth-child(7){width:7%!important}
+ table col:nth-child(8){width:10%!important}
+ th.state-col,td.state-col{padding-left:5px!important;padding-right:5px!important;overflow:visible!important}
+ th.state-col .sort-btn{justify-content:center;width:100%;padding-right:2px}
+ .source-badges-desktop{display:none!important}
+ .source-badges-mobile{display:flex!important;flex-wrap:nowrap!important}
+ .source-badges{overflow:visible!important;min-width:max-content;max-width:none!important}
+ .source-badge{min-width:24px!important;padding-left:4px!important;padding-right:4px!important}
+}
 </style>
 </head>
 <body>
@@ -127,7 +143,7 @@ function formatRelease(a){const m=Number(a.lancamento.mes),y=String(a.lancamento
 function dateLabel(v){if(!v)return '—';const d=new Date(v);return Number.isNaN(d.getTime())?'—':d.toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit',year:'numeric'})}
 function monthLabel(v){return v?String(v).split('-').reverse().join('/'):'Sem registo'}
 function localMonthNow(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`}
-function sourceBadges(a){const chosen=new Set(a.fontes||[]),defs=sourceDefinitions.filter(d=>chosen.has(d.id)),visible=defs.slice(0,MAX_VISIBLE_BADGES),extra=defs.length-visible.length,all=defs.map(d=>d.name).join(', ');return defs.length?`<div class="source-badges${extra?' has-more':''}" title="${esc(all)}" ${extra?`role="button" tabindex="0" data-source-ids="${esc(JSON.stringify(defs.map(d=>d.id)))}"`:''}>${visible.map(d=>`<span class="source-badge">${esc(d.shortName)}</span>`).join('')}${extra?`<span class="source-badge source-badge-more">+${extra}</span>`:''}</div>`:'—'}
+function sourceBadges(a){const chosen=new Set(a.fontes||[]),defs=sourceDefinitions.filter(d=>chosen.has(d.id)),desktop=defs.slice(0,MAX_VISIBLE_BADGES),mobile=defs.slice(0,2),desktopExtra=defs.length-desktop.length,mobileExtra=defs.length-mobile.length,all=defs.map(d=>d.name).join(', '),interactive=defs.length>2;return defs.length?`<div class="source-badges${interactive?' has-more':''}" title="${esc(all)}" ${interactive?`role="button" tabindex="0" data-source-ids="${esc(JSON.stringify(defs.map(d=>d.id)))}"`:''}><span class="source-badges-desktop">${desktop.map(d=>`<span class="source-badge">${esc(d.shortName)}</span>`).join('')}${desktopExtra?`<span class="source-badge source-badge-more">+${desktopExtra}</span>`:''}</span><span class="source-badges-mobile">${mobile.map(d=>`<span class="source-badge">${esc(d.shortName)}</span>`).join('')}${mobileExtra?`<span class="source-badge source-badge-more">+${mobileExtra}</span>`:''}</span></div>`:'—'}
 function sortValue(a,key){if(key==='lancamento')return (Number(a.lancamento.ano)||0)*100+(Number(a.lancamento.mes)||0);if(key==='ultimaAudicao')return a.ultimaAudicao||'';if(key==='createdAt')return Date.parse(a.createdAt)||0;if(key==='avaliacao')return Number(a.avaliacao)||0;if(key==='estado')return a.estado==='ouvido'?1:0;return String(a[key]||'').toLocaleLowerCase('pt-PT')}
 function compareAlbums(a,b){const av=sortValue(a,sortKey),bv=sortValue(b,sortKey),cmp=(x,y)=>String(x||'').localeCompare(String(y||''),'pt-PT',{numeric:true,sensitivity:'base'});let c=typeof av==='number'?av-bv:cmp(av,bv);if(c===0)c=sortKey==='album'?cmp(a.artista,b.artista):sortKey==='artista'?cmp(a.album,b.album):cmp(a.album,b.album)||cmp(a.artista,b.artista);return sortDir==='asc'?c:-c}
 function updateSortMarks(){document.querySelectorAll('[data-sort]').forEach(b=>{b.setAttribute('aria-sort',b.dataset.sort===sortKey?(sortDir==='asc'?'ascending':'descending'):'none');b.querySelector('.sort-mark').textContent=b.dataset.sort===sortKey?(sortDir==='asc'?'▲':'▼'):''});$('#sortSelect').value=sortKey;$('#sortDirBtn').textContent=sortDir==='asc'?'↑':'↓';$('#sortDirBtn').title=sortDir==='asc'?'Ordem ascendente. Clicar para descendente.':'Ordem descendente. Clicar para ascendente.'}
