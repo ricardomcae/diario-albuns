@@ -51,6 +51,21 @@ html,body,button,a,input,select,textarea,label,[role=button]{touch-action:manipu
 #mainFilters .source-filter-foot{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:10px!important;margin-top:11px!important;padding-top:10px!important;border-top:1px solid var(--line)!important;background:transparent!important}
 #mainFilters .source-filter-mode{font-size:10px!important}#mainFilters .source-filter-clear{font-size:11px!important}
 }
+
+/* Polished lucky recommendation dialog */
+#luckyDialog{position:fixed!important;inset:0!important;width:100%!important;height:100dvh!important;max-width:none!important;max-height:none!important;margin:0!important;padding:20px!important;border:0!important;background:transparent!important}
+#luckyDialog[open]{display:grid!important;place-items:center!important}
+#luckyDialog::backdrop{background:rgba(3,8,18,.72)!important;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+#luckyDialog .lucky-modal{box-sizing:border-box!important;width:min(430px,calc(100vw - 40px))!important;max-width:430px!important;min-height:0!important;margin:0!important;padding:24px!important;border:1px solid var(--line)!important;border-radius:18px!important;background:var(--card)!important;text-align:center!important;box-shadow:0 28px 80px rgba(0,0,0,.38)!important}
+#luckyDialog .lucky-icon{margin:0 0 6px!important;font-size:38px!important;line-height:1!important}
+#luckyDialog h2{margin:0 0 7px!important;font-size:20px!important;line-height:26px!important}
+#luckyDialog #luckyReason{margin:0 0 16px!important;font-size:12px!important;line-height:18px!important;color:var(--muted)!important}
+#luckyDialog .lucky-pick{display:flex!important;flex-direction:column!important;gap:5px!important;margin:0 0 18px!important;padding:17px 16px!important;border:1px solid var(--line)!important;border-radius:12px!important;background:rgba(127,127,127,.035)!important}
+#luckyDialog #luckyAlbum{font-size:19px!important;line-height:24px!important}
+#luckyDialog #luckyArtist{font-size:12px!important;line-height:18px!important;color:var(--muted)!important}
+#luckyDialog .modal-actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:9px!important;margin:0!important;padding:0!important}
+#luckyDialog .modal-actions .btn{width:100%!important;min-height:42px!important;margin:0!important;padding:8px 12px!important;font-size:12px!important;line-height:18px!important}
+@media(max-width:760px){#luckyDialog{padding:14px!important}#luckyDialog .lucky-modal{width:min(390px,calc(100vw - 28px))!important;padding:20px 18px!important;border-radius:16px!important}#luckyDialog .modal-actions{grid-template-columns:1fr!important}#luckyDialog .modal-actions .btn{min-height:44px!important}}
 @media(prefers-color-scheme:dark){:root{--bg:#0e1420;--card:#161e2c;--ink:#edf1f7;--muted:#9ba7b9;--line:#2a3547;--shadow:none}th{background:#202b3c}.settings-note{background:#202b3c;color:#ccd4df}.dangerbox{background:#3a201b;color:#ffd6cc;border-color:#6d3026}}
 </style>
 </head>
