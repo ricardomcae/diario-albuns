@@ -82,13 +82,20 @@ html,body,button,a,input,select,textarea,label,[role=button]{touch-action:manipu
 /* iPhone table fit: preserve Estado label and always show the source counter. */
 .source-badges-desktop,.source-badges-mobile{display:flex;align-items:center;gap:4px;min-width:0}.source-badges-mobile{display:none}
 @media(max-width:760px){
- table col:nth-child(4){width:17%!important}
+ table col:nth-child(1){width:21%!important}
+ table col:nth-child(2){width:16%!important}
+ table col:nth-child(3){width:9%!important}
+ table col:nth-child(4){width:15%!important}
  table col:nth-child(5){width:12%!important}
- table col:nth-child(6){width:8%!important}
+ table col:nth-child(6){width:10%!important}
  table col:nth-child(7){width:7%!important}
  table col:nth-child(8){width:10%!important}
- th.state-col,td.state-col{padding-left:5px!important;padding-right:5px!important;overflow:visible!important}
- th.state-col .sort-btn{justify-content:center;width:100%;padding-right:2px}
+ thead th{padding-left:4px!important;padding-right:4px!important;overflow:hidden!important}
+ thead .sort-btn{width:100%!important;min-width:0!important;padding-left:0!important;padding-right:0!important;justify-content:center!important;font-size:9px!important;letter-spacing:.035em!important;white-space:nowrap!important}
+ th.rating-col,td.rating-col{padding-left:4px!important;padding-right:4px!important}
+ th.state-col,td.state-col{padding-left:4px!important;padding-right:4px!important}
+ th.rating-col .sort-btn,th.state-col .sort-btn{font-size:9px!important;letter-spacing:.02em!important}
+ thead th:nth-child(4){font-size:9px!important;letter-spacing:.025em!important;white-space:normal!important;line-height:1.15!important}
  .source-badges-desktop{display:none!important}
  .source-badges-mobile{display:flex!important;flex-wrap:nowrap!important}
  .source-badges{overflow:visible!important;min-width:max-content;max-width:none!important}
@@ -108,7 +115,7 @@ html,body,button,a,input,select,textarea,label,[role=button]{touch-action:manipu
 <th><button class="sort-btn" data-sort="origemRegisto">Origem do registo <span class="sort-mark"></span></button></th>
 <th>Fontes</th>
 <th class="rating-col"><button class="sort-btn" data-sort="avaliacao">Avaliação <span class="sort-mark"></span></button></th>
-<th class="state-col"><button class="sort-btn" data-sort="estado">Estado <span class="sort-mark"></span></button></th><th></th></tr></thead><tbody id="tbody"></tbody></table><div class="empty" id="empty">Ainda não há álbuns. Ainda não há álbuns. Adiciona o primeiro.</div></section>
+<th class="state-col"><button class="sort-btn" data-sort="estado">Estado <span class="sort-mark"></span></button></th><th></th></tr></thead><tbody id="tbody"></tbody></table><div class="empty" id="empty">Ainda não há álbuns. Adiciona o primeiro.</div></section>
 </div>
 <dialog id="albumDialog"><form method="dialog" class="modal" id="albumForm"><div class="album-modal-head"><h2 id="formTitle">Novo álbum</h2></div><div class="album-modal-body"><div class="album-form-grid"><div class="field"><label for="album">Álbum *</label><input id="album" required maxlength="200"></div><div class="field"><label for="artist">Artista *</label><input id="artist" required maxlength="200"></div><div class="field full"><label for="genres">Género(s)</label><input id="genres" maxlength="300" placeholder="Jazz / Soul / Funk"></div><div class="form-section"><span class="form-section-title">Metadados</span><div class="meta-grid"><div class="field"><label for="releaseDate">Lançamento</label><input id="releaseDate" type="month"><span class="hint">Mês e ano. Opcional.</span></div><div class="field"><label for="recordOrigin">Origem do registo</label><input id="recordOrigin" maxlength="200" placeholder="Rotation Albums - Fevereiro"></div></div></div><div class="form-section"><span class="form-section-title">Fontes de recomendação</span><div class="source-checks" id="albumSourceChecks"></div></div><div class="form-section"><span class="form-section-title">Avaliação</span><div class="rating-row"><div class="rating-input" id="ratingStars"><input id="r5" name="rating" type="radio" value="5"><label for="r5">★</label><input id="r4" name="rating" type="radio" value="4"><label for="r4">★</label><input id="r3" name="rating" type="radio" value="3"><label for="r3">★</label><input id="r2" name="rating" type="radio" value="2"><label for="r2">★</label><input id="r1" name="rating" type="radio" value="1"><label for="r1">★</label></div><button type="button" class="clear-rating" id="clearRating">Sem avaliação</button></div></div><div class="form-section"><span class="form-section-title">Audição</span><div class="listening-grid"><div class="field"><label for="state">Estado</label><select id="state"><option value="por ouvir">Por ouvir</option><option value="ouvido">Ouvido</option></select></div><div class="field"><label for="lastListened">Última audição</label><input id="lastListened" type="month"><span class="hint">Opcional. Ao preencher, passa para “Ouvido”.</span></div></div></div></div></div><div class="modal-actions album-edit-actions"><button type="button" class="btn danger album-delete-action" id="deleteFromEditor" hidden>Apagar álbum</button><span class="modal-action-spacer"></span><button type="button" class="btn" data-close="albumDialog">Cancelar</button><button class="btn primary" value="default">Guardar alteração</button></div></form></dialog>
 <dialog id="sourcesManagerDialog"><div class="modal sources-manager-modal"><div class="manager-head"><div><h2>Gerir fontes</h2><p class="muted">A ordem define os ticks no editor, filtros e tabela. <strong id="sourceLimitCount">0 / 12</strong></p></div><button type="button" class="drawer-close" data-close="sourcesManagerDialog" aria-label="Fechar">×</button></div><div id="sourceManagerList" class="source-manager-list"></div><div id="sourceLimitNotice" class="source-limit-notice" hidden></div><div class="source-manager-add" id="sourceManagerAdd"><input id="newSourceName" placeholder="Nome da fonte" maxlength="40"><input id="newSourceShort" placeholder="Sigla" maxlength="6"><button type="button" class="btn primary" id="addSourceBtn">＋ Adicionar</button></div><div class="manager-tools"><button type="button" class="btn" id="exportBackupBtn">↓ Exportar backup JSON</button><button type="button" class="btn" id="restoreDefaultsBtn">↺ Repor predefinidas em falta</button></div><div class="modal-actions"><button type="button" class="btn" data-close="sourcesManagerDialog">Fechar</button></div></div></dialog>
