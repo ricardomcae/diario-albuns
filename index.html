@@ -3269,6 +3269,168 @@
                width: min(560px, calc(100vw - 20px)) !important;
             }
          }
+
+         /* Compact auxiliary dialogs and grouped decision controls. */
+         .decision-tools {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            flex: 0 0 auto;
+            padding: 2px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: rgba(127, 127, 127, 0.035);
+         }
+         .decision-tools > button {
+            border-color: transparent !important;
+            background: transparent !important;
+         }
+         .decision-tools > button:hover {
+            background: rgba(49, 87, 213, 0.1) !important;
+         }
+         .decision-tools .dashboard-next-btn {
+            color: var(--brand) !important;
+         }
+         .decision-tools .dashboard-smart-btn {
+            color: var(--ink) !important;
+         }
+         .decision-tools .dashboard-lucky-btn {
+            display: inline-grid;
+            place-items: center;
+            width: 24px;
+            height: 24px;
+            padding: 0;
+            border: 1px solid transparent;
+            border-radius: 999px;
+            background: transparent;
+            color: var(--ink);
+            font-size: 11px;
+         }
+         #auditDialog,
+         #queuePreviewDialog {
+            position: fixed !important;
+            inset: 0 !important;
+            width: 100vw !important;
+            height: 100dvh !important;
+            max-width: none !important;
+            max-height: none !important;
+            margin: 0 !important;
+            padding: 16px !important;
+            border: 0 !important;
+            background: transparent !important;
+            overflow: hidden !important;
+         }
+         #auditDialog[open],
+         #queuePreviewDialog[open] {
+            display: grid !important;
+            place-items: center !important;
+         }
+         #auditDialog .queue-modal,
+         #queuePreviewDialog .queue-modal {
+            box-sizing: border-box !important;
+            width: min(520px, calc(100vw - 32px)) !important;
+            max-width: 520px !important;
+            height: auto !important;
+            max-height: calc(100dvh - 32px) !important;
+            margin: 0 !important;
+            padding: 20px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+            border: 1px solid var(--line) !important;
+            border-radius: 18px !important;
+            background: var(--card) !important;
+            box-shadow: 0 28px 80px rgba(0, 0, 0, 0.38) !important;
+         }
+         #auditDialog .audit-list,
+         #queuePreviewDialog .queue-preview-list {
+            width: 100% !important;
+            min-width: 0 !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+         }
+         #auditDialog .modal-actions,
+         #queuePreviewDialog .modal-actions {
+            width: 100% !important;
+            justify-content: flex-end !important;
+            margin-top: 16px !important;
+         }
+         .audit-row {
+            width: 100%;
+            padding: 0 !important;
+            overflow: hidden;
+         }
+         .audit-row button {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            width: 100%;
+            min-height: 42px;
+            padding: 10px 11px;
+            border: 0;
+            background: transparent;
+            color: inherit;
+            text-align: left;
+            cursor: pointer;
+         }
+         .audit-row button:hover:not(:disabled) {
+            background: rgba(49, 87, 213, 0.08);
+         }
+         .audit-row button:disabled {
+            cursor: default;
+            opacity: 0.55;
+         }
+         .audit-row .audit-arrow {
+            color: var(--brand);
+            font-size: 12px;
+         }
+         .audit-row strong {
+            margin-left: auto;
+         }
+         #luckyDialog.smart-mode .lucky-icon {
+            font-size: 0 !important;
+         }
+         #luckyDialog.smart-mode .lucky-icon::after {
+            content: "🎯";
+            font-size: 38px;
+            line-height: 1;
+         }
+         #luckyDialog.smart-mode h2::after {
+            content: "";
+         }
+         .queue-preview-list.order-mode .queue-preview-row {
+            cursor: grab;
+         }
+         .queue-preview-list.order-mode .queue-preview-row:active {
+            cursor: grabbing;
+         }
+         @media (max-width: 760px) {
+            .decision-tools {
+               gap: 2px;
+               padding: 1px;
+            }
+            .queue-current {
+               max-width: 92px;
+            }
+            #auditDialog,
+            #queuePreviewDialog {
+               padding: 10px !important;
+            }
+            #auditDialog .queue-modal,
+            #queuePreviewDialog .queue-modal {
+               width: min(520px, calc(100vw - 20px)) !important;
+               max-height: calc(100dvh - 20px) !important;
+               padding: 16px !important;
+               border-radius: 16px !important;
+            }
+         }
+
+         @media (min-width: 761px) {
+            #luckyBtn {
+               display: none !important;
+            }
+         }
       </style>
    </head>
    <body>
@@ -3513,22 +3675,42 @@
             >
                <span>Próximos</span><strong id="statNext">0</strong>
             </button>
-            <button
-               class="dashboard-next-btn"
-               id="nextQueueBtn"
-               type="button"
-               title="Ver os próximos cinco álbuns"
-               aria-label="Mostrar os próximos cinco álbuns da fila"
-               disabled
-            >
-               ▶
-            </button>
+            <span class="decision-tools" aria-label="Escolher o próximo álbum">
+               <button
+                  class="dashboard-next-btn"
+                  id="nextQueueBtn"
+                  type="button"
+                  title="Próximos da fila"
+                  aria-label="Próximos da fila"
+                  disabled
+               >
+                  ▶
+               </button>
+               <button
+                  class="dashboard-smart-btn"
+                  id="smartPickBtn"
+                  type="button"
+                  title="Escolha recomendada"
+                  aria-label="Escolha recomendada"
+               >
+                  🎯
+               </button>
+               <button
+                  class="dashboard-lucky-btn"
+                  id="dashboardLuckyBtn"
+                  type="button"
+                  title="Surpreende-me"
+                  aria-label="Surpreende-me"
+               >
+                  🍀
+               </button>
+            </span>
             <button
                class="dashboard-queue-btn"
                id="manageQueueBtn"
                type="button"
-               title="Ordenar Próximos"
-               aria-label="Ordenar Próximos"
+               title="Ordenar próximos"
+               aria-label="Ordenar próximos"
                disabled
             >
                ↕
@@ -3539,24 +3721,6 @@
                title="Primeiro da fila"
                ><strong>#1</strong><span id="queueCurrentName">—</span></span
             >
-            <button
-               class="dashboard-smart-btn"
-               id="smartPickBtn"
-               type="button"
-               title="Escolha recomendada"
-               aria-label="Escolha recomendada"
-            >
-               🎯
-            </button>
-            <button
-               class="dashboard-audit-btn"
-               id="auditBtn"
-               type="button"
-               title="Auditar coleção"
-               aria-label="Auditar coleção"
-            >
-               🩺
-            </button>
             <button
                class="dashboard-chip actionable"
                data-dashboard-filter="heard"
@@ -3580,6 +3744,15 @@
             <span class="dashboard-chip"
                ><span>Fontes</span><strong id="statSources">0</strong></span
             >
+            <button
+               class="dashboard-audit-btn"
+               id="auditBtn"
+               type="button"
+               title="Auditar coleção"
+               aria-label="Auditar coleção"
+            >
+               🩺
+            </button>
          </section>
          <div class="storage-alert" id="storageAlert" role="alert">
             <span id="storageAlertText"></span
@@ -3825,7 +3998,7 @@
                         <div class="field full">
                            <label class="spotify-check"
                               ><input id="listenSoon" type="checkbox" /><span
-                                 ><strong>Adicionar aos Próximos</strong
+                                 ><strong>Adicionar aos próximos</strong
                                  ><small
                                     >Permanece selecionado mesmo depois de
                                     ouvires o álbum.</small
@@ -4098,8 +4271,18 @@
             </div>
             <div class="queue-preview-list" id="queuePreviewList"></div>
             <div class="modal-actions">
+               <button
+                  type="button"
+                  class="btn danger"
+                  id="clearQueueBtn"
+                  title="Remover todos os álbuns da fila"
+                  aria-label="Remover todos os álbuns da fila"
+                  hidden
+               >
+                  Limpar próximos
+               </button>
                <button type="button" class="btn" id="openFullQueueBtn">
-                  Ordenar fila</button
+                  Ordenar próximos</button
                ><button
                   type="button"
                   class="btn primary"
@@ -4115,10 +4298,10 @@
             <div class="manager-head">
                <div>
                   <h2 id="queueTitle" class="dialog-focus-anchor" tabindex="-1">
-                     Ordenar Próximos
+                     Ordenar próximos
                   </h2>
                   <p class="muted">
-                     O primeiro da lista é o “Próximo da fila”.
+                     O primeiro da lista é o “próximo da fila”.
                   </p>
                </div>
                <button
@@ -4237,7 +4420,9 @@
             searchIndexCache = new Map(),
             viewCache = { key: "", items: [] },
             dashboardCache = { version: -1, stats: null },
-            pendingConflicts = [];
+            pendingConflicts = [],
+            auditFilter = "",
+            queueDraft = null;
          const MAX_SOURCES = 12,
             MAX_VISIBLE_BADGES = 3,
             PAGE_SIZE = 100;
@@ -4974,6 +5159,7 @@
                rf,
                spf,
                [...selectedSources].sort(),
+               auditFilter,
                sortKey,
                sortDir,
             ]);
@@ -5005,7 +5191,16 @@
                               : a.disponivelSpotify === false)) &&
                         selectedSources.every((source) =>
                            (a.fontes || []).includes(source),
-                        ),
+                        ) &&
+                        (!auditFilter ||
+                           (auditFilter === "unrated" &&
+                              !Number(a.avaliacao)) ||
+                           (auditFilter === "nogenre" && !a.generos.trim()) ||
+                           (auditFilter === "noorigin" &&
+                              !a.origemRegisto.trim()) ||
+                           (auditFilter === "nosources" &&
+                              !(a.fontes || []).length) ||
+                           (auditFilter === "forgotten" && isForgotten(a))),
                   )
                   .sort(compareAlbums);
                viewCache = { key: cacheKey, items: view };
@@ -5022,7 +5217,7 @@
             $("#tbody").innerHTML = pageView
                .map(
                   (a) =>
-                     `<tr><td><strong>${esc(a.album)}${isForgotten(a) ? `<span class="forgotten-mark" title="${forgottenReason(a)}">⏳</span>` : ""}</strong><span class="sub">${esc(a.artista)}</span></td><td title="${esc(a.generos) || "—"}"><div class="genre-clamp">${esc(a.generos) || "—"}</div></td><td class="date-col">${formatRelease(a)}</td><td><button type="button" class="origin-cell${a.origemRegisto ? " has-origin" : ""}" data-origin="${esc(a.origemRegisto)}" title="${esc(a.origemRegisto) || "Sem origem do registo"}" ${a.origemRegisto ? 'aria-label="Ver origem do registo completa"' : "disabled"}><span>${esc(a.origemRegisto) || "—"}</span></button></td><td>${sourceBadges(a)}</td><td class="spotify-col"><span class="spotify-status ${a.disponivelSpotify !== false ? "available" : "unavailable"}" title="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}" aria-label="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}">${a.disponivelSpotify !== false ? "✓" : "×"}</span></td><td class="rating-col"><span class="stars${a.avaliacao === 1 ? " rating-one" : a.avaliacao === 2 ? " rating-two" : a.avaliacao === 3 ? " rating-three" : a.avaliacao === 4 ? " rating-four" : a.avaliacao === 5 ? " rating-five" : ""}" title="${a.avaliacao || "Sem"} avaliação">${a.avaliacao ? "★".repeat(a.avaliacao) + "☆".repeat(5 - a.avaliacao) : "—"}</span></td><td class="soon-col"><span class="soon-cell-wrap"><input class="soon-toggle" type="checkbox" data-id="${a.id}" ${a.ouvirBrevemente ? "checked" : ""} title="Adicionar ou remover dos próximos álbuns a ouvir" aria-label="Próximo álbum a ouvir">${a.ouvirBrevemente ? `<span class="soon-rank" title="Posição ${queuePosition.get(a.id) || "—"} nos Próximos">#${queuePosition.get(a.id) || "—"}</span>` : ""}</span></td><td class="state-col">${(() => {
+                     `<tr><td><strong>${esc(a.album)}${isForgotten(a) ? `<span class="forgotten-mark" title="${forgottenReason(a)}">⏳</span>` : ""}</strong><span class="sub">${esc(a.artista)}</span></td><td title="${esc(a.generos) || "—"}"><div class="genre-clamp">${esc(a.generos) || "—"}</div></td><td class="date-col">${formatRelease(a)}</td><td><button type="button" class="origin-cell${a.origemRegisto ? " has-origin" : ""}" data-origin="${esc(a.origemRegisto)}" title="${esc(a.origemRegisto) || "Sem origem do registo"}" ${a.origemRegisto ? 'aria-label="Ver origem do registo completa"' : "disabled"}><span>${esc(a.origemRegisto) || "—"}</span></button></td><td>${sourceBadges(a)}</td><td class="spotify-col"><span class="spotify-status ${a.disponivelSpotify !== false ? "available" : "unavailable"}" title="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}" aria-label="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}">${a.disponivelSpotify !== false ? "✓" : "×"}</span></td><td class="rating-col"><span class="stars${a.avaliacao === 1 ? " rating-one" : a.avaliacao === 2 ? " rating-two" : a.avaliacao === 3 ? " rating-three" : a.avaliacao === 4 ? " rating-four" : a.avaliacao === 5 ? " rating-five" : ""}" title="${a.avaliacao || "Sem"} avaliação">${a.avaliacao ? "★".repeat(a.avaliacao) + "☆".repeat(5 - a.avaliacao) : "—"}</span></td><td class="soon-col"><span class="soon-cell-wrap"><input class="soon-toggle" type="checkbox" data-id="${a.id}" ${a.ouvirBrevemente ? "checked" : ""} title="Adicionar ou remover dos próximos álbuns a ouvir" aria-label="Próximo álbum a ouvir">${a.ouvirBrevemente ? `<span class="soon-rank" title="Posição ${queuePosition.get(a.id) || "—"} nos próximos">#${queuePosition.get(a.id) || "—"}</span>` : ""}</span></td><td class="state-col">${(() => {
                         const age = listeningAge(a),
                            tip = `${age.label} · Cada • representa aproximadamente 3 meses · Última audição: ${monthLabel(a.ultimaAudicao)} · Adicionado em: ${dateLabel(a.createdAt)}`;
                         return `<span class="state-icon ${a.estado === "ouvido" ? "heard" : ""}" title="${esc(tip)}" aria-label="${esc(tip)}">${age.symbol}</span>`;
@@ -5336,7 +5531,7 @@
          });
          $("#addBtn").onclick = () => openAlbum();
          function mobileFilterCount() {
-            let n = selectedSources.length;
+            let n = selectedSources.length + (auditFilter ? 1 : 0);
             if ($("#stateFilter").value) n++;
             if ($("#ratingFilter").value) n++;
             if ($("#spotifyFilter").value) n++;
@@ -5379,6 +5574,7 @@
             $("#ratingFilter").value = "";
             $("#spotifyFilter").value = "";
             selectedSources = [];
+            auditFilter = "";
             document
                .querySelectorAll("#filterSourceChecks input")
                .forEach((x) => (x.checked = false));
@@ -5529,7 +5725,7 @@
             .forEach(
                (b) => (b.onclick = () => $("#" + b.dataset.close).close()),
             );
-         function showAlbumPick(pick, reason) {
+         function showAlbumPick(pick, reason, mode = "lucky") {
             if (!pick) return;
             $("#luckyAlbum").textContent = pick.album;
             $("#luckyArtist").textContent = pick.artista;
@@ -5544,8 +5740,16 @@
                : "";
             last.hidden = !pick.ultimaAudicao;
             $("#luckyReason").textContent = reason;
+            $("#luckyDialog").classList.toggle("smart-mode", mode === "smart");
+            $("#luckyDialog h2").textContent =
+               mode === "smart" ? "Escolha recomendada" : "Álbum escolhido";
+            $("#luckyAgain").hidden = mode === "smart";
             if (!$("#luckyDialog").open) $("#luckyDialog").showModal();
          }
+
+         // LEGACY:
+         // Mantido apenas para compatibilidade.
+         // O fluxo principal usa renderUnifiedQueue().
          function renderQueueManager() {
             const queue = orderedQueue();
             normalizeQueueRanks(queue);
@@ -5556,11 +5760,11 @@
                           `<div class="queue-row" data-id="${esc(a.id)}"><span class="queue-rank">${i + 1}</span><div class="queue-album"><strong>${esc(a.album)}</strong><span>${esc(a.artista)}</span></div><div class="queue-actions"><button class="btn queue-up" type="button" ${i === 0 ? "disabled" : ""} title="Subir">↑</button><button class="btn queue-down" type="button" ${i === queue.length - 1 ? "disabled" : ""} title="Descer">↓</button></div></div>`,
                     )
                     .join("")
-               : '<div class="empty">Não existem álbuns nos Próximos.</div>';
+               : '<div class="empty">Não existem álbuns nos próximos.</div>';
          }
          function openQueueManager() {
             if (!orderedQueue().length)
-               return toast("Ainda não existem álbuns nos Próximos.", false);
+               return toast("Ainda não existem álbuns nos próximos.", false);
             renderQueueManager();
             $("#queueDialog").showModal();
             focusDialogAnchor("#queueDialog", "#queueTitle");
@@ -5583,11 +5787,19 @@
             renderQueueManager();
          }
          function renderUnifiedQueue(orderMode = false) {
-            const queue = orderedQueue(),
+            if (orderMode && !queueDraft)
+               queueDraft = orderedQueue().map((a) => a.id);
+            const queue =
+                  orderMode && queueDraft
+                     ? queueDraft
+                          .map((id) => albums.find((a) => a.id === id))
+                          .filter(Boolean)
+                     : orderedQueue(),
                list = $("#queuePreviewList");
             list.classList.toggle("order-mode", orderMode);
+            if ($("#clearQueueBtn")) $("#clearQueueBtn").hidden = !orderMode;
             $("#queuePreviewTitle").textContent = orderMode
-               ? "Ordenar Próximos"
+               ? "Ordenar próximos"
                : "Próximos da fila";
             document.querySelector(
                "#queuePreviewDialog .manager-head p",
@@ -5603,7 +5815,7 @@
                .join("");
             $("#openFullQueueBtn").textContent = orderMode
                ? "Concluir ordenação"
-               : "Ordenar fila";
+               : "Ordenar próximos";
             $("#openFullQueueBtn").dataset.orderMode = orderMode ? "1" : "0";
          }
          function renderQueuePreview() {
@@ -5611,7 +5823,7 @@
          }
          function queueFirst() {
             if (!orderedQueue().length)
-               return toast("Ainda não existem álbuns nos Próximos.", false);
+               return toast("Ainda não existem álbuns nos próximos.", false);
             renderQueuePreview();
             $("#queuePreviewDialog").showModal();
             focusDialogAnchor("#queuePreviewDialog", "#queuePreviewTitle");
@@ -5668,7 +5880,7 @@
             let pool, reason, weightFn;
             if (soon.length) {
                pool = soon;
-               reason = `Escolhido dos teus Próximos (${soon.length} álbum${soon.length === 1 ? "" : "s"}), favorecendo os primeiros da fila, os ainda não ouvidos e os ouvidos há mais tempo.`;
+               reason = `Escolhido dos teus próximos (${soon.length} álbum${soon.length === 1 ? "" : "s"}), favorecendo os primeiros da fila, os ainda não ouvidos e os ouvidos há mais tempo.`;
                weightFn = (a) =>
                   queueRankWeight(a) *
                   ((a.estado !== "ouvido"
@@ -5731,18 +5943,29 @@
             $("#auditList").innerHTML = items
                .map(
                   (x) =>
-                     `<div class="audit-row"><span>${x.label}</span><strong>${x.count}</strong></div>`,
+                     `<div class="audit-row"><button type="button" data-audit-filter="${x.filter}" ${x.count ? "" : "disabled"}><span>${x.label}</span><strong>${x.count}</strong>${x.count ? '<span class="audit-arrow">›</span>' : ""}</button></div>`,
                )
                .join("");
             $("#auditDialog").showModal();
             focusDialogAnchor("#auditDialog", "#auditTitle");
          }
+         $("#auditList").onclick = (e) => {
+            const button = e.target.closest("[data-audit-filter]");
+            if (!button || button.disabled) return;
+            auditFilter = button.dataset.auditFilter;
+            $("#auditDialog").close();
+            currentPage = 1;
+            render();
+            toast(
+               `Filtro aplicado: ${button.querySelector("span").textContent}.`,
+            );
+         };
          function chooseSmart() {
             let pool = albums.filter(
                (a) => a.ouvirBrevemente && a.estado !== "ouvido",
             );
             let reason =
-               "Recomendação racional: está nos Próximos, ainda não foi ouvido e beneficia da posição e antiguidade.";
+               "Recomendação racional: está nos próximos, ainda não foi ouvido e beneficia da posição e antiguidade.";
             if (!pool.length) {
                pool = albums.filter((a) => a.estado !== "ouvido");
                reason =
@@ -5773,9 +5996,10 @@
                   score(b) - score(a) ||
                   validTime(a.createdAt) - validTime(b.createdAt),
             )[0];
-            showAlbumPick(pick, reason);
+            showAlbumPick(pick, reason, "smart");
          }
          $("#smartPickBtn").onclick = chooseSmart;
+         $("#dashboardLuckyBtn").onclick = chooseLucky;
          $("#auditBtn").onclick = auditCollection;
          $("#dashboard").addEventListener("click", (e) => {
             const b = e.target.closest("[data-dashboard-filter]");
@@ -5804,16 +6028,74 @@
             render();
          });
          $("#openFullQueueBtn").onclick = () => {
-            const mode = $("#openFullQueueBtn").dataset.orderMode !== "1";
-            renderUnifiedQueue(mode);
+            const entering = $("#openFullQueueBtn").dataset.orderMode !== "1";
+            if (entering) {
+               queueDraft = orderedQueue().map((a) => a.id);
+               renderUnifiedQueue(true);
+               return;
+            }
+            const previous = cloneData(albums),
+               now = new Date().toISOString();
+            queueDraft.forEach((id, index) => {
+               const a = albums.find((x) => x.id === id);
+               if (a && a.proximoRank !== index + 1) {
+                  a.proximoRank = index + 1;
+                  a.updatedAt = now;
+               }
+            });
+            queueDraft = null;
+            if (!persist()) {
+               albums = previous;
+               queueDraft = orderedQueue().map((a) => a.id);
+               renderUnifiedQueue(true);
+               return;
+            }
+            renderUnifiedQueue(false);
+            toast("Ordem dos próximos guardada.");
          };
          $("#nextQueueBtn").onclick = (e) => {
             if (lockButton(e.currentTarget)) queueFirst();
          };
+
+         $("#clearQueueBtn").onclick = () => {
+            if (
+               !confirm(
+                  "Remover todos os álbuns dos próximos?\n\nNenhum álbum será apagado.\nApenas serão removidos da fila.",
+               )
+            )
+               return;
+
+            const previous = cloneData(albums);
+            const now = new Date().toISOString();
+
+            albums = albums.map((a) => ({
+               ...a,
+               ouvirBrevemente: false,
+               proximoRank: 0,
+               proximoAddedAt: "",
+               updatedAt: now,
+            }));
+
+            queueDraft = null;
+
+            if (!persist()) {
+               albums = previous;
+               return;
+            }
+
+            if ($("#queuePreviewDialog").open) $("#queuePreviewDialog").close();
+
+            renderDashboard();
+            render();
+
+            toast("Fila dos próximos limpa.");
+         };
+
          $("#manageQueueBtn").onclick = (e) => {
             if (!lockButton(e.currentTarget)) return;
             if (!orderedQueue().length)
-               return toast("Ainda não existem álbuns nos Próximos.", false);
+               return toast("Ainda não existem álbuns nos próximos.", false);
+            queueDraft = orderedQueue().map((a) => a.id);
             renderUnifiedQueue(true);
             $("#queuePreviewDialog").showModal();
             focusDialogAnchor("#queuePreviewDialog", "#queuePreviewTitle");
@@ -5837,19 +6119,11 @@
                moveUnifiedQueue(row.dataset.id, 1);
          };
          function moveUnifiedQueue(id, direction) {
-            const queue = orderedQueue(),
-               i = queue.findIndex((a) => a.id === id),
+            if (!queueDraft) return;
+            const i = queueDraft.indexOf(id),
                j = i + direction;
-            if (i < 0 || j < 0 || j >= queue.length) return;
-            const prev = cloneData(albums),
-               now = new Date().toISOString();
-            queue[i].proximoRank = j + 1;
-            queue[j].proximoRank = i + 1;
-            queue[i].updatedAt = queue[j].updatedAt = now;
-            if (!persist()) {
-               albums = prev;
-               return;
-            }
+            if (i < 0 || j < 0 || j >= queueDraft.length) return;
+            [queueDraft[i], queueDraft[j]] = [queueDraft[j], queueDraft[i]];
             renderUnifiedQueue(true);
          }
          let draggedQueueId = null;
@@ -5874,22 +6148,15 @@
             e.preventDefault();
             if (!row || !draggedQueueId || row.dataset.id === draggedQueueId)
                return;
-            const queue = orderedQueue(),
-               from = queue.findIndex((a) => a.id === draggedQueueId),
-               to = queue.findIndex((a) => a.id === row.dataset.id),
-               prev = cloneData(albums),
-               now = new Date().toISOString(),
-               [item] = queue.splice(from, 1);
-            queue.splice(to, 0, item);
-            queue.forEach((a, i) => {
-               a.proximoRank = i + 1;
-               a.updatedAt = now;
-            });
-            if (!persist()) {
-               albums = prev;
-               return;
-            }
+            if (!queueDraft) return;
+            const from = queueDraft.indexOf(draggedQueueId),
+               to = queueDraft.indexOf(row.dataset.id),
+               [item] = queueDraft.splice(from, 1);
+            queueDraft.splice(to, 0, item);
             renderUnifiedQueue(true);
+         });
+         $("#queuePreviewDialog").addEventListener("close", () => {
+            queueDraft = null;
          });
          $("#queuePreviewList").addEventListener("dragend", () => {
             draggedQueueId = null;
