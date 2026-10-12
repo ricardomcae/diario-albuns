@@ -3139,6 +3139,136 @@
                border-radius: 16px !important;
             }
          }
+
+         /* Unified queue, forgotten albums, audit and smart recommendation. */
+         .queue-current {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            flex: 0 0 auto;
+            max-width: 150px;
+            height: 24px;
+            padding: 0 7px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: rgba(127, 127, 127, 0.035);
+            font-size: 9px;
+            color: var(--muted);
+            white-space: nowrap;
+            overflow: hidden;
+         }
+         .queue-current strong {
+            color: var(--brand);
+            flex: 0 0 auto;
+         }
+         .queue-current span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+         }
+         .dashboard-smart-btn,
+         .dashboard-audit-btn {
+            display: inline-grid;
+            place-items: center;
+            flex: 0 0 24px;
+            width: 24px;
+            height: 24px;
+            padding: 0;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: var(--card);
+            color: var(--ink);
+            font-size: 11px;
+         }
+         .forgotten-mark {
+            display: inline-grid;
+            place-items: center;
+            margin-left: 4px;
+            width: 17px;
+            height: 17px;
+            border-radius: 50%;
+            background: rgba(181, 71, 8, 0.11);
+            color: var(--warn);
+            font-size: 9px;
+         }
+         .conflict-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: 7px;
+            padding: 2px 6px;
+            border: 1px solid #fdb022;
+            border-radius: 999px;
+            background: rgba(253, 176, 34, 0.12);
+            color: var(--warn);
+            font-size: 10px;
+            font-weight: 750;
+         }
+         .audit-list {
+            display: grid;
+            gap: 8px;
+            margin: 14px 0;
+         }
+         .audit-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 11px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+         }
+         .audit-row strong {
+            font-variant-numeric: tabular-nums;
+         }
+         .queue-row[draggable="true"] {
+            cursor: grab;
+         }
+         .queue-row.dragging {
+            opacity: 0.42;
+         }
+         .queue-row.drag-over {
+            border-color: var(--brand);
+            box-shadow: inset 0 2px 0 var(--brand);
+         }
+         #queuePreviewDialog .queue-modal,
+         #queueDialog .queue-modal {
+            width: min(560px, calc(100vw - 32px)) !important;
+            max-width: 560px !important;
+         }
+         .queue-preview-list.order-mode {
+            overflow-y: auto;
+            max-height: min(560px, calc(100dvh - 210px));
+            padding-right: 4px;
+         }
+         .queue-order-actions {
+            display: none;
+         }
+         .queue-preview-list.order-mode .queue-order-actions {
+            display: flex;
+         }
+         .queue-preview-list.order-mode .queue-preview-row {
+            grid-template-columns: 26px minmax(0, 1fr) auto;
+         }
+         .queue-preview-row {
+            width: 100%;
+         }
+         .audit-filter-btn {
+            min-width: 84px;
+         }
+         @media (max-width: 760px) {
+            .queue-current {
+               max-width: 105px;
+            }
+            .dashboard-smart-btn,
+            .dashboard-audit-btn {
+               width: 24px;
+               height: 24px;
+            }
+            #queuePreviewDialog .queue-modal,
+            #queueDialog .queue-modal {
+               width: min(560px, calc(100vw - 20px)) !important;
+            }
+         }
       </style>
    </head>
    <body>
@@ -3179,6 +3309,8 @@
                      hidden
                   >
                      ↓ Atualização</button
+                  ><span id="conflictBadge" class="conflict-badge" hidden
+                     >⚠ <span id="conflictCount">0</span></span
                   ><span class="muted" id="dirtyText"></span>
                </div>
             </section>
@@ -3401,6 +3533,30 @@
             >
                ↕
             </button>
+            <span
+               class="queue-current"
+               id="queueCurrent"
+               title="Primeiro da fila"
+               ><strong>#1</strong><span id="queueCurrentName">—</span></span
+            >
+            <button
+               class="dashboard-smart-btn"
+               id="smartPickBtn"
+               type="button"
+               title="Escolha recomendada"
+               aria-label="Escolha recomendada"
+            >
+               🎯
+            </button>
+            <button
+               class="dashboard-audit-btn"
+               id="auditBtn"
+               type="button"
+               title="Auditar coleção"
+               aria-label="Auditar coleção"
+            >
+               🩺
+            </button>
             <button
                class="dashboard-chip actionable"
                data-dashboard-filter="heard"
@@ -3416,7 +3572,7 @@
                <span>4★+</span><strong id="statHigh">0</strong>
             </button>
             <span class="dashboard-chip"
-               ><span>12m</span><strong id="statRecent">0</strong></span
+               ><span>Esquecidos</span><strong id="statRecent">0</strong></span
             >
             <span class="dashboard-chip"
                ><span>Média</span><strong id="statRating">—</strong></span
@@ -3982,6 +4138,32 @@
             </div>
          </div>
       </dialog>
+      <dialog id="auditDialog">
+         <div class="modal queue-modal">
+            <div class="manager-head">
+               <div>
+                  <h2 id="auditTitle" class="dialog-focus-anchor" tabindex="-1">
+                     Auditoria da coleção
+                  </h2>
+                  <p class="muted">Campos em falta e álbuns esquecidos.</p>
+               </div>
+               <button
+                  type="button"
+                  class="drawer-close"
+                  data-close="auditDialog"
+                  aria-label="Fechar"
+               >
+                  ×
+               </button>
+            </div>
+            <div class="audit-list" id="auditList"></div>
+            <div class="modal-actions">
+               <button type="button" class="btn" data-close="auditDialog">
+                  Fechar
+               </button>
+            </div>
+         </div>
+      </dialog>
       <dialog id="luckyDialog">
          <div class="modal lucky-modal">
             <div class="lucky-icon">🍀</div>
@@ -4054,7 +4236,8 @@
             sourceById = new Map(),
             searchIndexCache = new Map(),
             viewCache = { key: "", items: [] },
-            dashboardCache = { version: -1, stats: null };
+            dashboardCache = { version: -1, stats: null },
+            pendingConflicts = [];
          const MAX_SOURCES = 12,
             MAX_VISIBLE_BADGES = 3,
             PAGE_SIZE = 100;
@@ -4162,6 +4345,30 @@
             });
             return changed;
          }
+         function isForgotten(a) {
+            const createdDays = Math.max(
+                  0,
+                  (Date.now() - validTime(a.createdAt)) / 86400000,
+               ),
+               age = monthsSince(a.ultimaAudicao);
+            return (
+               (a.estado !== "ouvido" && createdDays >= 365) ||
+               (a.estado === "ouvido" && age !== null && age >= 24)
+            );
+         }
+         function forgottenReason(a) {
+            if (a.estado !== "ouvido") return "Por ouvir há mais de 12 meses";
+            return "Sem ouvir há pelo menos 24 meses";
+         }
+         function updateConflictBadge() {
+            const badge = $("#conflictBadge");
+            if (!badge) return;
+            badge.hidden = !pendingConflicts.length;
+            $("#conflictCount").textContent = String(pendingConflicts.length);
+            badge.title = pendingConflicts.length
+               ? `${pendingConflicts.length} conflito(s) pendente(s)`
+               : "";
+         }
          function renderDashboard() {
             if (dashboardCache.version !== localChangeVersion) {
                const total = albums.length,
@@ -4177,10 +4384,7 @@
                      (n, a) => n + (Number(a.avaliacao) >= 4),
                      0,
                   ),
-                  recent = albums.reduce((n, a) => {
-                     const age = monthsSince(a.ultimaAudicao);
-                     return n + (age !== null && age >= 0 && age < 12);
-                  }, 0),
+                  recent = albums.reduce((n, a) => n + isForgotten(a), 0),
                   rated = albums.filter((a) => Number(a.avaliacao) > 0),
                   average = rated.length
                      ? rated.reduce((n, a) => n + Number(a.avaliacao), 0) /
@@ -4216,6 +4420,12 @@
             $("#statSources").textContent = x.sources;
             $("#nextQueueBtn").disabled = x.next === 0;
             $("#manageQueueBtn").disabled = x.next === 0;
+            const first = orderedQueue()[0];
+            $("#queueCurrentName").textContent = first ? first.album : "—";
+            $("#queueCurrent").title = first
+               ? `#1 ${first.album} — ${first.artista}`
+               : "A fila está vazia";
+            updateConflictBadge();
             document
                .querySelectorAll("[data-dashboard-filter]")
                .forEach((b) =>
@@ -4812,7 +5022,7 @@
             $("#tbody").innerHTML = pageView
                .map(
                   (a) =>
-                     `<tr><td><strong>${esc(a.album)}</strong><span class="sub">${esc(a.artista)}</span></td><td title="${esc(a.generos) || "—"}"><div class="genre-clamp">${esc(a.generos) || "—"}</div></td><td class="date-col">${formatRelease(a)}</td><td><button type="button" class="origin-cell${a.origemRegisto ? " has-origin" : ""}" data-origin="${esc(a.origemRegisto)}" title="${esc(a.origemRegisto) || "Sem origem do registo"}" ${a.origemRegisto ? 'aria-label="Ver origem do registo completa"' : "disabled"}><span>${esc(a.origemRegisto) || "—"}</span></button></td><td>${sourceBadges(a)}</td><td class="spotify-col"><span class="spotify-status ${a.disponivelSpotify !== false ? "available" : "unavailable"}" title="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}" aria-label="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}">${a.disponivelSpotify !== false ? "✓" : "×"}</span></td><td class="rating-col"><span class="stars${a.avaliacao === 1 ? " rating-one" : a.avaliacao === 2 ? " rating-two" : a.avaliacao === 3 ? " rating-three" : a.avaliacao === 4 ? " rating-four" : a.avaliacao === 5 ? " rating-five" : ""}" title="${a.avaliacao || "Sem"} avaliação">${a.avaliacao ? "★".repeat(a.avaliacao) + "☆".repeat(5 - a.avaliacao) : "—"}</span></td><td class="soon-col"><span class="soon-cell-wrap"><input class="soon-toggle" type="checkbox" data-id="${a.id}" ${a.ouvirBrevemente ? "checked" : ""} title="Adicionar ou remover dos próximos álbuns a ouvir" aria-label="Próximo álbum a ouvir">${a.ouvirBrevemente ? `<span class="soon-rank" title="Posição ${queuePosition.get(a.id) || "—"} nos Próximos">#${queuePosition.get(a.id) || "—"}</span>` : ""}</span></td><td class="state-col">${(() => {
+                     `<tr><td><strong>${esc(a.album)}${isForgotten(a) ? `<span class="forgotten-mark" title="${forgottenReason(a)}">⏳</span>` : ""}</strong><span class="sub">${esc(a.artista)}</span></td><td title="${esc(a.generos) || "—"}"><div class="genre-clamp">${esc(a.generos) || "—"}</div></td><td class="date-col">${formatRelease(a)}</td><td><button type="button" class="origin-cell${a.origemRegisto ? " has-origin" : ""}" data-origin="${esc(a.origemRegisto)}" title="${esc(a.origemRegisto) || "Sem origem do registo"}" ${a.origemRegisto ? 'aria-label="Ver origem do registo completa"' : "disabled"}><span>${esc(a.origemRegisto) || "—"}</span></button></td><td>${sourceBadges(a)}</td><td class="spotify-col"><span class="spotify-status ${a.disponivelSpotify !== false ? "available" : "unavailable"}" title="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}" aria-label="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}">${a.disponivelSpotify !== false ? "✓" : "×"}</span></td><td class="rating-col"><span class="stars${a.avaliacao === 1 ? " rating-one" : a.avaliacao === 2 ? " rating-two" : a.avaliacao === 3 ? " rating-three" : a.avaliacao === 4 ? " rating-four" : a.avaliacao === 5 ? " rating-five" : ""}" title="${a.avaliacao || "Sem"} avaliação">${a.avaliacao ? "★".repeat(a.avaliacao) + "☆".repeat(5 - a.avaliacao) : "—"}</span></td><td class="soon-col"><span class="soon-cell-wrap"><input class="soon-toggle" type="checkbox" data-id="${a.id}" ${a.ouvirBrevemente ? "checked" : ""} title="Adicionar ou remover dos próximos álbuns a ouvir" aria-label="Próximo álbum a ouvir">${a.ouvirBrevemente ? `<span class="soon-rank" title="Posição ${queuePosition.get(a.id) || "—"} nos Próximos">#${queuePosition.get(a.id) || "—"}</span>` : ""}</span></td><td class="state-col">${(() => {
                         const age = listeningAge(a),
                            tip = `${age.label} · Cada • representa aproximadamente 3 meses · Última audição: ${monthLabel(a.ultimaAudicao)} · Adicionado em: ${dateLabel(a.createdAt)}`;
                         return `<span class="state-icon ${a.estado === "ouvido" ? "heard" : ""}" title="${esc(tip)}" aria-label="${esc(tip)}">${age.symbol}</span>`;
@@ -5372,14 +5582,32 @@
             }
             renderQueueManager();
          }
-         function renderQueuePreview() {
-            const queue = orderedQueue().slice(0, 5);
-            $("#queuePreviewList").innerHTML = queue
+         function renderUnifiedQueue(orderMode = false) {
+            const queue = orderedQueue(),
+               list = $("#queuePreviewList");
+            list.classList.toggle("order-mode", orderMode);
+            $("#queuePreviewTitle").textContent = orderMode
+               ? "Ordenar Próximos"
+               : "Próximos da fila";
+            document.querySelector(
+               "#queuePreviewDialog .manager-head p",
+            ).textContent = orderMode
+               ? "Arrasta os álbuns ou usa as setas para alterar a ordem."
+               : "Os primeiros cinco álbuns, pela ordem definida.";
+            const shown = orderMode ? queue : queue.slice(0, 5);
+            list.innerHTML = shown
                .map(
                   (a, i) =>
-                     `<div class="queue-preview-row"><span class="queue-preview-rank">${i + 1}</span><div class="queue-preview-album"><strong>${esc(a.album)}</strong><span>${esc(a.artista)}</span></div></div>`,
+                     `<div class="queue-preview-row" data-id="${esc(a.id)}" draggable="${orderMode}"><span class="queue-preview-rank">${i + 1}</span><div class="queue-preview-album"><strong>${esc(a.album)}</strong><span>${esc(a.artista)}</span></div><div class="queue-actions queue-order-actions"><button class="btn queue-up" type="button" ${i === 0 ? "disabled" : ""}>↑</button><button class="btn queue-down" type="button" ${i === shown.length - 1 ? "disabled" : ""}>↓</button></div></div>`,
                )
                .join("");
+            $("#openFullQueueBtn").textContent = orderMode
+               ? "Concluir ordenação"
+               : "Ordenar fila";
+            $("#openFullQueueBtn").dataset.orderMode = orderMode ? "1" : "0";
+         }
+         function renderQueuePreview() {
+            renderUnifiedQueue(false);
          }
          function queueFirst() {
             if (!orderedQueue().length)
@@ -5472,6 +5700,83 @@
             }
             showAlbumPick(pick, reason);
          }
+         function auditCollection() {
+            const items = [
+               {
+                  label: "Sem avaliação",
+                  count: albums.filter((a) => !Number(a.avaliacao)).length,
+                  filter: "unrated",
+               },
+               {
+                  label: "Sem género",
+                  count: albums.filter((a) => !a.generos.trim()).length,
+                  filter: "nogenre",
+               },
+               {
+                  label: "Sem origem",
+                  count: albums.filter((a) => !a.origemRegisto.trim()).length,
+                  filter: "noorigin",
+               },
+               {
+                  label: "Sem fontes",
+                  count: albums.filter((a) => !(a.fontes || []).length).length,
+                  filter: "nosources",
+               },
+               {
+                  label: "Esquecidos",
+                  count: albums.filter(isForgotten).length,
+                  filter: "forgotten",
+               },
+            ];
+            $("#auditList").innerHTML = items
+               .map(
+                  (x) =>
+                     `<div class="audit-row"><span>${x.label}</span><strong>${x.count}</strong></div>`,
+               )
+               .join("");
+            $("#auditDialog").showModal();
+            focusDialogAnchor("#auditDialog", "#auditTitle");
+         }
+         function chooseSmart() {
+            let pool = albums.filter(
+               (a) => a.ouvirBrevemente && a.estado !== "ouvido",
+            );
+            let reason =
+               "Recomendação racional: está nos Próximos, ainda não foi ouvido e beneficia da posição e antiguidade.";
+            if (!pool.length) {
+               pool = albums.filter((a) => a.estado !== "ouvido");
+               reason =
+                  "Recomendação racional entre os álbuns por ouvir, favorecendo os que esperam há mais tempo.";
+            }
+            if (!pool.length) {
+               pool = albums.filter(
+                  (a) => a.estado === "ouvido" && a.avaliacao >= 4,
+               );
+               reason =
+                  "Recomendação racional de reescuta, favorecendo avaliações altas e audições antigas.";
+            }
+            if (!pool.length)
+               return toast(
+                  "Não há álbuns elegíveis para a escolha recomendada.",
+                  false,
+               );
+            const score = (a) =>
+               (a.ouvirBrevemente ? 5 + queueRankWeight(a) : 0) +
+               (a.estado !== "ouvido" ? 3 : 0) +
+               ageWeightFromDate(a.createdAt) +
+               (a.estado === "ouvido"
+                  ? ageWeightFromMonth(a.ultimaAudicao)
+                  : 0) +
+               (Number(a.avaliacao) || 0) * 0.35;
+            const pick = [...pool].sort(
+               (a, b) =>
+                  score(b) - score(a) ||
+                  validTime(a.createdAt) - validTime(b.createdAt),
+            )[0];
+            showAlbumPick(pick, reason);
+         }
+         $("#smartPickBtn").onclick = chooseSmart;
+         $("#auditBtn").onclick = auditCollection;
          $("#dashboard").addEventListener("click", (e) => {
             const b = e.target.closest("[data-dashboard-filter]");
             if (!b || !lockButton(b)) return;
@@ -5499,14 +5804,19 @@
             render();
          });
          $("#openFullQueueBtn").onclick = () => {
-            $("#queuePreviewDialog").close();
-            openQueueManager();
+            const mode = $("#openFullQueueBtn").dataset.orderMode !== "1";
+            renderUnifiedQueue(mode);
          };
          $("#nextQueueBtn").onclick = (e) => {
             if (lockButton(e.currentTarget)) queueFirst();
          };
          $("#manageQueueBtn").onclick = (e) => {
-            if (lockButton(e.currentTarget)) openQueueManager();
+            if (!lockButton(e.currentTarget)) return;
+            if (!orderedQueue().length)
+               return toast("Ainda não existem álbuns nos Próximos.", false);
+            renderUnifiedQueue(true);
+            $("#queuePreviewDialog").showModal();
+            focusDialogAnchor("#queuePreviewDialog", "#queuePreviewTitle");
          };
          $("#queueList").onclick = (e) => {
             const row = e.target.closest(".queue-row");
@@ -5517,6 +5827,78 @@
             if (b.classList.contains("queue-down"))
                moveQueue(row.dataset.id, 1);
          };
+         $("#queuePreviewList").onclick = (e) => {
+            const row = e.target.closest(".queue-preview-row"),
+               b = e.target.closest("button");
+            if (!row || !b || !lockButton(b)) return;
+            if (b.classList.contains("queue-up"))
+               moveUnifiedQueue(row.dataset.id, -1);
+            if (b.classList.contains("queue-down"))
+               moveUnifiedQueue(row.dataset.id, 1);
+         };
+         function moveUnifiedQueue(id, direction) {
+            const queue = orderedQueue(),
+               i = queue.findIndex((a) => a.id === id),
+               j = i + direction;
+            if (i < 0 || j < 0 || j >= queue.length) return;
+            const prev = cloneData(albums),
+               now = new Date().toISOString();
+            queue[i].proximoRank = j + 1;
+            queue[j].proximoRank = i + 1;
+            queue[i].updatedAt = queue[j].updatedAt = now;
+            if (!persist()) {
+               albums = prev;
+               return;
+            }
+            renderUnifiedQueue(true);
+         }
+         let draggedQueueId = null;
+         $("#queuePreviewList").addEventListener("dragstart", (e) => {
+            const row = e.target.closest(".queue-preview-row[draggable=true]");
+            if (!row) return;
+            draggedQueueId = row.dataset.id;
+            row.classList.add("dragging");
+            e.dataTransfer.effectAllowed = "move";
+         });
+         $("#queuePreviewList").addEventListener("dragover", (e) => {
+            const row = e.target.closest(".queue-preview-row[draggable=true]");
+            if (!row || !draggedQueueId) return;
+            e.preventDefault();
+            document
+               .querySelectorAll(".queue-preview-row.drag-over")
+               .forEach((x) => x.classList.remove("drag-over"));
+            row.classList.add("drag-over");
+         });
+         $("#queuePreviewList").addEventListener("drop", (e) => {
+            const row = e.target.closest(".queue-preview-row[draggable=true]");
+            e.preventDefault();
+            if (!row || !draggedQueueId || row.dataset.id === draggedQueueId)
+               return;
+            const queue = orderedQueue(),
+               from = queue.findIndex((a) => a.id === draggedQueueId),
+               to = queue.findIndex((a) => a.id === row.dataset.id),
+               prev = cloneData(albums),
+               now = new Date().toISOString(),
+               [item] = queue.splice(from, 1);
+            queue.splice(to, 0, item);
+            queue.forEach((a, i) => {
+               a.proximoRank = i + 1;
+               a.updatedAt = now;
+            });
+            if (!persist()) {
+               albums = prev;
+               return;
+            }
+            renderUnifiedQueue(true);
+         });
+         $("#queuePreviewList").addEventListener("dragend", () => {
+            draggedQueueId = null;
+            document
+               .querySelectorAll(
+                  ".queue-preview-row.dragging,.queue-preview-row.drag-over",
+               )
+               .forEach((x) => x.classList.remove("dragging", "drag-over"));
+         });
          $("#luckyBtn").onclick = chooseLucky;
          $("#luckyAgain").onclick = chooseLucky;
          document.querySelector('[data-close="luckyDialog"]').onclick = () =>
@@ -5664,6 +6046,8 @@
                           baseBeforeRead,
                        )
                      : { payload: remotePayload, conflicts: [] };
+               pendingConflicts = readMerge.conflicts;
+               updateConflictBadge();
                if (
                   readMerge.conflicts.length &&
                   !confirm(
@@ -5780,6 +6164,8 @@
                      basePayload,
                   ),
                   payload = mergeResult.payload;
+               pendingConflicts = mergeResult.conflicts;
+               updateConflictBadge();
                if (mergeResult.conflicts.length) {
                   const albumNames = [
                         ...new Set(mergeResult.conflicts.map((x) => x.album)),
@@ -5820,6 +6206,8 @@
                   body: JSON.stringify(body),
                });
                remoteUpdatedAt = g.updated_at;
+               pendingConflicts = [];
+               updateConflictBadge();
                $("#remoteUpdateBtn").hidden = true;
                if (
                   localChangeVersion === mergedVersion &&
