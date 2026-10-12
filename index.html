@@ -474,6 +474,42 @@
          .rating-input label:hover ~ label {
             color: #f5a623;
          }
+
+         .audit-filter-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            width: fit-content;
+            max-width: 100%;
+            margin: 0 0 8px;
+            padding: 6px 8px 6px 11px;
+            border: 1px solid var(--brand);
+            border-radius: 999px;
+            background: rgba(49, 87, 213, 0.08);
+            color: var(--ink);
+            font-size: 11px;
+            font-weight: 650;
+         }
+
+         .audit-filter-indicator[hidden] {
+            display: none !important;
+         }
+
+         .audit-filter-indicator button {
+            display: grid;
+            place-items: center;
+            width: 22px;
+            height: 22px;
+            padding: 0;
+            border: 0;
+            border-radius: 50%;
+            background: rgba(49, 87, 213, 0.12);
+            color: var(--brand);
+            font-size: 16px;
+            line-height: 1;
+         }
+
          @media (max-width: 760px) {
             body {
                font-size: 14px;
@@ -2659,29 +2695,6 @@
             max-height: min(760px, calc(100dvh - 28px));
             overflow: auto;
          }
-         .queue-list {
-            display: flex;
-            flex-direction: column;
-            gap: 7px;
-            margin: 14px 0;
-         }
-         .queue-row {
-            display: grid;
-            grid-template-columns: 28px minmax(0, 1fr) auto;
-            gap: 8px;
-            align-items: center;
-            padding: 8px;
-            border: 1px solid var(--line);
-            border-radius: 10px;
-         }
-         .queue-rank {
-            font-weight: 800;
-            text-align: center;
-            color: var(--brand);
-         }
-         .queue-album {
-            min-width: 0;
-         }
          .queue-album strong,
          .queue-album span {
             display: block;
@@ -2915,61 +2928,6 @@
             border-color: #aeb7c6 !important;
             background: rgba(217, 45, 32, 0.1) !important;
          }
-         #queueDialog {
-            position: fixed !important;
-            inset: 0 !important;
-            width: 100vw !important;
-            height: 100dvh !important;
-            max-width: none !important;
-            max-height: none !important;
-            margin: 0 !important;
-            padding: 16px !important;
-            border: 0 !important;
-            background: transparent !important;
-            overflow: hidden !important;
-         }
-         #queueDialog[open] {
-            display: grid !important;
-            place-items: center !important;
-         }
-         #queueDialog .queue-modal {
-            box-sizing: border-box !important;
-            width: min(560px, calc(100vw - 32px)) !important;
-            max-width: 560px !important;
-            height: auto !important;
-            max-height: min(760px, calc(100dvh - 32px)) !important;
-            margin: 0 !important;
-            padding: 20px !important;
-            display: flex !important;
-            flex-direction: column !important;
-            overflow: hidden !important;
-            border: 1px solid var(--line) !important;
-            border-radius: 18px !important;
-            background: var(--card) !important;
-            box-shadow: 0 28px 80px rgba(0, 0, 0, 0.38) !important;
-         }
-         #queueDialog .manager-head,
-         #queueDialog .modal-actions {
-            flex: 0 0 auto !important;
-         }
-         #queueDialog .queue-list {
-            width: 100% !important;
-            max-height: min(560px, calc(100dvh - 190px)) !important;
-            min-height: 0 !important;
-            margin: 14px 0 !important;
-            padding-right: 4px !important;
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
-            overscroll-behavior: contain !important;
-            scrollbar-gutter: stable !important;
-         }
-         #queueDialog .queue-row {
-            width: 100% !important;
-         }
-         #queueDialog .modal-actions {
-            justify-content: flex-end !important;
-            margin-top: 0 !important;
-         }
          @media (max-width: 760px) {
             .dashboard {
                height: 32px !important;
@@ -2977,18 +2935,6 @@
                max-height: 32px !important;
                padding-top: 4px !important;
                padding-bottom: 4px !important;
-            }
-            #queueDialog {
-               padding: 10px !important;
-            }
-            #queueDialog .queue-modal {
-               width: min(560px, calc(100vw - 20px)) !important;
-               max-height: calc(100dvh - 20px) !important;
-               padding: 16px !important;
-               border-radius: 16px !important;
-            }
-            #queueDialog .queue-list {
-               max-height: calc(100dvh - 175px) !important;
             }
          }
 
@@ -3219,8 +3165,7 @@
             border-color: var(--brand);
             box-shadow: inset 0 2px 0 var(--brand);
          }
-         #queuePreviewDialog .queue-modal,
-         #queueDialog .queue-modal {
+         #queuePreviewDialog .queue-modal {
             width: min(560px, calc(100vw - 32px)) !important;
             max-width: 560px !important;
          }
@@ -3253,8 +3198,7 @@
                width: 24px;
                height: 24px;
             }
-            #queuePreviewDialog .queue-modal,
-            #queueDialog .queue-modal {
+            #queuePreviewDialog .queue-modal {
                width: min(560px, calc(100vw - 20px)) !important;
             }
          }
@@ -3735,6 +3679,17 @@
                🩺
             </button>
          </section>
+         <div class="audit-filter-indicator" id="auditFilterIndicator" hidden>
+            <span id="auditFilterLabel"></span>
+            <button
+               type="button"
+               id="clearAuditFilterBtn"
+               title="Remover filtro de auditoria"
+               aria-label="Remover filtro de auditoria"
+            >
+               ×
+            </button>
+         </div>
          <div class="storage-alert" id="storageAlert" role="alert">
             <span id="storageAlertText"></span
             ><button class="btn" id="storageBackupBtn" type="button">
@@ -4263,10 +4218,12 @@
                   Limpar próximos
                </button>
                <button type="button" class="btn" id="openFullQueueBtn">
-                  Ordenar próximos</button
-               ><button
+                  Ordenar próximos
+               </button>
+               <button
                   type="button"
                   class="btn primary"
+                  id="closeQueuePreviewBtn"
                   data-close="queuePreviewDialog"
                >
                   Fechar
@@ -4274,34 +4231,7 @@
             </div>
          </div>
       </dialog>
-      <dialog id="queueDialog">
-         <div class="modal queue-modal">
-            <div class="manager-head">
-               <div>
-                  <h2 id="queueTitle" class="dialog-focus-anchor" tabindex="-1">
-                     Ordenar próximos
-                  </h2>
-                  <p class="muted">
-                     O primeiro da lista é o “próximo da fila”.
-                  </p>
-               </div>
-               <button
-                  type="button"
-                  class="drawer-close"
-                  data-close="queueDialog"
-                  aria-label="Fechar"
-               >
-                  ×
-               </button>
-            </div>
-            <div class="queue-list" id="queueList"></div>
-            <div class="modal-actions">
-               <button type="button" class="btn" data-close="queueDialog">
-                  Fechar
-               </button>
-            </div>
-         </div>
-      </dialog>
+
       <dialog id="auditDialog">
          <div class="modal queue-modal">
             <div class="manager-head">
@@ -4398,6 +4328,7 @@
             lastViewSignature = "",
             searchDebounceTimer = null,
             preferenceSaveTimer = null,
+            preferencesUpdatedAt = "",
             sourceById = new Map(),
             searchIndexCache = new Map(),
             viewCache = { key: "", items: [] },
@@ -4671,13 +4602,19 @@
                preferences: {
                   sortKey,
                   sortDir,
+                  updatedAt: preferencesUpdatedAt,
                },
             };
          }
 
          function persistPreferences() {
             try {
+               preferencesUpdatedAt = new Date().toISOString();
+               localChangeVersion++;
+
                localStorage.setItem(STORE, JSON.stringify(currentPayload()));
+
+               dirty = true;
 
                setSyncMeta({
                   dirty: true,
@@ -4685,8 +4622,7 @@
                   remoteUpdatedAt,
                });
 
-               dirty = true;
-
+               clearStorageError();
                requestAutoSync();
 
                return true;
@@ -4852,16 +4788,36 @@
                   sourceDefinitions: defs.slice(0, MAX_SOURCES),
                   albums: [...map.values()],
                   deletedAlbums: tombs,
-                  preferences: {
-                     sortKey:
-                        localPayload?.preferences?.sortKey ||
-                        remotePayload?.preferences?.sortKey ||
-                        "createdAt",
-                     sortDir:
-                        localPayload?.preferences?.sortDir ||
-                        remotePayload?.preferences?.sortDir ||
-                        "desc",
-                  },
+                  preferences: (() => {
+                     const localPreferences = localPayload?.preferences || {};
+                     const remotePreferences = remotePayload?.preferences || {};
+
+                     const localTime = validTime(localPreferences.updatedAt);
+                     const remoteTime = validTime(remotePreferences.updatedAt);
+
+                     const winner =
+                        remoteTime > localTime
+                           ? remotePreferences
+                           : localPreferences;
+
+                     return {
+                        sortKey:
+                           winner.sortKey ||
+                           localPreferences.sortKey ||
+                           remotePreferences.sortKey ||
+                           "createdAt",
+                        sortDir:
+                           winner.sortDir ||
+                           localPreferences.sortDir ||
+                           remotePreferences.sortDir ||
+                           "desc",
+                        updatedAt:
+                           winner.updatedAt ||
+                           localPreferences.updatedAt ||
+                           remotePreferences.updatedAt ||
+                           "",
+                     };
+                  })(),
                },
                conflicts,
             };
@@ -4985,6 +4941,10 @@
                   localPreferences.sortDir === "desc"
                ) {
                   sortDir = localPreferences.sortDir;
+               }
+
+               if (typeof localPreferences.updatedAt === "string") {
+                  preferencesUpdatedAt = localPreferences.updatedAt;
                }
 
                const meta = getSyncMeta();
@@ -5243,6 +5203,8 @@
                viewCache = { key: cacheKey, items: view };
             }
             renderDashboard();
+            updateAuditFilterIndicator();
+
             const totalPages = Math.max(1, Math.ceil(view.length / PAGE_SIZE));
             currentPage = Math.min(Math.max(1, currentPage), totalPages);
             const startIndex = (currentPage - 1) * PAGE_SIZE,
@@ -5786,46 +5748,6 @@
             $("#luckyAgain").hidden = mode === "smart";
             if (!$("#luckyDialog").open) $("#luckyDialog").showModal();
          }
-
-         // LEGACY:
-         // Mantido apenas para compatibilidade.
-         // O fluxo principal usa renderUnifiedQueue().
-         function renderQueueManager() {
-            const queue = orderedQueue();
-            normalizeQueueRanks(queue);
-            $("#queueList").innerHTML = queue.length
-               ? queue
-                    .map(
-                       (a, i) =>
-                          `<div class="queue-row" data-id="${esc(a.id)}"><span class="queue-rank">${i + 1}</span><div class="queue-album"><strong>${esc(a.album)}</strong><span>${esc(a.artista)}</span></div><div class="queue-actions"><button class="btn queue-up" type="button" ${i === 0 ? "disabled" : ""} title="Subir">↑</button><button class="btn queue-down" type="button" ${i === queue.length - 1 ? "disabled" : ""} title="Descer">↓</button></div></div>`,
-                    )
-                    .join("")
-               : '<div class="empty">Não existem álbuns nos próximos.</div>';
-         }
-         function openQueueManager() {
-            if (!orderedQueue().length)
-               return toast("Ainda não existem álbuns nos próximos.", false);
-            renderQueueManager();
-            $("#queueDialog").showModal();
-            focusDialogAnchor("#queueDialog", "#queueTitle");
-         }
-         function moveQueue(id, direction) {
-            const queue = orderedQueue(),
-               index = queue.findIndex((a) => a.id === id),
-               target = index + direction;
-            if (index < 0 || target < 0 || target >= queue.length) return;
-            const previous = cloneData(albums),
-               now = new Date().toISOString();
-            queue[index].proximoRank = target + 1;
-            queue[target].proximoRank = index + 1;
-            queue[index].updatedAt = now;
-            queue[target].updatedAt = now;
-            if (!persist()) {
-               albums = previous;
-               return;
-            }
-            renderQueueManager();
-         }
          function renderUnifiedQueue(orderMode = false) {
             if (orderMode && !queueDraft)
                queueDraft = orderedQueue().map((a) => a.id);
@@ -5857,6 +5779,12 @@
                ? "Concluir ordenação"
                : "Ordenar próximos";
             $("#openFullQueueBtn").dataset.orderMode = orderMode ? "1" : "0";
+
+            $("#closeQueuePreviewBtn").textContent = orderMode
+               ? "Cancelar"
+               : "Fechar";
+
+            $("#closeQueuePreviewBtn").classList.toggle("primary", !orderMode);
          }
          function renderQueuePreview() {
             renderUnifiedQueue(false);
@@ -5952,6 +5880,32 @@
             }
             showAlbumPick(pick, reason);
          }
+
+         function updateAuditFilterIndicator() {
+            const labels = {
+               unrated: "Sem avaliação",
+               nogenre: "Sem género",
+               noorigin: "Sem origem",
+               nosources: "Sem fontes",
+               forgotten: "Esquecidos",
+            };
+
+            const indicator = $("#auditFilterIndicator");
+
+            indicator.hidden = !auditFilter;
+
+            $("#auditFilterLabel").textContent = auditFilter
+               ? `Auditoria: ${labels[auditFilter] || auditFilter}`
+               : "";
+         }
+
+         $("#clearAuditFilterBtn").onclick = () => {
+            auditFilter = "";
+            currentPage = 1;
+            render();
+            toast("Filtro de auditoria removido.");
+         };
+
          function auditCollection() {
             const items = [
                {
@@ -6098,9 +6052,16 @@
          };
 
          $("#clearQueueBtn").onclick = () => {
+            const queueCount = orderedQueue().length;
+
+            if (!queueCount) {
+               toast("A fila dos próximos já está vazia.");
+               return;
+            }
+
             if (
                !confirm(
-                  "Remover todos os álbuns dos próximos?\n\nNenhum álbum será apagado.\nApenas serão removidos da fila.",
+                  `Remover ${queueCount} álbum${queueCount === 1 ? "" : "s"} dos próximos?\n\nNenhum álbum será apagado.\nApenas serão removidos da fila.`,
                )
             )
                return;
@@ -6108,13 +6069,17 @@
             const previous = cloneData(albums);
             const now = new Date().toISOString();
 
-            albums = albums.map((a) => ({
-               ...a,
-               ouvirBrevemente: false,
-               proximoRank: 0,
-               proximoAddedAt: "",
-               updatedAt: now,
-            }));
+            albums = albums.map((a) =>
+               a.ouvirBrevemente
+                  ? {
+                       ...a,
+                       ouvirBrevemente: false,
+                       proximoRank: 0,
+                       proximoAddedAt: "",
+                       updatedAt: now,
+                    }
+                  : a,
+            );
 
             queueDraft = null;
 
@@ -6124,9 +6089,6 @@
             }
 
             if ($("#queuePreviewDialog").open) $("#queuePreviewDialog").close();
-
-            renderDashboard();
-            render();
 
             toast("Fila dos próximos limpa.");
          };
@@ -6139,15 +6101,6 @@
             renderUnifiedQueue(true);
             $("#queuePreviewDialog").showModal();
             focusDialogAnchor("#queuePreviewDialog", "#queuePreviewTitle");
-         };
-         $("#queueList").onclick = (e) => {
-            const row = e.target.closest(".queue-row");
-            if (!row) return;
-            const b = e.target.closest("button");
-            if (!b || !lockButton(b)) return;
-            if (b.classList.contains("queue-up")) moveQueue(row.dataset.id, -1);
-            if (b.classList.contains("queue-down"))
-               moveQueue(row.dataset.id, 1);
          };
          $("#queuePreviewList").onclick = (e) => {
             const row = e.target.closest(".queue-preview-row"),
@@ -6361,6 +6314,11 @@
                   sortDir = remotePreferences.sortDir;
                }
 
+               const remotePreferencesUpdatedAt =
+                  typeof remotePreferences.updatedAt === "string"
+                     ? remotePreferences.updatedAt
+                     : "";
+
                if (migrated)
                   localStorage.setItem(
                      MIGRATION_BACKUP,
@@ -6377,6 +6335,7 @@
                   preferences: {
                      sortKey,
                      sortDir,
+                     updatedAt: remotePreferencesUpdatedAt,
                   },
                };
 
@@ -6429,6 +6388,10 @@
                   mergedPreferences.sortDir === "desc"
                ) {
                   sortDir = mergedPreferences.sortDir;
+               }
+
+               if (typeof mergedPreferences.updatedAt === "string") {
+                  preferencesUpdatedAt = mergedPreferences.updatedAt;
                }
 
                const queueMigrated = normalizeQueueRanks();
