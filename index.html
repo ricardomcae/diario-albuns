@@ -149,6 +149,15 @@ table{font-size:12px!important}tbody td{font-size:12px!important;line-height:1.3
 #recordOrigin{min-height:82px;resize:vertical;line-height:1.45}.origin-cell{all:unset;display:block;width:100%;min-width:0;color:inherit;cursor:default}.origin-cell span{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;overflow-wrap:anywhere;line-height:1.35;max-height:2.7em}.origin-cell.has-origin{cursor:pointer}.origin-cell.has-origin:hover span{text-decoration:underline;text-decoration-style:dotted;text-underline-offset:2px}.origin-cell:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:4px}.origin-details-modal{width:min(680px,calc(100vw - 32px))!important}.origin-details-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.55;max-height:min(60dvh,520px);overflow:auto;padding:14px;border:1px solid var(--line);border-radius:10px;background:rgba(127,127,127,.035)}
 @media(max-width:760px){#recordOrigin{min-height:96px}.origin-details-modal{width:min(680px,calc(100vw - 24px))!important}.origin-details-text{max-height:55dvh}}
 .field textarea{width:100%;box-sizing:border-box;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:11px;border-radius:10px;font:inherit}
+
+/* Final origin-detail geometry: compact and truly centred on every viewport. */
+#originDetailsDialog{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;margin:0!important;padding:20px!important;border:0!important;background:transparent!important;overflow:hidden!important}
+#originDetailsDialog[open]{display:grid!important;place-items:center!important}
+#originDetailsDialog .origin-details-modal{box-sizing:border-box!important;width:min(520px,calc(100vw - 40px))!important;max-width:520px!important;max-height:calc(100dvh - 40px)!important;margin:0!important;padding:22px!important;overflow:auto!important;border:1px solid var(--line)!important;border-radius:18px!important;background:var(--card)!important;box-shadow:0 28px 80px rgba(0,0,0,.38)!important}
+#originDetailsDialog .origin-details-text{max-height:min(52dvh,420px)!important}
+@media(max-width:760px){#originDetailsDialog{padding:14px!important}#originDetailsDialog .origin-details-modal{width:min(520px,calc(100vw - 28px))!important;max-height:calc(100dvh - 28px)!important;padding:18px!important;border-radius:16px!important}#originDetailsDialog .origin-details-text{max-height:55dvh!important}}
+/* Desktop clear-all matches the 42 px toolbar control height. */
+@media(min-width:761px){#mainFilters>#desktopClearFiltersBtn{display:inline-grid!important;place-items:center!important;flex:0 0 42px!important;width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;margin:0!important;padding:0!important;font-size:20px!important;line-height:1!important}}
 </style>
 </head>
 <body>
