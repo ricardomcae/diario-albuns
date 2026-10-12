@@ -3002,6 +3002,143 @@
                max-height: calc(100dvh - 175px) !important;
             }
          }
+
+         /* Queue visibility, move-to-top editor action and compact five-item preview. */
+         .soon-cell-wrap {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            min-width: 0;
+         }
+         .soon-rank {
+            display: inline-grid;
+            place-items: center;
+            min-width: 22px;
+            height: 18px;
+            padding: 0 5px;
+            border: 1px solid rgba(49, 87, 213, 0.38);
+            border-radius: 999px;
+            background: rgba(49, 87, 213, 0.08);
+            color: var(--brand);
+            font-size: 9px;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+         }
+         .queue-top-check {
+            margin-top: 8px;
+            background: rgba(49, 87, 213, 0.055);
+         }
+         .queue-preview-list {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            margin: 14px 0 4px;
+         }
+         .queue-preview-row {
+            display: grid;
+            grid-template-columns: 26px minmax(0, 1fr);
+            gap: 9px;
+            align-items: center;
+            padding: 9px 10px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            text-align: left;
+            background: rgba(127, 127, 127, 0.025);
+         }
+         .queue-preview-row:first-child {
+            border-color: rgba(49, 87, 213, 0.55);
+            background: rgba(49, 87, 213, 0.08);
+         }
+         .queue-preview-rank {
+            display: grid;
+            place-items: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(49, 87, 213, 0.12);
+            color: var(--brand);
+            font-size: 10px;
+            font-weight: 850;
+         }
+         .queue-preview-album {
+            min-width: 0;
+         }
+         .queue-preview-album strong,
+         .queue-preview-album span {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+         }
+         .queue-preview-album strong {
+            font-size: 12px;
+         }
+         .queue-preview-album span {
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 1px;
+         }
+         #queuePreviewDialog .queue-modal {
+            width: min(480px, calc(100vw - 32px)) !important;
+            max-width: 480px !important;
+         }
+         @media (max-width: 760px) {
+            .soon-cell-wrap {
+               gap: 3px;
+            }
+            .soon-rank {
+               min-width: 19px;
+               height: 17px;
+               padding: 0 4px;
+               font-size: 8px;
+            }
+            #queuePreviewDialog .queue-modal {
+               width: min(480px, calc(100vw - 20px)) !important;
+            }
+         }
+
+         #queuePreviewDialog {
+            position: fixed !important;
+            inset: 0 !important;
+            width: 100vw !important;
+            height: 100dvh !important;
+            max-width: none !important;
+            max-height: none !important;
+            margin: 0 !important;
+            padding: 16px !important;
+            border: 0 !important;
+            background: transparent !important;
+            overflow: hidden !important;
+         }
+         #queuePreviewDialog[open] {
+            display: grid !important;
+            place-items: center !important;
+         }
+         #queuePreviewDialog .queue-modal {
+            box-sizing: border-box !important;
+            max-height: calc(100dvh - 32px) !important;
+            margin: 0 !important;
+            padding: 20px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+            border: 1px solid var(--line) !important;
+            border-radius: 18px !important;
+            background: var(--card) !important;
+            box-shadow: 0 28px 80px rgba(0, 0, 0, 0.38) !important;
+         }
+         @media (max-width: 760px) {
+            #queuePreviewDialog {
+               padding: 10px !important;
+            }
+            #queuePreviewDialog .queue-modal {
+               max-height: calc(100dvh - 20px) !important;
+               padding: 16px !important;
+               border-radius: 16px !important;
+            }
+         }
       </style>
    </head>
    <body>
@@ -3248,8 +3385,8 @@
                class="dashboard-next-btn"
                id="nextQueueBtn"
                type="button"
-               title="Primeiro dos Próximos"
-               aria-label="Mostrar primeiro álbum dos Próximos"
+               title="Ver os próximos cinco álbuns"
+               aria-label="Mostrar os próximos cinco álbuns da fila"
                disabled
             >
                ▶
@@ -3540,6 +3677,17 @@
                               ></label
                            >
                         </div>
+                        <div class="field full" id="queueTopField" hidden>
+                           <label class="spotify-check queue-top-check"
+                              ><input id="moveQueueTop" type="checkbox" /><span
+                                 ><strong>Enviar para o topo da fila</strong
+                                 ><small
+                                    >Ao guardar, este álbum passa para a posição
+                                    #1 dos Próximos.</small
+                                 ></span
+                              ></label
+                           >
+                        </div>
                         <div class="field full">
                            <label>Adicionado em</label>
                            <div class="created-readonly" id="createdAtDisplay">
@@ -3767,6 +3915,44 @@
                ><button class="btn danger" value="confirm">Apagar</button>
             </div>
          </form>
+      </dialog>
+      <dialog id="queuePreviewDialog">
+         <div class="modal queue-modal">
+            <div class="manager-head">
+               <div>
+                  <h2
+                     id="queuePreviewTitle"
+                     class="dialog-focus-anchor"
+                     tabindex="-1"
+                  >
+                     Próximos da fila
+                  </h2>
+                  <p class="muted">
+                     Os primeiros cinco álbuns, pela ordem definida.
+                  </p>
+               </div>
+               <button
+                  type="button"
+                  class="drawer-close"
+                  data-close="queuePreviewDialog"
+                  aria-label="Fechar"
+               >
+                  ×
+               </button>
+            </div>
+            <div class="queue-preview-list" id="queuePreviewList"></div>
+            <div class="modal-actions">
+               <button type="button" class="btn" id="openFullQueueBtn">
+                  Ordenar fila</button
+               ><button
+                  type="button"
+                  class="btn primary"
+                  data-close="queuePreviewDialog"
+               >
+                  Fechar
+               </button>
+            </div>
+         </div>
       </dialog>
       <dialog id="queueDialog">
          <div class="modal queue-modal">
@@ -4619,11 +4805,14 @@
             currentPage = Math.min(Math.max(1, currentPage), totalPages);
             const startIndex = (currentPage - 1) * PAGE_SIZE,
                endIndex = Math.min(startIndex + PAGE_SIZE, view.length),
-               pageView = view.slice(startIndex, endIndex);
+               pageView = view.slice(startIndex, endIndex),
+               queuePosition = new Map(
+                  orderedQueue().map((item, index) => [item.id, index + 1]),
+               );
             $("#tbody").innerHTML = pageView
                .map(
                   (a) =>
-                     `<tr><td><strong>${esc(a.album)}</strong><span class="sub">${esc(a.artista)}</span></td><td title="${esc(a.generos) || "—"}"><div class="genre-clamp">${esc(a.generos) || "—"}</div></td><td class="date-col">${formatRelease(a)}</td><td><button type="button" class="origin-cell${a.origemRegisto ? " has-origin" : ""}" data-origin="${esc(a.origemRegisto)}" title="${esc(a.origemRegisto) || "Sem origem do registo"}" ${a.origemRegisto ? 'aria-label="Ver origem do registo completa"' : "disabled"}><span>${esc(a.origemRegisto) || "—"}</span></button></td><td>${sourceBadges(a)}</td><td class="spotify-col"><span class="spotify-status ${a.disponivelSpotify !== false ? "available" : "unavailable"}" title="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}" aria-label="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}">${a.disponivelSpotify !== false ? "✓" : "×"}</span></td><td class="rating-col"><span class="stars${a.avaliacao === 1 ? " rating-one" : a.avaliacao === 2 ? " rating-two" : a.avaliacao === 3 ? " rating-three" : a.avaliacao === 4 ? " rating-four" : a.avaliacao === 5 ? " rating-five" : ""}" title="${a.avaliacao || "Sem"} avaliação">${a.avaliacao ? "★".repeat(a.avaliacao) + "☆".repeat(5 - a.avaliacao) : "—"}</span></td><td class="soon-col"><input class="soon-toggle" type="checkbox" data-id="${a.id}" ${a.ouvirBrevemente ? "checked" : ""} title="Adicionar ou remover dos próximos álbuns a ouvir" aria-label="Próximo álbum a ouvir"></td><td class="state-col">${(() => {
+                     `<tr><td><strong>${esc(a.album)}</strong><span class="sub">${esc(a.artista)}</span></td><td title="${esc(a.generos) || "—"}"><div class="genre-clamp">${esc(a.generos) || "—"}</div></td><td class="date-col">${formatRelease(a)}</td><td><button type="button" class="origin-cell${a.origemRegisto ? " has-origin" : ""}" data-origin="${esc(a.origemRegisto)}" title="${esc(a.origemRegisto) || "Sem origem do registo"}" ${a.origemRegisto ? 'aria-label="Ver origem do registo completa"' : "disabled"}><span>${esc(a.origemRegisto) || "—"}</span></button></td><td>${sourceBadges(a)}</td><td class="spotify-col"><span class="spotify-status ${a.disponivelSpotify !== false ? "available" : "unavailable"}" title="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}" aria-label="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}">${a.disponivelSpotify !== false ? "✓" : "×"}</span></td><td class="rating-col"><span class="stars${a.avaliacao === 1 ? " rating-one" : a.avaliacao === 2 ? " rating-two" : a.avaliacao === 3 ? " rating-three" : a.avaliacao === 4 ? " rating-four" : a.avaliacao === 5 ? " rating-five" : ""}" title="${a.avaliacao || "Sem"} avaliação">${a.avaliacao ? "★".repeat(a.avaliacao) + "☆".repeat(5 - a.avaliacao) : "—"}</span></td><td class="soon-col"><span class="soon-cell-wrap"><input class="soon-toggle" type="checkbox" data-id="${a.id}" ${a.ouvirBrevemente ? "checked" : ""} title="Adicionar ou remover dos próximos álbuns a ouvir" aria-label="Próximo álbum a ouvir">${a.ouvirBrevemente ? `<span class="soon-rank" title="Posição ${queuePosition.get(a.id) || "—"} nos Próximos">#${queuePosition.get(a.id) || "—"}</span>` : ""}</span></td><td class="state-col">${(() => {
                         const age = listeningAge(a),
                            tip = `${age.label} · Cada • representa aproximadamente 3 meses · Última audição: ${monthLabel(a.ultimaAudicao)} · Adicionado em: ${dateLabel(a.createdAt)}`;
                         return `<span class="state-icon ${a.estado === "ouvido" ? "heard" : ""}" title="${esc(tip)}" aria-label="${esc(tip)}">${age.symbol}</span>`;
@@ -4690,6 +4879,8 @@
             $("#state").value = a.estado;
             $("#lastListened").value = a.ultimaAudicao;
             $("#listenSoon").checked = a.ouvirBrevemente === true;
+            $("#moveQueueTop").checked = false;
+            $("#queueTopField").hidden = !$("#listenSoon").checked;
             $("#createdAtDisplay").textContent = dateLabel(a.createdAt);
             $("#albumDialog").showModal();
             focusDialogAnchor("#albumDialog", "#formTitle");
@@ -4740,16 +4931,42 @@
                updatedAt: new Date().toISOString(),
             };
             if (!data.album || !data.artista) return;
-            const previous = albums;
+            const moveToTop =
+               data.ouvirBrevemente && $("#moveQueueTop").checked;
+            const previous = cloneData(albums);
             if (editingId)
                albums = albums.map((a) => (a.id === editingId ? data : a));
             else albums = [...albums, data];
+            if (moveToTop) {
+               const now = new Date().toISOString(),
+                  targetId = data.id;
+               albums
+                  .filter((a) => a.ouvirBrevemente && a.id !== targetId)
+                  .forEach((a) => {
+                     a.proximoRank = (Number(a.proximoRank) || 0) + 1;
+                     a.updatedAt = now;
+                  });
+               albums = albums.map((a) =>
+                  a.id === targetId
+                     ? {
+                          ...a,
+                          proximoRank: 1,
+                          proximoAddedAt: a.proximoAddedAt || now,
+                          updatedAt: now,
+                       }
+                     : a,
+               );
+            }
             if (!persist()) {
                albums = previous;
                return;
             }
             $("#albumDialog").close();
             toast(editingId ? "Álbum atualizado." : "Álbum adicionado.");
+         });
+         $("#listenSoon").addEventListener("change", () => {
+            $("#queueTopField").hidden = !$("#listenSoon").checked;
+            if (!$("#listenSoon").checked) $("#moveQueueTop").checked = false;
          });
          $("#clearRating").onclick = () =>
             document
@@ -5155,14 +5372,21 @@
             }
             renderQueueManager();
          }
+         function renderQueuePreview() {
+            const queue = orderedQueue().slice(0, 5);
+            $("#queuePreviewList").innerHTML = queue
+               .map(
+                  (a, i) =>
+                     `<div class="queue-preview-row"><span class="queue-preview-rank">${i + 1}</span><div class="queue-preview-album"><strong>${esc(a.album)}</strong><span>${esc(a.artista)}</span></div></div>`,
+               )
+               .join("");
+         }
          function queueFirst() {
-            const pick = orderedQueue()[0];
-            if (!pick)
+            if (!orderedQueue().length)
                return toast("Ainda não existem álbuns nos Próximos.", false);
-            showAlbumPick(
-               pick,
-               "Primeiro álbum da tua fila ordenada de Próximos.",
-            );
+            renderQueuePreview();
+            $("#queuePreviewDialog").showModal();
+            focusDialogAnchor("#queuePreviewDialog", "#queuePreviewTitle");
          }
          function lockButton(button) {
             if (!button || button.dataset.tapLock) return false;
@@ -5274,6 +5498,10 @@
             }
             render();
          });
+         $("#openFullQueueBtn").onclick = () => {
+            $("#queuePreviewDialog").close();
+            openQueueManager();
+         };
          $("#nextQueueBtn").onclick = (e) => {
             if (lockButton(e.currentTarget)) queueFirst();
          };
