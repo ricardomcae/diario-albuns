@@ -3439,7 +3439,16 @@
             #releaseDate { display: block !important; width: 100% !important; min-width: 0 !important; max-width: 100% !important; }
             .meta-grid { grid-template-columns: minmax(0,1fr) !important; }
          }
-      </style>
+      
+         /* Audição: layout simplificado, com estado derivado da data. */
+         .listening-summary{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,.72fr);gap:12px;align-items:end}
+         .listening-state{min-height:38px;display:flex;align-items:center;padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:rgba(127,127,127,.035);color:var(--muted);font-weight:700}
+         .listening-state.heard{border-color:rgba(18,183,106,.42);background:rgba(18,183,106,.08);color:var(--ok)}
+         .listening-options-row{grid-template-columns:minmax(0,1.35fr) minmax(190px,.65fr)!important}
+         .spotify-check{background:rgba(127,127,127,.035)!important}
+         .listening-metadata .created-readonly{border:0;padding:2px 0 0;min-height:auto;background:transparent}
+         @media(max-width:760px){.listening-summary,.listening-options-row{grid-template-columns:1fr!important}}
+</style>
    </head>
    <body>
       <div class="wrap">
@@ -3544,7 +3553,7 @@
                   <select id="stateFilter">
                      <option value="">Todos os estados</option>
                      <option value="por ouvir">Por ouvir</option>
-                     <option value="breve">Próximos a ouvir</option>
+                     <option value="breve">Na fila de audição</option>
                      <option value="ouvido">Ouvido</option></select
                   ><select id="ratingFilter">
                      <option value="">Todas as avaliações</option>
@@ -3670,8 +3679,8 @@
                   class="dashboard-next-btn"
                   id="nextQueueBtn"
                   type="button"
-                  title="Próximos da fila"
-                  aria-label="Próximos da fila"
+                  title="Fila de audição"
+                  aria-label="Fila de audição"
                   disabled
                >
                   ▶
@@ -3699,8 +3708,8 @@
                class="dashboard-queue-btn"
                id="manageQueueBtn"
                type="button"
-               title="Ordenar próximos"
-               aria-label="Ordenar próximos"
+               title="Ordenar fila"
+               aria-label="Ordenar fila"
                disabled
             >
                ↕
@@ -3966,43 +3975,38 @@
                   <div class="form-section">
                      <span class="form-section-title">Audição</span>
                      <div class="listening-grid">
-                        <div class="field">
-                           <label for="state">Estado</label
-                           ><select id="state">
-                              <option value="por ouvir">Por ouvir</option>
-                              <option value="ouvido">Ouvido</option>
-                           </select>
-                        </div>
-                        <div class="field">
-                           <label for="lastListened">Última audição</label
-                           ><input id="lastListened" type="month" /><span
-                              class="hint"
-                              >Opcional. Ao preencher, passa para
-                              “Ouvido”.</span
-                           >
+                        <div class="field full listening-summary">
+                           <div class="field">
+                              <label for="lastListened">Última audição</label>
+                              <input id="lastListened" type="month" />
+                              <span class="hint">Define automaticamente se o álbum está ouvido.</span>
+                           </div>
+                           <div class="field">
+                              <label>Estado calculado</label>
+                              <div class="listening-state" id="stateDisplay" role="status" aria-live="polite">○ Por ouvir</div>
+                           </div>
                         </div>
                         <div class="field full listening-options-row">
+                           <fieldset class="queue-placement" id="queuePlacementGroup">
+                              <legend>Fila de audição</legend>
+                              <div class="queue-placement-options" role="radiogroup" aria-label="Posição na fila de audição">
+                                 <label><input type="radio" name="queuePlacement" value="none" checked /><span>Não colocar na fila</span></label>
+                                 <label><input type="radio" name="queuePlacement" value="end" /><span>Colocar no fim da fila</span></label>
+                                 <label><input type="radio" name="queuePlacement" value="top" /><span>Colocar no início da fila</span></label>
+                              </div>
+                              <small class="hint">O início da fila corresponde à posição #1.</small>
+                           </fieldset>
                            <label class="spotify-check listening-option-card">
                               <input id="spotifyAvailable" type="checkbox" checked />
-                              <span><strong>Disponível no Spotify</strong><small>Desmarca apenas quando o álbum não estiver disponível.</small></span>
+                              <span><strong>Disponível no Spotify</strong><small>Desmarca se o álbum não estiver disponível.</small></span>
                            </label>
-                           <fieldset class="queue-placement" id="queuePlacementGroup">
-                              <legend>Próximos</legend>
-                              <div class="queue-placement-options" role="radiogroup" aria-label="Posição nos próximos">
-                                 <label><input type="radio" name="queuePlacement" value="none" checked /><span>Não adicionar</span></label>
-                                 <label><input type="radio" name="queuePlacement" value="end" /><span>Adicionar ao fim</span></label>
-                                 <label><input type="radio" name="queuePlacement" value="top" /><span>Adicionar ao topo</span></label>
-                              </div>
-                              <small class="hint">A escolha “topo” adiciona o álbum aos próximos e coloca-o na posição #1.</small>
-                           </fieldset>
                            <input id="listenSoon" type="checkbox" hidden aria-hidden="true" tabindex="-1" />
                            <input id="moveQueueTop" type="checkbox" hidden aria-hidden="true" tabindex="-1" />
                         </div>
-                        <div class="field full">
+                        <div class="field full listening-metadata">
+                           <span class="form-section-title">Informação</span>
                            <label>Adicionado em</label>
-                           <div class="created-readonly" id="createdAtDisplay">
-                              —
-                           </div>
+                           <div class="created-readonly" id="createdAtDisplay">—</div>
                         </div>
                      </div>
                   </div>
@@ -4236,7 +4240,7 @@
                      class="dialog-focus-anchor"
                      tabindex="-1"
                   >
-                     Próximos da fila
+                     Fila de audição
                   </h2>
                   <p class="muted">
                      Os primeiros cinco álbuns, pela ordem definida.
@@ -4261,10 +4265,10 @@
                   aria-label="Remover todos os álbuns da fila"
                   hidden
                >
-                  Limpar próximos
+                  Limpar fila
                </button>
                <button type="button" class="btn" id="openFullQueueBtn">
-                  Ordenar próximos
+                  Ordenar fila
                </button>
                <button
                   type="button"
@@ -4500,12 +4504,12 @@
                ),
                age = monthsSince(a.ultimaAudicao);
             return (
-               (a.estado !== "ouvido" && createdDays >= 365) ||
-               (a.estado === "ouvido" && age !== null && age >= 24)
+               (!isHeard(a) && createdDays >= 365) ||
+               (isHeard(a) && age !== null && age >= 24)
             );
          }
          function forgottenReason(a) {
-            if (a.estado !== "ouvido") return "Por ouvir há mais de 12 meses";
+            if (!isHeard(a)) return "Por ouvir há mais de 12 meses";
             return "Sem ouvir há pelo menos 24 meses";
          }
          function updateConflictBadge() {
@@ -4521,7 +4525,7 @@
             if (dashboardCache.version !== localChangeVersion) {
                const total = albums.length,
                   heard = albums.reduce(
-                     (n, a) => n + (a.estado === "ouvido"),
+                     (n, a) => n + (isHeard(a)),
                      0,
                   ),
                   next = albums.reduce(
@@ -4711,7 +4715,6 @@
             "fontes",
             "disponivelSpotify",
             "avaliacao",
-            "estado",
             "ouvirBrevemente",
             "proximoRank",
             "proximoAddedAt",
@@ -4949,7 +4952,6 @@
                fontes: legacySources(a.fontes),
                disponivelSpotify: a.disponivelSpotify !== false,
                avaliacao: Number(a.avaliacao) || 0,
-               estado: a.estado === "ouvido" ? "ouvido" : "por ouvir",
                ouvirBrevemente: a.ouvirBrevemente === true,
                proximoRank: Number(a.proximoRank) || 0,
                proximoAddedAt: a.proximoAddedAt || "",
@@ -5098,6 +5100,15 @@
             const m = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(String(v || ""));
             return m ? { year: Number(m[1]), month: Number(m[2]) } : null;
          }
+         function isHeard(a) { return !!validMonthValue(a?.ultimaAudicao); }
+         function updateListeningStateDisplay() {
+            const display = $("#stateDisplay");
+            if (!display) return;
+            const heard = !!validMonthValue($("#lastListened").value);
+            display.textContent = heard ? "✓ Ouvido" : "○ Por ouvir";
+            display.classList.toggle("heard", heard);
+         }
+         $("#lastListened").addEventListener("input", updateListeningStateDisplay);
          function monthsSince(v) {
             const parsed = validMonthValue(v);
             if (!parsed) return null;
@@ -5108,7 +5119,7 @@
             return diff;
          }
          function listeningAge(a) {
-            if (a.estado !== "ouvido")
+            if (!isHeard(a))
                return { symbol: "○", label: "Por ouvir" };
             const age = monthsSince(a.ultimaAudicao);
             if (age === null)
@@ -5155,7 +5166,7 @@
                return a.disponivelSpotify !== false ? 1 : 0;
             if (key === "ouvirBrevemente")
                return a.ouvirBrevemente === true ? 1 : 0;
-            if (key === "estado") return a.estado === "ouvido" ? 1 : 0;
+            if (key === "estado") return isHeard(a) ? 1 : 0;
             return String(a[key] || "").toLocaleLowerCase("pt-PT");
          }
          function compareAlbums(a, b) {
@@ -5235,7 +5246,7 @@
                         (!sf ||
                            (sf === "breve"
                               ? a.ouvirBrevemente === true
-                              : a.estado === sf)) &&
+                              : (sf === "ouvido" ? isHeard(a) : !isHeard(a)))) &&
                         (!rf || a.avaliacao >= rf) &&
                         (!spf ||
                            (spf === "yes"
@@ -5271,10 +5282,10 @@
             $("#tbody").innerHTML = pageView
                .map(
                   (a) =>
-                     `<tr><td><strong>${esc(a.album)}${isForgotten(a) ? `<span class="forgotten-mark" title="${forgottenReason(a)}">⏳</span>` : ""}</strong><span class="sub">${esc(a.artista)}</span></td><td title="${esc(a.generos) || "—"}"><div class="genre-clamp">${esc(a.generos) || "—"}</div></td><td class="date-col">${formatRelease(a)}</td><td><button type="button" class="origin-cell${a.origemRegisto ? " has-origin" : ""}" data-origin="${esc(a.origemRegisto)}" title="${esc(a.origemRegisto) || "Sem origem do registo"}" ${a.origemRegisto ? 'aria-label="Ver origem do registo completa"' : "disabled"}><span>${esc(a.origemRegisto) || "—"}</span></button></td><td>${sourceBadges(a)}</td><td class="spotify-col"><span class="spotify-status ${a.disponivelSpotify !== false ? "available" : "unavailable"}" title="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}" aria-label="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}">${a.disponivelSpotify !== false ? "✓" : "×"}</span></td><td class="rating-col"><span class="stars${a.avaliacao === 1 ? " rating-one" : a.avaliacao === 2 ? " rating-two" : a.avaliacao === 3 ? " rating-three" : a.avaliacao === 4 ? " rating-four" : a.avaliacao === 5 ? " rating-five" : ""}" title="${a.avaliacao || "Sem"} avaliação">${a.avaliacao ? "★".repeat(a.avaliacao) + "☆".repeat(5 - a.avaliacao) : "—"}</span></td><td class="soon-col"><span class="soon-cell-wrap"><input class="soon-toggle" type="checkbox" data-id="${a.id}" ${a.ouvirBrevemente ? "checked" : ""} title="Adicionar ou remover dos próximos álbuns a ouvir" aria-label="Próximo álbum a ouvir">${a.ouvirBrevemente ? `<span class="soon-rank" title="Posição ${queuePosition.get(a.id) || "—"} nos próximos">#${queuePosition.get(a.id) || "—"}</span>` : ""}</span></td><td class="state-col">${(() => {
+                     `<tr><td><strong>${esc(a.album)}${isForgotten(a) ? `<span class="forgotten-mark" title="${forgottenReason(a)}">⏳</span>` : ""}</strong><span class="sub">${esc(a.artista)}</span></td><td title="${esc(a.generos) || "—"}"><div class="genre-clamp">${esc(a.generos) || "—"}</div></td><td class="date-col">${formatRelease(a)}</td><td><button type="button" class="origin-cell${a.origemRegisto ? " has-origin" : ""}" data-origin="${esc(a.origemRegisto)}" title="${esc(a.origemRegisto) || "Sem origem do registo"}" ${a.origemRegisto ? 'aria-label="Ver origem do registo completa"' : "disabled"}><span>${esc(a.origemRegisto) || "—"}</span></button></td><td>${sourceBadges(a)}</td><td class="spotify-col"><span class="spotify-status ${a.disponivelSpotify !== false ? "available" : "unavailable"}" title="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}" aria-label="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}">${a.disponivelSpotify !== false ? "✓" : "×"}</span></td><td class="rating-col"><span class="stars${a.avaliacao === 1 ? " rating-one" : a.avaliacao === 2 ? " rating-two" : a.avaliacao === 3 ? " rating-three" : a.avaliacao === 4 ? " rating-four" : a.avaliacao === 5 ? " rating-five" : ""}" title="${a.avaliacao || "Sem"} avaliação">${a.avaliacao ? "★".repeat(a.avaliacao) + "☆".repeat(5 - a.avaliacao) : "—"}</span></td><td class="soon-col"><span class="soon-cell-wrap"><input class="soon-toggle" type="checkbox" data-id="${a.id}" ${a.ouvirBrevemente ? "checked" : ""} title="Adicionar ou remover da fila de audição" aria-label="Álbum na fila de audição">${a.ouvirBrevemente ? `<span class="soon-rank" title="Posição ${queuePosition.get(a.id) || "—"} nos próximos">#${queuePosition.get(a.id) || "—"}</span>` : ""}</span></td><td class="state-col">${(() => {
                         const age = listeningAge(a),
                            tip = `${age.label} · Cada • representa aproximadamente 3 meses · Última audição: ${monthLabel(a.ultimaAudicao)} · Adicionado em: ${dateLabel(a.createdAt)}`;
-                        return `<span class="state-icon ${a.estado === "ouvido" ? "heard" : ""}" title="${esc(tip)}" aria-label="${esc(tip)}">${age.symbol}</span>`;
+                        return `<span class="state-icon ${isHeard(a) ? "heard" : ""}" title="${esc(tip)}" aria-label="${esc(tip)}">${age.symbol}</span>`;
                      })()}</td><td><div class="row-actions"><button class="icon heard-today" data-id="${a.id}" title="Ouvi hoje">♫</button><button class="icon edit" data-id="${a.id}" title="Editar">✎</button><button class="icon delete" data-id="${a.id}" title="Apagar">×</button></div></td></tr>`,
                )
                .join("");
@@ -5346,8 +5357,8 @@
             document
                .querySelectorAll("[name=rating]")
                .forEach((x) => (x.checked = Number(x.value) === a.avaliacao));
-            $("#state").value = a.estado;
             $("#lastListened").value = a.ultimaAudicao;
+            updateListeningStateDisplay();
             setQueuePlacement(a.ouvirBrevemente === true ? "end" : "none");
             $("#createdAtDisplay").textContent = dateLabel(a.createdAt);
             const dialog = $("#albumDialog"), body = dialog.querySelector(".album-modal-body");
@@ -5385,7 +5396,6 @@
                   Number(
                      document.querySelector("[name=rating]:checked")?.value,
                   ) || 0,
-               estado: last ? "ouvido" : $("#state").value,
                ouvirBrevemente: $("#listenSoon").checked,
                proximoRank: $("#listenSoon").checked
                   ? old.proximoRank ||
@@ -5541,8 +5551,8 @@
             }
             toast(
                checked
-                  ? "Adicionado aos próximos álbuns a ouvir."
-                  : "Removido dos próximos álbuns a ouvir.",
+                  ? "Adicionado à fila de audição."
+                  : "Removido da fila de audição.",
             );
          });
          $("#tbody").onclick = (e) => {
@@ -5568,7 +5578,6 @@
                   a.id === id
                      ? {
                           ...a,
-                          estado: "ouvido",
                           ultimaAudicao: today,
                           updatedAt: new Date().toISOString(),
                        }
@@ -5830,8 +5839,8 @@
             list.classList.toggle("order-mode", orderMode);
             if ($("#clearQueueBtn")) $("#clearQueueBtn").hidden = !orderMode;
             $("#queuePreviewTitle").textContent = orderMode
-               ? "Ordenar próximos"
-               : "Próximos da fila";
+               ? "Ordenar fila"
+               : "Fila de audição";
             document.querySelector(
                "#queuePreviewDialog .manager-head p",
             ).textContent = orderMode
@@ -5846,7 +5855,7 @@
                .join("");
             $("#openFullQueueBtn").textContent = orderMode
                ? "Concluir ordenação"
-               : "Ordenar próximos";
+               : "Ordenar fila";
             $("#openFullQueueBtn").dataset.orderMode = orderMode ? "1" : "0";
 
             $("#closeQueuePreviewBtn").textContent = orderMode
@@ -5860,7 +5869,7 @@
          }
          function queueFirst() {
             if (!orderedQueue().length)
-               return toast("Ainda não existem álbuns nos próximos.", false);
+               return toast("A fila de audição está vazia.", false);
             renderQueuePreview();
             $("#queuePreviewDialog").showModal();
             focusDialogAnchor("#queuePreviewDialog", "#queuePreviewTitle");
@@ -5913,14 +5922,14 @@
          }
          function chooseLucky() {
             const soon = albums.filter((a) => a.ouvirBrevemente === true),
-               unheard = albums.filter((a) => a.estado !== "ouvido");
+               unheard = albums.filter((a) => !isHeard(a));
             let pool, reason, weightFn;
             if (soon.length) {
                pool = soon;
                reason = `Escolhido dos teus próximos (${soon.length} álbum${soon.length === 1 ? "" : "s"}), favorecendo os primeiros da fila, os ainda não ouvidos e os ouvidos há mais tempo.`;
                weightFn = (a) =>
                   queueRankWeight(a) *
-                  ((a.estado !== "ouvido"
+                  ((!isHeard(a)
                      ? 3
                      : 1.25 * ageWeightFromMonth(a.ultimaAudicao)) +
                      Math.max(0, Number(a.avaliacao) || 0) * 0.08);
@@ -5930,7 +5939,7 @@
                weightFn = (a) => ageWeightFromDate(a.createdAt);
             } else {
                pool = albums.filter(
-                  (a) => a.estado === "ouvido" && a.avaliacao >= 4,
+                  (a) => isHeard(a) && a.avaliacao >= 4,
                );
                reason =
                   "Escolhido entre as reescutas de 4 ou 5 estrelas, com preferência pelas ouvidas há mais tempo.";
@@ -5990,7 +5999,7 @@
          function renderIntegrityReport() {
             const report=collectionIntegrityReport(), rows=[
                ["IDs de álbum duplicados",report.duplicateIds.length], ["IDs de fonte duplicados",report.duplicateSourceIds.length],
-               ["Posições duplicadas nos próximos",report.duplicateRanks.length], ["Fontes desconhecidas",report.unknownSources.length], ["Registos inválidos",report.invalidRecords.length],
+               ["Posições duplicadas na fila",report.duplicateRanks.length], ["Fontes desconhecidas",report.unknownSources.length], ["Registos inválidos",report.invalidRecords.length],
             ], total=rows.reduce((sum,row)=>sum+row[1],0);
             $("#integrityReport").innerHTML=`<h3>Integridade interna</h3><div class="integrity-grid">${rows.map(([label,count])=>`<span>${esc(label)}</span><strong class="${count?"integrity-warning":"integrity-ok"}">${count}</strong>`).join("")}</div><p class="muted">${total ? `${total} problema(s) estrutural(is) encontrado(s).` : "Sem problemas estruturais detetados."}</p>`;
             return report;
@@ -6046,18 +6055,18 @@
          };
          function chooseSmart() {
             let pool = albums.filter(
-               (a) => a.ouvirBrevemente && a.estado !== "ouvido",
+               (a) => a.ouvirBrevemente && !isHeard(a),
             );
             let reason =
                "Recomendação racional: está nos próximos, ainda não foi ouvido e beneficia da posição e antiguidade.";
             if (!pool.length) {
-               pool = albums.filter((a) => a.estado !== "ouvido");
+               pool = albums.filter((a) => !isHeard(a));
                reason =
                   "Recomendação racional entre os álbuns por ouvir, favorecendo os que esperam há mais tempo.";
             }
             if (!pool.length) {
                pool = albums.filter(
-                  (a) => a.estado === "ouvido" && a.avaliacao >= 4,
+                  (a) => isHeard(a) && a.avaliacao >= 4,
                );
                reason =
                   "Recomendação racional de reescuta, favorecendo avaliações altas e audições antigas.";
@@ -6069,9 +6078,9 @@
                );
             const score = (a) =>
                (a.ouvirBrevemente ? 5 + queueRankWeight(a) : 0) +
-               (a.estado !== "ouvido" ? 3 : 0) +
+               (!isHeard(a) ? 3 : 0) +
                ageWeightFromDate(a.createdAt) +
-               (a.estado === "ouvido"
+               (isHeard(a)
                   ? ageWeightFromMonth(a.ultimaAudicao)
                   : 0) +
                (Number(a.avaliacao) || 0) * 0.35;
@@ -6145,7 +6154,7 @@
             const queueCount = orderedQueue().length;
 
             if (!queueCount) {
-               toast("A fila dos próximos já está vazia.");
+               toast("A fila de audição já está vazia.");
                return;
             }
 
@@ -6180,13 +6189,13 @@
 
             if ($("#queuePreviewDialog").open) $("#queuePreviewDialog").close();
 
-            toast("Fila dos próximos limpa.");
+            toast("Fila de audição limpa.");
          };
 
          $("#manageQueueBtn").onclick = (e) => {
             if (!lockButton(e.currentTarget)) return;
             if (!orderedQueue().length)
-               return toast("Ainda não existem álbuns nos próximos.", false);
+               return toast("A fila de audição está vazia.", false);
             queueDraft = orderedQueue().map((a) => a.id);
             renderUnifiedQueue(true);
             $("#queuePreviewDialog").showModal();
