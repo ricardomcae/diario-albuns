@@ -4449,7 +4449,7 @@
             <div class="manager-tools">
                <button type="button" class="btn" id="exportBackupBtn">
                   ↓ Exportar backup JSON</button
-               ><button
+               ><button type="button" class="btn" id="importBackupBtn">↑ Importar backup JSON</button><input id="importBackupInput" type="file" accept="application/json,.json" hidden /><button
                   type="button"
                   class="btn"
                   id="exportMigrationBackupBtn"
@@ -7512,8 +7512,10 @@
                `Backup ${mode === "combine" ? "combinado" : "substituído"}.`,
             );
          }
-         $("#importBackupBtn").onclick = () => $("#importBackupInput").click();
-         $("#importBackupInput").onchange = async (e) => {
+         const importBackupBtn = $("#importBackupBtn"), importBackupInput = $("#importBackupInput");
+         if (importBackupBtn && importBackupInput) {
+            importBackupBtn.onclick = () => importBackupInput.click();
+            importBackupInput.onchange = async (e) => {
             const file = e.target.files?.[0];
             e.target.value = "";
             if (!file) return;
@@ -7528,7 +7530,8 @@
             } catch (error) {
                toast(`Backup inválido: ${error.message}`, false);
             }
-         };
+            };
+         }
          $("#importCombineBtn").onclick = () => applyImport("combine");
          $("#importReplaceBtn").onclick = () => {
             if (confirm("Substituir toda a coleção atual?"))
@@ -7710,6 +7713,12 @@
             else console.info("Testes de merge: OK");
             return failures;
          }
+         function auditRequiredDom() {
+            const requiredIds = ["tbody","search","stateFilter","ratingFilter","spotifyFilter","loadBtn","saveBtn","albumDialog","albumForm","lastListened","stateDisplay","spotifyAvailable","importBackupBtn","importBackupInput"];
+            const missing = requiredIds.filter((id) => !document.getElementById(id));
+            if (missing.length) console.error("Controlo(s) HTML em falta:", missing);
+            return missing;
+         }
          function runFinalSelfTests() {
             const errors = [],
                check = (v, n) => {
@@ -7738,6 +7747,7 @@
             else console.info("Auditoria interna final: OK");
             return errors;
          }
+         auditRequiredDom();
          loadLocal();
          runFinalSelfTests();
          runMergeTests();
