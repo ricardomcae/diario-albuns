@@ -3448,6 +3448,179 @@
          .spotify-check{background:rgba(127,127,127,.035)!important}
          .listening-metadata .created-readonly{border:0;padding:2px 0 0;min-height:auto;background:transparent}
          @media(max-width:760px){.listening-summary,.listening-options-row{grid-template-columns:1fr!important}}
+
+         /* Professional listening panel: final visual system. */
+         #albumDialog .listening-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+         }
+         #albumDialog .listening-summary {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 150px;
+            gap: 14px;
+            align-items: end;
+         }
+         #albumDialog .listening-summary > .field:last-child {
+            gap: 5px;
+         }
+         #albumDialog .listening-state {
+            min-height: 40px;
+            padding: 10px 12px;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            background: rgba(127,127,127,.035);
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 750;
+         }
+         #albumDialog .listening-state.heard {
+            border-color: rgba(18,183,106,.28);
+            background: rgba(18,183,106,.07);
+            color: var(--ok);
+         }
+         #albumDialog .listening-options-row {
+            display: grid !important;
+            grid-template-columns: minmax(0, 1fr) !important;
+            gap: 14px !important;
+         }
+         #albumDialog .queue-placement {
+            padding: 0;
+            border: 0;
+            border-radius: 0;
+         }
+         #albumDialog .queue-placement legend,
+         #albumDialog .availability-title {
+            display: block;
+            width: 100%;
+            margin: 0 0 8px;
+            padding: 0;
+            color: var(--muted);
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .055em;
+         }
+         #albumDialog .queue-placement-options {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0;
+            padding: 3px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: rgba(127,127,127,.05);
+         }
+         #albumDialog .queue-placement-options label {
+            position: relative;
+            justify-content: center;
+            min-width: 0;
+            min-height: 38px;
+            padding: 8px 10px;
+            border: 0;
+            border-radius: 7px;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 700;
+            text-align: center;
+            white-space: nowrap;
+         }
+         #albumDialog .queue-placement-options label:has(input:checked) {
+            background: var(--card);
+            color: var(--brand);
+            box-shadow: 0 1px 4px rgba(16,24,40,.14);
+         }
+         #albumDialog .queue-placement-options input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+         }
+         #albumDialog .queue-placement > .hint {
+            margin: 7px 2px 0;
+            font-size: 10px;
+         }
+         #albumDialog .availability-block {
+            padding-top: 2px;
+         }
+         #albumDialog .spotify-check {
+            align-items: center;
+            min-height: 42px;
+            padding: 9px 11px;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            background: transparent !important;
+         }
+         #albumDialog .spotify-check input {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+         }
+         #albumDialog .spotify-check span {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            align-items: baseline;
+            gap: 7px;
+         }
+         #albumDialog .spotify-check strong {
+            font-size: 12px;
+         }
+         #albumDialog .spotify-check small {
+            font-size: 10px;
+         }
+         #albumDialog .listening-metadata {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            padding-top: 13px;
+            border-top: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 10px;
+         }
+         #albumDialog .listening-metadata .form-section-title {
+            display: none;
+         }
+         #albumDialog .listening-metadata label {
+            color: var(--muted);
+            font-size: 10px;
+            font-weight: 600;
+         }
+         #albumDialog .listening-metadata label::after {
+            content: ":";
+         }
+         #albumDialog .listening-metadata .created-readonly {
+            min-height: 0;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: var(--muted);
+            font-size: 10px;
+         }
+         @media (prefers-color-scheme: dark) {
+            #albumDialog .queue-placement-options label:has(input:checked) {
+               background: #263247;
+               box-shadow: 0 1px 5px rgba(0,0,0,.35);
+            }
+         }
+         @media (max-width:760px) {
+            #albumDialog .listening-grid { gap: 16px; }
+            #albumDialog .listening-summary {
+               grid-template-columns: minmax(0,1fr) 126px !important;
+               gap: 9px;
+            }
+            #albumDialog .queue-placement-options {
+               grid-template-columns: repeat(3, minmax(0,1fr));
+            }
+            #albumDialog .queue-placement-options label {
+               min-height: 42px;
+               padding: 7px 4px;
+               white-space: normal;
+               line-height: 1.2;
+            }
+            #albumDialog .spotify-check span {
+               display: flex;
+               flex-direction: column;
+               gap: 1px;
+            }
+         }
 </style>
    </head>
    <body>
@@ -3990,16 +4163,19 @@
                            <fieldset class="queue-placement" id="queuePlacementGroup">
                               <legend>Fila de audição</legend>
                               <div class="queue-placement-options" role="radiogroup" aria-label="Posição na fila de audição">
-                                 <label><input type="radio" name="queuePlacement" value="none" checked /><span>Não colocar na fila</span></label>
-                                 <label><input type="radio" name="queuePlacement" value="end" /><span>Colocar no fim da fila</span></label>
-                                 <label><input type="radio" name="queuePlacement" value="top" /><span>Colocar no início da fila</span></label>
+                                 <label><input type="radio" name="queuePlacement" value="none" checked /><span>Fora da fila</span></label>
+                                 <label><input type="radio" name="queuePlacement" value="end" /><span>No fim</span></label>
+                                 <label><input type="radio" name="queuePlacement" value="top" /><span>No início</span></label>
                               </div>
                               <small class="hint">O início da fila corresponde à posição #1.</small>
                            </fieldset>
-                           <label class="spotify-check listening-option-card">
+                           <div class="availability-block">
+                              <span class="availability-title">Disponibilidade</span>
+                              <label class="spotify-check listening-option-card">
                               <input id="spotifyAvailable" type="checkbox" checked />
-                              <span><strong>Disponível no Spotify</strong><small>Desmarca se o álbum não estiver disponível.</small></span>
-                           </label>
+                              <span><strong>Spotify disponível</strong><small>Desmarca se o álbum não estiver disponível.</small></span>
+                              </label>
+                           </div>
                            <input id="listenSoon" type="checkbox" hidden aria-hidden="true" tabindex="-1" />
                            <input id="moveQueueTop" type="checkbox" hidden aria-hidden="true" tabindex="-1" />
                         </div>
