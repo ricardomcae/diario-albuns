@@ -3567,7 +3567,7 @@
          }
          #albumDialog .listening-summary {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) 180px;
+            grid-template-columns: minmax(0, 1fr) 165px;
             gap: 14px;
             align-items: start;
          }
@@ -3582,8 +3582,8 @@
 
          #albumDialog .metadata-inline {
             font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
+   text-transform:uppercase;
+   letter-spacing:.04em;
 
             color: var(--muted);
             display: inline-flex;
@@ -3753,7 +3753,14 @@
                gap: 1px;
             }
          }
-      </style>
+      
+         /* Final listening fixes. */
+         #albumDialog .listening-summary > .field{min-width:0;align-self:stretch}
+         #albumDialog #lastListened,#albumDialog .listening-state{width:100%;min-width:0;height:42px;min-height:42px;max-height:42px;margin:0}
+         #albumDialog #lastListened{display:block;padding-top:0;padding-bottom:0;line-height:40px}
+         #albumDialog .listening-metadata{border-top:0!important;padding-top:0!important}
+         @media(max-width:760px){#albumDialog .listening-summary{grid-template-columns:minmax(0,1fr)!important;gap:12px!important}#albumDialog .listening-summary>.field{width:100%}}
+</style>
    </head>
    <body>
       <div class="wrap">
@@ -4349,7 +4356,7 @@
                                     checked
                                  />
                                  <span>
-                                    <strong>✅ Disponível no Spotify</strong>
+                                    <strong>Disponível no Spotify</strong>
                                  </span>
                               </label>
                            </div>
@@ -6888,7 +6895,8 @@
             } catch {}
          }
          $("#remoteUpdateBtn").onclick = () => $("#loadBtn").click();
-         $("#loadBtn").onclick = async () => {
+         async function loadFromGist(options = {}) {
+            const { silent = false } = options;
             if (syncBusy) return;
             const c = getConfig();
             if (!c.gistId) return toast("Configura primeiro o Gist.", false);
@@ -7019,12 +7027,20 @@
                );
             } catch (e) {
                updateStatus();
-               toast(e.message, false);
+               if (!silent) toast(e.message, false);
+               return false;
             } finally {
                syncBusy = false;
                updateStatus();
             }
-         };
+            return true;
+         }
+         $("#loadBtn").onclick = () => loadFromGist({ silent: false });
+         async function autoLoadFromGist() {
+            const cfg = getConfig();
+            if (!cfg.gistId) return;
+            await loadFromGist({ silent: true });
+         }
          async function saveToGist(automatic = false) {
             const initialConfig = getConfig();
             if (automatic && !initialConfig.autoSync) return false;
@@ -7726,7 +7742,10 @@
          runFinalSelfTests();
          runMergeTests();
          checkStorageHealth();
-         setTimeout(checkRemoteUpdate, 0);
+         setTimeout(() => {
+            autoLoadFromGist();
+            checkRemoteUpdate();
+         }, 0);
       </script>
    </body>
 </html>
