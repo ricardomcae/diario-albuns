@@ -6943,5 +6943,60 @@
          checkStorageHealth();
          setTimeout(checkRemoteUpdate, 0);
       </script>
-   </body>
+   
+<style id="ux-reorganization-patch">
+/* Gist settings: keep checkbox and its text together */
+label:has(> #keepToken), label:has(> #autoSave), label:has(> #rememberToken), label:has(> #gistAutoSave){display:inline-flex!important;align-items:center!important;gap:.55rem!important;white-space:nowrap;}
+label:has(> #keepToken) input, label:has(> #autoSave) input, label:has(> #rememberToken) input, label:has(> #gistAutoSave) input{flex:0 0 auto;margin:0!important;}
+/* Listening area */
+#listeningUnified{grid-column:1/-1;border:1px solid var(--border,#d8dee8);border-radius:14px;padding:14px 16px;background:var(--surface,#fff)}
+#listeningUnified h3{margin:0 0 12px;font-size:1rem}
+#listeningUnified .listening-grid{display:grid;grid-template-columns:minmax(210px,1fr) minmax(260px,1.25fr);gap:18px;align-items:start}
+#listeningUnified .spotify-box{display:flex;align-items:center;gap:10px;min-height:48px}
+#listeningUnified .queue-choice{display:flex;flex-wrap:wrap;gap:8px}
+#listeningUnified .queue-choice label{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border,#d8dee8);border-radius:999px;padding:8px 11px;cursor:pointer}
+#listeningUnified .queue-choice label:has(input:checked){border-color:#6d5dfc;background:rgba(109,93,252,.10);color:#5547dc}
+#listeningUnified .queue-choice input{margin:0}
+@media(max-width:640px){
+ #listeningUnified .listening-grid{grid-template-columns:1fr}
+ #listeningUnified .queue-choice{display:grid;grid-template-columns:1fr}
+ #listeningUnified .queue-choice label{border-radius:10px}
+ label[for="releaseDate"]{display:block!important;margin-bottom:6px!important}
+ #releaseDate{display:block!important;width:100%!important;min-width:0!important;box-sizing:border-box!important}
+ #releaseDate, #releaseDate + *{clear:both}
+}
+</style>
+<script id="ux-reorganization-script">
+(function(){
+ const nativeShow=HTMLDialogElement&&HTMLDialogElement.prototype.showModal;
+ if(nativeShow&&!HTMLDialogElement.prototype.__topPatched){
+   HTMLDialogElement.prototype.showModal=function(){ nativeShow.call(this); const d=this; requestAnimationFrame(()=>{d.scrollTop=0; const c=d.querySelector('.modal-content,.dialog-content,form'); if(c)c.scrollTop=0;}); };
+   HTMLDialogElement.prototype.__topPatched=true;
+ }
+ function organize(){
+   const spotify=document.getElementById('spotifyAvailable');
+   const soon=document.getElementById('listenSoon');
+   const top=document.getElementById('moveQueueTop');
+   if(!spotify||!soon||!top||document.getElementById('listeningUnified'))return;
+   const sf=spotify.closest('.field, .form-field, label')||spotify.parentElement;
+   const qf=soon.closest('.field, .form-field')||soon.parentElement;
+   const host=document.createElement('section'); host.id='listeningUnified';
+   host.innerHTML='<h3>Audição</h3><div class="listening-grid"><div class="spotify-box"></div><div><strong>Próximos</strong><div class="queue-choice" role="radiogroup" aria-label="Posição nos próximos"></div></div></div>';
+   const sp=host.querySelector('.spotify-box');
+   const spotifyLabel=document.querySelector('label[for="spotifyAvailable"]');
+   sp.append(spotify); if(spotifyLabel)sp.append(spotifyLabel);
+   const choices=host.querySelector('.queue-choice');
+   choices.innerHTML='<label><input type="radio" name="queuePlacement" value="none"> Não adicionar</label><label><input type="radio" name="queuePlacement" value="end"> Adicionar ao fim</label><label><input type="radio" name="queuePlacement" value="top"> Adicionar ao topo</label>';
+   (sf.parentElement||qf.parentElement).insertBefore(host,sf);
+   sf.style.display='none'; qf.style.display='none'; const tf=top.closest('.field, .form-field')||top.parentElement; if(tf)tf.style.display='none';
+   const radios=[...choices.querySelectorAll('input')];
+   function syncFromOld(){ const v=!soon.checked?'none':(top.checked?'top':'end'); const r=radios.find(x=>x.value===v); if(r)r.checked=true; }
+   function syncToOld(v){ soon.checked=v!=='none'; top.checked=v==='top'; soon.dispatchEvent(new Event('change',{bubbles:true})); top.dispatchEvent(new Event('change',{bubbles:true})); }
+   radios.forEach(r=>r.addEventListener('change',()=>r.checked&&syncToOld(r.value))); syncFromOld();
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',organize); else organize();
+})();
+</script>
+
+</body>
 </html>
