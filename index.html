@@ -3364,16 +3364,56 @@
                display: none !important;
             }
          }
-      
-         .integrity-report{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
-         .integrity-report h3{margin:0 0 8px;font-size:13px}
-         .integrity-grid{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:12px}
-         .integrity-ok{color:var(--ok)}.integrity-warning{color:var(--danger)}
-         .conflict-details{max-height:210px;overflow:auto;margin-top:10px;border:1px solid var(--line);border-radius:10px}
-         .conflict-item{padding:8px 10px;border-bottom:1px solid var(--line);font-size:11px}.conflict-item:last-child{border-bottom:0}
+
+         .integrity-report {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid var(--line);
+         }
+         .integrity-report h3 {
+            margin: 0 0 8px;
+            font-size: 13px;
+         }
+         .integrity-grid {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 6px 12px;
+            font-size: 12px;
+         }
+         .integrity-ok {
+            color: var(--ok);
+         }
+         .integrity-warning {
+            color: var(--danger);
+         }
+         .conflict-details {
+            max-height: 210px;
+            overflow: auto;
+            margin-top: 10px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+         }
+         .conflict-item {
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--line);
+            font-size: 11px;
+         }
+         .conflict-item:last-child {
+            border-bottom: 0;
+         }
          /* Valores finais consolidados: alterações responsivas futuras devem ficar neste bloco. */
-         @media (max-width:760px){.table-scroll table{min-width:1060px!important}}
-               #luckyBtn{display:none!important}.sync-dot,#dot{cursor:help}
+         @media (max-width: 760px) {
+            .table-scroll table {
+               min-width: 1060px !important;
+            }
+         }
+         #luckyBtn {
+            display: none !important;
+         }
+         .sync-dot,
+         #dot {
+            cursor: help;
+         }
 
          /* Native album-form reorganization. */
          #settingsDialog .field.full > label:has(input[type="checkbox"]) {
@@ -3391,11 +3431,13 @@
          }
          .listening-options-row {
             display: grid !important;
-            grid-template-columns: minmax(210px, .9fr) minmax(300px, 1.35fr) !important;
+            grid-template-columns: minmax(210px, 0.9fr) minmax(300px, 1.35fr) !important;
             gap: 12px !important;
             align-items: stretch !important;
          }
-         .listening-option-card { height: 100%; }
+         .listening-option-card {
+            height: 100%;
+         }
          .queue-placement {
             min-width: 0;
             margin: 0;
@@ -3409,9 +3451,13 @@
             font-size: 11px;
             font-weight: 750;
             text-transform: uppercase;
-            letter-spacing: .045em;
+            letter-spacing: 0.045em;
          }
-         .queue-placement-options { display: flex; flex-wrap: wrap; gap: 7px; }
+         .queue-placement-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+         }
          .queue-placement-options label {
             display: inline-flex;
             align-items: center;
@@ -3425,29 +3471,93 @@
          }
          .queue-placement-options label:has(input:checked) {
             border-color: var(--brand);
-            background: rgba(49,87,213,.10);
+            background: rgba(49, 87, 213, 0.1);
             color: var(--brand);
          }
-         .queue-placement-options input { width: 15px; height: 15px; margin: 0; accent-color: var(--brand); }
-         .queue-placement > .hint { display: block; margin-top: 7px; }
-         #albumDialog .field, #albumDialog .meta-grid > *, #albumDialog .listening-grid > * { min-width: 0; }
-         #albumDialog input, #albumDialog select, #albumDialog textarea { max-width: 100%; box-sizing: border-box; }
-         @media (max-width:760px) {
-            .listening-options-row { grid-template-columns: 1fr !important; }
-            .queue-placement-options { display: grid; grid-template-columns: 1fr; }
-            .queue-placement-options label { border-radius: 9px; }
-            #releaseDate { display: block !important; width: 100% !important; min-width: 0 !important; max-width: 100% !important; }
-            .meta-grid { grid-template-columns: minmax(0,1fr) !important; }
+         .queue-placement-options input {
+            width: 15px;
+            height: 15px;
+            margin: 0;
+            accent-color: var(--brand);
          }
-      
+         .queue-placement > .hint {
+            display: block;
+            margin-top: 7px;
+         }
+         #albumDialog .field,
+         #albumDialog .meta-grid > *,
+         #albumDialog .listening-grid > * {
+            min-width: 0;
+         }
+         #albumDialog input,
+         #albumDialog select,
+         #albumDialog textarea {
+            max-width: 100%;
+            box-sizing: border-box;
+         }
+         @media (max-width: 760px) {
+            .listening-options-row {
+               grid-template-columns: 1fr !important;
+            }
+            .queue-placement-options {
+               display: grid;
+               grid-template-columns: 1fr;
+            }
+            .queue-placement-options label {
+               border-radius: 9px;
+            }
+            #releaseDate {
+               display: block !important;
+               width: 100% !important;
+               min-width: 0 !important;
+               max-width: 100% !important;
+            }
+            .meta-grid {
+               grid-template-columns: minmax(0, 1fr) !important;
+            }
+         }
+
          /* Audição: layout simplificado, com estado derivado da data. */
-         .listening-summary{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,.72fr);gap:12px;align-items:end}
-         .listening-state{min-height:38px;display:flex;align-items:center;padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:rgba(127,127,127,.035);color:var(--muted);font-weight:700}
-         .listening-state.heard{border-color:rgba(18,183,106,.42);background:rgba(18,183,106,.08);color:var(--ok)}
-         .listening-options-row{grid-template-columns:minmax(0,1.35fr) minmax(190px,.65fr)!important}
-         .spotify-check{background:rgba(127,127,127,.035)!important}
-         .listening-metadata .created-readonly{border:0;padding:2px 0 0;min-height:auto;background:transparent}
-         @media(max-width:760px){.listening-summary,.listening-options-row{grid-template-columns:1fr!important}}
+         .listening-summary {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(180px, 0.72fr);
+            gap: 12px;
+            align-items: end;
+         }
+         .listening-state {
+            min-height: 38px;
+            display: flex;
+            align-items: center;
+            padding: 10px 11px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: rgba(127, 127, 127, 0.035);
+            color: var(--muted);
+            font-weight: 700;
+         }
+         .listening-state.heard {
+            border-color: rgba(18, 183, 106, 0.42);
+            background: rgba(18, 183, 106, 0.08);
+            color: var(--ok);
+         }
+         .listening-options-row {
+            grid-template-columns: minmax(0, 1.35fr) minmax(190px, 0.65fr) !important;
+         }
+         .spotify-check {
+            background: rgba(127, 127, 127, 0.035) !important;
+         }
+         .listening-metadata .created-readonly {
+            border: 0;
+            padding: 2px 0 0;
+            min-height: auto;
+            background: transparent;
+         }
+         @media (max-width: 760px) {
+            .listening-summary,
+            .listening-options-row {
+               grid-template-columns: 1fr !important;
+            }
+         }
 
          /* Professional listening panel: final visual system. */
          #albumDialog .listening-grid {
@@ -3457,26 +3567,46 @@
          }
          #albumDialog .listening-summary {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) 150px;
+            grid-template-columns: minmax(0, 1fr) 180px;
             gap: 14px;
-            align-items: end;
+            align-items: start;
          }
          #albumDialog .listening-summary > .field:last-child {
             gap: 5px;
          }
+
+         #albumDialog .listening-metadata {
+            padding-top: 13px;
+            border-top: 1px solid var(--line);
+         }
+
+         #albumDialog .metadata-inline {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+
+            color: var(--muted);
+            display: inline-flex;
+            gap: 6px;
+            align-items: center;
+         }
+
+         #albumDialog .metadata-inline span {
+            color: var(--muted);
+         }
+
          #albumDialog .listening-state {
-            min-height: 40px;
-            padding: 10px 12px;
+            height: 42px;
+            min-height: 42px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
             border: 1px solid var(--line);
             border-radius: 9px;
-            background: rgba(127,127,127,.035);
-            color: var(--muted);
-            font-size: 12px;
-            font-weight: 750;
          }
          #albumDialog .listening-state.heard {
-            border-color: rgba(18,183,106,.28);
-            background: rgba(18,183,106,.07);
+            border-color: rgba(18, 183, 106, 0.28);
+            background: rgba(18, 183, 106, 0.07);
             color: var(--ok);
          }
          #albumDialog .listening-options-row {
@@ -3499,7 +3629,7 @@
             font-size: 10px;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: .055em;
+            letter-spacing: 0.055em;
          }
          #albumDialog .queue-placement-options {
             display: grid;
@@ -3508,7 +3638,7 @@
             padding: 3px;
             border: 1px solid var(--line);
             border-radius: 10px;
-            background: rgba(127,127,127,.05);
+            background: rgba(127, 127, 127, 0.05);
          }
          #albumDialog .queue-placement-options label {
             position: relative;
@@ -3527,7 +3657,7 @@
          #albumDialog .queue-placement-options label:has(input:checked) {
             background: var(--card);
             color: var(--brand);
-            box-shadow: 0 1px 4px rgba(16,24,40,.14);
+            box-shadow: 0 1px 4px rgba(16, 24, 40, 0.14);
          }
          #albumDialog .queue-placement-options input {
             position: absolute;
@@ -3543,8 +3673,8 @@
          }
          #albumDialog .spotify-check {
             align-items: center;
-            min-height: 42px;
-            padding: 9px 11px;
+            min-height: 36px;
+            padding: 6px 10px;
             border: 1px solid var(--line);
             border-radius: 9px;
             background: transparent !important;
@@ -3564,7 +3694,7 @@
             font-size: 12px;
          }
          #albumDialog .spotify-check small {
-            font-size: 10px;
+            display: none;
          }
          #albumDialog .listening-metadata {
             display: flex;
@@ -3597,17 +3727,19 @@
          @media (prefers-color-scheme: dark) {
             #albumDialog .queue-placement-options label:has(input:checked) {
                background: #263247;
-               box-shadow: 0 1px 5px rgba(0,0,0,.35);
+               box-shadow: 0 1px 5px rgba(0, 0, 0, 0.35);
             }
          }
-         @media (max-width:760px) {
-            #albumDialog .listening-grid { gap: 16px; }
+         @media (max-width: 760px) {
+            #albumDialog .listening-grid {
+               gap: 16px;
+            }
             #albumDialog .listening-summary {
-               grid-template-columns: minmax(0,1fr) 126px !important;
+               grid-template-columns: minmax(0, 1fr) 126px !important;
                gap: 9px;
             }
             #albumDialog .queue-placement-options {
-               grid-template-columns: repeat(3, minmax(0,1fr));
+               grid-template-columns: repeat(3, minmax(0, 1fr));
             }
             #albumDialog .queue-placement-options label {
                min-height: 42px;
@@ -3621,7 +3753,7 @@
                gap: 1px;
             }
          }
-</style>
+      </style>
    </head>
    <body>
       <div class="wrap">
@@ -4152,37 +4284,95 @@
                            <div class="field">
                               <label for="lastListened">Última audição</label>
                               <input id="lastListened" type="month" />
-                              <span class="hint">Define automaticamente se o álbum está ouvido.</span>
                            </div>
                            <div class="field">
-                              <label>Estado calculado</label>
-                              <div class="listening-state" id="stateDisplay" role="status" aria-live="polite">○ Por ouvir</div>
+                              <label>Estado</label>
+                              <div
+                                 class="listening-state"
+                                 id="stateDisplay"
+                                 role="status"
+                                 aria-live="polite"
+                              >
+                                 ○ Por ouvir
+                              </div>
                            </div>
                         </div>
                         <div class="field full listening-options-row">
-                           <fieldset class="queue-placement" id="queuePlacementGroup">
+                           <fieldset
+                              class="queue-placement"
+                              id="queuePlacementGroup"
+                           >
                               <legend>Fila de audição</legend>
-                              <div class="queue-placement-options" role="radiogroup" aria-label="Posição na fila de audição">
-                                 <label><input type="radio" name="queuePlacement" value="none" checked /><span>Fora da fila</span></label>
-                                 <label><input type="radio" name="queuePlacement" value="end" /><span>No fim</span></label>
-                                 <label><input type="radio" name="queuePlacement" value="top" /><span>No início</span></label>
+                              <div
+                                 class="queue-placement-options"
+                                 role="radiogroup"
+                                 aria-label="Posição na fila de audição"
+                              >
+                                 <label
+                                    ><input
+                                       type="radio"
+                                       name="queuePlacement"
+                                       value="none"
+                                       checked
+                                    /><span>Fora</span></label
+                                 >
+                                 <label
+                                    ><input
+                                       type="radio"
+                                       name="queuePlacement"
+                                       value="end"
+                                    /><span>No fim</span></label
+                                 >
+                                 <label
+                                    ><input
+                                       type="radio"
+                                       name="queuePlacement"
+                                       value="top"
+                                    /><span>Início</span></label
+                                 >
                               </div>
-                              <small class="hint">O início da fila corresponde à posição #1.</small>
+                              <small class="hint"
+                                 >O início da fila corresponde à posição
+                                 #1.</small
+                              >
                            </fieldset>
                            <div class="availability-block">
-                              <span class="availability-title">Disponibilidade</span>
-                              <label class="spotify-check listening-option-card">
-                              <input id="spotifyAvailable" type="checkbox" checked />
-                              <span><strong>Spotify disponível</strong><small>Desmarca se o álbum não estiver disponível.</small></span>
+                              <span class="availability-title"
+                                 >Disponibilidade</span
+                              >
+                              <label
+                                 class="spotify-check listening-option-card"
+                              >
+                                 <input
+                                    id="spotifyAvailable"
+                                    type="checkbox"
+                                    checked
+                                 />
+                                 <span>
+                                    <strong>✅ Disponível no Spotify</strong>
+                                 </span>
                               </label>
                            </div>
-                           <input id="listenSoon" type="checkbox" hidden aria-hidden="true" tabindex="-1" />
-                           <input id="moveQueueTop" type="checkbox" hidden aria-hidden="true" tabindex="-1" />
+                           <input
+                              id="listenSoon"
+                              type="checkbox"
+                              hidden
+                              aria-hidden="true"
+                              tabindex="-1"
+                           />
+                           <input
+                              id="moveQueueTop"
+                              type="checkbox"
+                              hidden
+                              aria-hidden="true"
+                              tabindex="-1"
+                           />
                         </div>
                         <div class="field full listening-metadata">
-                           <span class="form-section-title">Informação</span>
-                           <label>Adicionado em</label>
-                           <div class="created-readonly" id="createdAtDisplay">—</div>
+                           <span class="metadata-inline">
+                              Adicionado em:
+                              <span id="createdAtDisplay">—</span>
+                           </span>
                         </div>
                      </div>
                   </div>
@@ -4324,7 +4514,54 @@
             </div>
          </div>
       </dialog>
-      <dialog id="importBackupDialog"><div class="modal queue-modal"><div class="manager-head"><div><h2 id="importBackupTitle" tabindex="-1">Importar backup</h2><p class="muted" id="importBackupSummary"></p></div><button type="button" class="drawer-close" data-close="importBackupDialog" aria-label="Fechar">×</button></div><div class="audit-list"><div class="audit-row"><span>Álbuns</span><strong id="importAlbumCount">0</strong></div><div class="audit-row"><span>Fontes</span><strong id="importSourceCount">0</strong></div><div class="audit-row"><span>Conflitos previstos</span><strong id="importConflictCount">0</strong></div></div><div class="conflict-details" id="importConflictDetails" hidden></div><div class="modal-actions"><button type="button" class="btn" id="importCombineBtn">Combinar</button><button type="button" class="btn danger" id="importReplaceBtn">Substituir</button><button type="button" class="btn primary" data-close="importBackupDialog">Cancelar</button></div></div></dialog>
+      <dialog id="importBackupDialog">
+         <div class="modal queue-modal">
+            <div class="manager-head">
+               <div>
+                  <h2 id="importBackupTitle" tabindex="-1">Importar backup</h2>
+                  <p class="muted" id="importBackupSummary"></p>
+               </div>
+               <button
+                  type="button"
+                  class="drawer-close"
+                  data-close="importBackupDialog"
+                  aria-label="Fechar"
+               >
+                  ×
+               </button>
+            </div>
+            <div class="audit-list">
+               <div class="audit-row">
+                  <span>Álbuns</span><strong id="importAlbumCount">0</strong>
+               </div>
+               <div class="audit-row">
+                  <span>Fontes</span><strong id="importSourceCount">0</strong>
+               </div>
+               <div class="audit-row">
+                  <span>Conflitos previstos</span
+                  ><strong id="importConflictCount">0</strong>
+               </div>
+            </div>
+            <div
+               class="conflict-details"
+               id="importConflictDetails"
+               hidden
+            ></div>
+            <div class="modal-actions">
+               <button type="button" class="btn" id="importCombineBtn">
+                  Combinar</button
+               ><button type="button" class="btn danger" id="importReplaceBtn">
+                  Substituir</button
+               ><button
+                  type="button"
+                  class="btn primary"
+                  data-close="importBackupDialog"
+               >
+                  Cancelar
+               </button>
+            </div>
+         </div>
+      </dialog>
       <dialog id="settingsDialog">
          <form method="dialog" class="modal" id="settingsForm">
             <h2 id="settingsTitle" class="dialog-focus-anchor" tabindex="-1">
@@ -4477,7 +4714,11 @@
                </button>
             </div>
             <div class="audit-list" id="auditList"></div>
-            <div class="integrity-report" id="integrityReport" aria-live="polite"></div>
+            <div
+               class="integrity-report"
+               id="integrityReport"
+               aria-live="polite"
+            ></div>
             <div class="modal-actions">
                <button type="button" class="btn" data-close="auditDialog">
                   Fechar
@@ -4700,10 +4941,7 @@
          function renderDashboard() {
             if (dashboardCache.version !== localChangeVersion) {
                const total = albums.length,
-                  heard = albums.reduce(
-                     (n, a) => n + (isHeard(a)),
-                     0,
-                  ),
+                  heard = albums.reduce((n, a) => n + isHeard(a), 0),
                   next = albums.reduce(
                      (n, a) => n + (a.ouvirBrevemente === true),
                      0,
@@ -4822,9 +5060,47 @@
          function clearStorageError() {
             $("#storageAlert").classList.remove("show");
          }
-         const CURRENT_SCHEMA_VERSION=3, MAX_IMPORT_BYTES=10*1024*1024, MAX_IMPORT_ALBUMS=25000, MAX_IMPORT_SOURCES=500, TOMBSTONE_RETENTION_DAYS=730;
-         function migratePayload(value){const input=value&&typeof value==="object"?cloneData(value):{};return{schemaVersion:CURRENT_SCHEMA_VERSION,updatedAt:input.updatedAt||new Date().toISOString(),sourceDefinitions:normalizeSourceDefinitions(input.sourceDefinitions),albums:Array.isArray(input.albums)?input.albums.map(normalize):[],deletedAlbums:input.deletedAlbums&&typeof input.deletedAlbums==="object"?input.deletedAlbums:{},deletedSources:input.deletedSources&&typeof input.deletedSources==="object"?input.deletedSources:{},preferences:input.preferences&&typeof input.preferences==="object"?input.preferences:{sortKey:"createdAt",sortDir:"desc",updatedAt:""}}}
-         function pruneTombstones(map){const cutoff=Date.now()-TOMBSTONE_RETENTION_DAYS*86400000,out={};Object.entries(map||{}).forEach(([id,time])=>{const parsed=Date.parse(time||"");if(!Number.isFinite(parsed)||parsed>=cutoff)out[id]=time});return out}
+         const CURRENT_SCHEMA_VERSION = 3,
+            MAX_IMPORT_BYTES = 10 * 1024 * 1024,
+            MAX_IMPORT_ALBUMS = 25000,
+            MAX_IMPORT_SOURCES = 500,
+            TOMBSTONE_RETENTION_DAYS = 730;
+         function migratePayload(value) {
+            const input =
+               value && typeof value === "object" ? cloneData(value) : {};
+            return {
+               schemaVersion: CURRENT_SCHEMA_VERSION,
+               updatedAt: input.updatedAt || new Date().toISOString(),
+               sourceDefinitions: normalizeSourceDefinitions(
+                  input.sourceDefinitions,
+               ),
+               albums: Array.isArray(input.albums)
+                  ? input.albums.map(normalize)
+                  : [],
+               deletedAlbums:
+                  input.deletedAlbums && typeof input.deletedAlbums === "object"
+                     ? input.deletedAlbums
+                     : {},
+               deletedSources:
+                  input.deletedSources &&
+                  typeof input.deletedSources === "object"
+                     ? input.deletedSources
+                     : {},
+               preferences:
+                  input.preferences && typeof input.preferences === "object"
+                     ? input.preferences
+                     : { sortKey: "createdAt", sortDir: "desc", updatedAt: "" },
+            };
+         }
+         function pruneTombstones(map) {
+            const cutoff = Date.now() - TOMBSTONE_RETENTION_DAYS * 86400000,
+               out = {};
+            Object.entries(map || {}).forEach(([id, time]) => {
+               const parsed = Date.parse(time || "");
+               if (!Number.isFinite(parsed) || parsed >= cutoff) out[id] = time;
+            });
+            return out;
+         }
          function currentPayload() {
             return {
                schemaVersion: 3,
@@ -4875,12 +5151,22 @@
             return Number.isFinite(n) ? n : 0;
          }
          const VALID_SORT_KEYS = new Set([
-            "album", "artista", "generos", "lancamento", "origemRegisto",
-            "disponivelSpotify", "avaliacao", "ouvirBrevemente", "estado",
-            "ultimaAudicao", "createdAt",
+            "album",
+            "artista",
+            "generos",
+            "lancamento",
+            "origemRegisto",
+            "disponivelSpotify",
+            "avaliacao",
+            "ouvirBrevemente",
+            "estado",
+            "ultimaAudicao",
+            "createdAt",
          ]);
          function validSortKey(value, fallback = "createdAt") {
-            return typeof value === "string" && VALID_SORT_KEYS.has(value) ? value : fallback;
+            return typeof value === "string" && VALID_SORT_KEYS.has(value)
+               ? value
+               : fallback;
          }
          const ALBUM_MERGE_FIELDS = [
             "album",
@@ -5160,9 +5446,7 @@
 
                const localPreferences = raw?.preferences || {};
 
-               if (
-                  VALID_SORT_KEYS.has(localPreferences.sortKey)
-               ) {
+               if (VALID_SORT_KEYS.has(localPreferences.sortKey)) {
                   sortKey = localPreferences.sortKey;
                }
 
@@ -5232,7 +5516,19 @@
             t.classList.add("show");
             setTimeout(() => t.classList.remove("show"), 3500);
          }
-         function updateSyncTooltip(){const cfg=getConfig(),summary=[`Gist: ${cfg.gistId?"configurado":"não configurado"}`,`Estado: ${syncBusy?"a sincronizar":dirty?"alterações locais":"sincronizado"}`,`Dados pendentes: ${collectionDirty?"sim":"não"}`,`Preferências pendentes: ${preferencesDirty?"sim":"não"}`,`Versão local: ${localChangeVersion}`,`Revisão remota: ${remoteUpdatedAt?new Date(remoteUpdatedAt).toLocaleString("pt-PT"):"desconhecida"}`].join("\n");$("#dot").title=summary;$("#syncText").title=summary;}
+         function updateSyncTooltip() {
+            const cfg = getConfig(),
+               summary = [
+                  `Gist: ${cfg.gistId ? "configurado" : "não configurado"}`,
+                  `Estado: ${syncBusy ? "a sincronizar" : dirty ? "alterações locais" : "sincronizado"}`,
+                  `Dados pendentes: ${collectionDirty ? "sim" : "não"}`,
+                  `Preferências pendentes: ${preferencesDirty ? "sim" : "não"}`,
+                  `Versão local: ${localChangeVersion}`,
+                  `Revisão remota: ${remoteUpdatedAt ? new Date(remoteUpdatedAt).toLocaleString("pt-PT") : "desconhecida"}`,
+               ].join("\n");
+            $("#dot").title = summary;
+            $("#syncText").title = summary;
+         }
          function updateStatus(msg) {
             const cfg = getConfig();
             $("#syncText").textContent =
@@ -5276,7 +5572,9 @@
             const m = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(String(v || ""));
             return m ? { year: Number(m[1]), month: Number(m[2]) } : null;
          }
-         function isHeard(a) { return !!validMonthValue(a?.ultimaAudicao); }
+         function isHeard(a) {
+            return !!validMonthValue(a?.ultimaAudicao);
+         }
          function updateListeningStateDisplay() {
             const display = $("#stateDisplay");
             if (!display) return;
@@ -5284,7 +5582,10 @@
             display.textContent = heard ? "✓ Ouvido" : "○ Por ouvir";
             display.classList.toggle("heard", heard);
          }
-         $("#lastListened").addEventListener("input", updateListeningStateDisplay);
+         $("#lastListened").addEventListener(
+            "input",
+            updateListeningStateDisplay,
+         );
          function monthsSince(v) {
             const parsed = validMonthValue(v);
             if (!parsed) return null;
@@ -5295,8 +5596,7 @@
             return diff;
          }
          function listeningAge(a) {
-            if (!isHeard(a))
-               return { symbol: "○", label: "Por ouvir" };
+            if (!isHeard(a)) return { symbol: "○", label: "Por ouvir" };
             const age = monthsSince(a.ultimaAudicao);
             if (age === null)
                return {
@@ -5422,7 +5722,9 @@
                         (!sf ||
                            (sf === "breve"
                               ? a.ouvirBrevemente === true
-                              : (sf === "ouvido" ? isHeard(a) : !isHeard(a)))) &&
+                              : sf === "ouvido"
+                                ? isHeard(a)
+                                : !isHeard(a))) &&
                         (!rf || a.avaliacao >= rf) &&
                         (!spf ||
                            (spf === "yes"
@@ -5502,14 +5804,21 @@
             });
          }
          function setQueuePlacement(value) {
-            const valid = ["none", "end", "top"].includes(value) ? value : "none";
-            const radio = document.querySelector(`[name="queuePlacement"][value="${valid}"]`);
+            const valid = ["none", "end", "top"].includes(value)
+               ? value
+               : "none";
+            const radio = document.querySelector(
+               `[name="queuePlacement"][value="${valid}"]`,
+            );
             if (radio) radio.checked = true;
             $("#listenSoon").checked = valid !== "none";
             $("#moveQueueTop").checked = valid === "top";
          }
          function currentQueuePlacement() {
-            return document.querySelector('[name="queuePlacement"]:checked')?.value || "none";
+            return (
+               document.querySelector('[name="queuePlacement"]:checked')
+                  ?.value || "none"
+            );
          }
          function openAlbum(id = null) {
             editingId = id;
@@ -5517,7 +5826,9 @@
                ? albums.find((x) => x.id === id)
                : normalize({ fontes: {} });
             $("#formTitle").textContent = id ? "Editar álbum" : "Novo álbum";
-            $("#albumForm .primary").textContent = id ? "Guardar alteração" : "Adicionar álbum";
+            $("#albumForm .primary").textContent = id
+               ? "Guardar alteração"
+               : "Adicionar álbum";
             $("#deleteFromEditor").hidden = !id;
             $("#album").value = a.album;
             $("#artist").value = a.artista;
@@ -5537,10 +5848,13 @@
             updateListeningStateDisplay();
             setQueuePlacement(a.ouvirBrevemente === true ? "end" : "none");
             $("#createdAtDisplay").textContent = dateLabel(a.createdAt);
-            const dialog = $("#albumDialog"), body = dialog.querySelector(".album-modal-body");
+            const dialog = $("#albumDialog"),
+               body = dialog.querySelector(".album-modal-body");
             if (body) body.scrollTop = 0;
             dialog.showModal();
-            requestAnimationFrame(() => { if (body) body.scrollTop = 0; });
+            requestAnimationFrame(() => {
+               if (body) body.scrollTop = 0;
+            });
             focusDialogAnchor("#albumDialog", "#formTitle");
          }
          $("#albumForm").addEventListener("submit", (e) => {
@@ -6114,9 +6428,7 @@
                reason = `Escolhido entre ${unheard.length} álbum${unheard.length === 1 ? "" : "s"} por ouvir, favorecendo ligeiramente os adicionados há mais tempo.`;
                weightFn = (a) => ageWeightFromDate(a.createdAt);
             } else {
-               pool = albums.filter(
-                  (a) => isHeard(a) && a.avaliacao >= 4,
-               );
+               pool = albums.filter((a) => isHeard(a) && a.avaliacao >= 4);
                reason =
                   "Escolhido entre as reescutas de 4 ou 5 estrelas, com preferência pelas ouvidas há mais tempo.";
                weightFn = (a) =>
@@ -6161,23 +6473,62 @@
          };
 
          function collectionIntegrityReport(payload = currentPayload()) {
-            const list = Array.isArray(payload.albums) ? payload.albums : [], defs = Array.isArray(payload.sourceDefinitions) ? payload.sourceDefinitions : [];
-            const ids = new Set(), duplicateIds = [], knownSources = new Set(defs.map(d => d.id)), unknownSources = new Set(), ranks = new Map(), duplicateRanks = [], invalidRecords = [];
+            const list = Array.isArray(payload.albums) ? payload.albums : [],
+               defs = Array.isArray(payload.sourceDefinitions)
+                  ? payload.sourceDefinitions
+                  : [];
+            const ids = new Set(),
+               duplicateIds = [],
+               knownSources = new Set(defs.map((d) => d.id)),
+               unknownSources = new Set(),
+               ranks = new Map(),
+               duplicateRanks = [],
+               invalidRecords = [];
             list.forEach((album, index) => {
-               if (!album || typeof album !== "object" || !album.id || !album.album || !album.artista) invalidRecords.push(index + 1);
-               if (album?.id) { if (ids.has(album.id)) duplicateIds.push(album.id); ids.add(album.id); }
-               (album?.fontes || []).forEach(id => { if (!knownSources.has(id)) unknownSources.add(id); });
-               if (album?.ouvirBrevemente && Number(album.proximoRank) > 0) { const rank=Number(album.proximoRank); if(ranks.has(rank)) duplicateRanks.push(rank); else ranks.set(rank,album.id); }
+               if (
+                  !album ||
+                  typeof album !== "object" ||
+                  !album.id ||
+                  !album.album ||
+                  !album.artista
+               )
+                  invalidRecords.push(index + 1);
+               if (album?.id) {
+                  if (ids.has(album.id)) duplicateIds.push(album.id);
+                  ids.add(album.id);
+               }
+               (album?.fontes || []).forEach((id) => {
+                  if (!knownSources.has(id)) unknownSources.add(id);
+               });
+               if (album?.ouvirBrevemente && Number(album.proximoRank) > 0) {
+                  const rank = Number(album.proximoRank);
+                  if (ranks.has(rank)) duplicateRanks.push(rank);
+                  else ranks.set(rank, album.id);
+               }
             });
-            const duplicateSourceIds = defs.map(d=>d.id).filter((id,i,a)=>id && a.indexOf(id)!==i);
-            return { duplicateIds:[...new Set(duplicateIds)], duplicateSourceIds:[...new Set(duplicateSourceIds)], duplicateRanks:[...new Set(duplicateRanks)], unknownSources:[...unknownSources], invalidRecords };
+            const duplicateSourceIds = defs
+               .map((d) => d.id)
+               .filter((id, i, a) => id && a.indexOf(id) !== i);
+            return {
+               duplicateIds: [...new Set(duplicateIds)],
+               duplicateSourceIds: [...new Set(duplicateSourceIds)],
+               duplicateRanks: [...new Set(duplicateRanks)],
+               unknownSources: [...unknownSources],
+               invalidRecords,
+            };
          }
          function renderIntegrityReport() {
-            const report=collectionIntegrityReport(), rows=[
-               ["IDs de álbum duplicados",report.duplicateIds.length], ["IDs de fonte duplicados",report.duplicateSourceIds.length],
-               ["Posições duplicadas na fila",report.duplicateRanks.length], ["Fontes desconhecidas",report.unknownSources.length], ["Registos inválidos",report.invalidRecords.length],
-            ], total=rows.reduce((sum,row)=>sum+row[1],0);
-            $("#integrityReport").innerHTML=`<h3>Integridade interna</h3><div class="integrity-grid">${rows.map(([label,count])=>`<span>${esc(label)}</span><strong class="${count?"integrity-warning":"integrity-ok"}">${count}</strong>`).join("")}</div><p class="muted">${total ? `${total} problema(s) estrutural(is) encontrado(s).` : "Sem problemas estruturais detetados."}</p>`;
+            const report = collectionIntegrityReport(),
+               rows = [
+                  ["IDs de álbum duplicados", report.duplicateIds.length],
+                  ["IDs de fonte duplicados", report.duplicateSourceIds.length],
+                  ["Posições duplicadas na fila", report.duplicateRanks.length],
+                  ["Fontes desconhecidas", report.unknownSources.length],
+                  ["Registos inválidos", report.invalidRecords.length],
+               ],
+               total = rows.reduce((sum, row) => sum + row[1], 0);
+            $("#integrityReport").innerHTML =
+               `<h3>Integridade interna</h3><div class="integrity-grid">${rows.map(([label, count]) => `<span>${esc(label)}</span><strong class="${count ? "integrity-warning" : "integrity-ok"}">${count}</strong>`).join("")}</div><p class="muted">${total ? `${total} problema(s) estrutural(is) encontrado(s).` : "Sem problemas estruturais detetados."}</p>`;
             return report;
          }
          function auditCollection() {
@@ -6230,9 +6581,7 @@
             );
          };
          function chooseSmart() {
-            let pool = albums.filter(
-               (a) => a.ouvirBrevemente && !isHeard(a),
-            );
+            let pool = albums.filter((a) => a.ouvirBrevemente && !isHeard(a));
             let reason =
                "Recomendação racional: está nos próximos, ainda não foi ouvido e beneficia da posição e antiguidade.";
             if (!pool.length) {
@@ -6241,9 +6590,7 @@
                   "Recomendação racional entre os álbuns por ouvir, favorecendo os que esperam há mais tempo.";
             }
             if (!pool.length) {
-               pool = albums.filter(
-                  (a) => isHeard(a) && a.avaliacao >= 4,
-               );
+               pool = albums.filter((a) => isHeard(a) && a.avaliacao >= 4);
                reason =
                   "Recomendação racional de reescuta, favorecendo avaliações altas e audições antigas.";
             }
@@ -6256,9 +6603,7 @@
                (a.ouvirBrevemente ? 5 + queueRankWeight(a) : 0) +
                (!isHeard(a) ? 3 : 0) +
                ageWeightFromDate(a.createdAt) +
-               (isHeard(a)
-                  ? ageWeightFromMonth(a.ultimaAudicao)
-                  : 0) +
+               (isHeard(a) ? ageWeightFromMonth(a.ultimaAudicao) : 0) +
                (Number(a.avaliacao) || 0) * 0.35;
             const pick = [...pool].sort(
                (a, b) =>
@@ -6434,7 +6779,7 @@
                )
                .forEach((x) => x.classList.remove("dragging", "drag-over"));
          });
-         
+
          $("#luckyAgain").onclick = chooseLucky;
          document.querySelector('[data-close="luckyDialog"]').onclick = () =>
             $("#luckyDialog").close();
@@ -6563,9 +6908,7 @@
 
                const remotePreferences = parsed.preferences || {};
 
-               if (
-                  VALID_SORT_KEYS.has(remotePreferences.sortKey)
-               ) {
+               if (VALID_SORT_KEYS.has(remotePreferences.sortKey)) {
                   sortKey = remotePreferences.sortKey;
                }
 
@@ -6626,9 +6969,7 @@
 
                const mergedPreferences = readMerge.payload.preferences || {};
 
-               if (
-                  VALID_SORT_KEYS.has(mergedPreferences.sortKey)
-               ) {
+               if (VALID_SORT_KEYS.has(mergedPreferences.sortKey)) {
                   sortKey = mergedPreferences.sortKey;
                }
 
@@ -7062,29 +7403,121 @@
          }
          let pendingImport = null;
          function describeConflict(conflict) {
-            const album = albums.find(a => a.id === conflict.id), name = album ? `${album.album} — ${album.artista}` : conflict.id || "Registo";
+            const album = albums.find((a) => a.id === conflict.id),
+               name = album
+                  ? `${album.album} — ${album.artista}`
+                  : conflict.id || "Registo";
             return `${name}: ${conflict.field || "campo desconhecido"}`;
          }
-         function loadImportPreview(value, fileName, fileSize=0) {
-            if(fileSize>MAX_IMPORT_BYTES)throw new Error("O backup excede 10 MB.");
-            if (!value || typeof value !== "object" || !Array.isArray(value.albums)) throw new Error("Estrutura inválida: falta o array albums.");
-            if(value.albums.length>MAX_IMPORT_ALBUMS)throw new Error("O backup excede 25 000 álbuns.");
-            if(Array.isArray(value.sourceDefinitions)&&value.sourceDefinitions.length>MAX_IMPORT_SOURCES)throw new Error("O backup excede 500 fontes.");
-            const payload={...value,sourceDefinitions:normalizeSourceDefinitions(value.sourceDefinitions),albums:value.albums.map(normalize),deletedAlbums:value.deletedAlbums||{},preferences:value.preferences||{sortKey:"createdAt",sortDir:"desc",updatedAt:""}};
-            const preview=mergePayloads(currentPayload(),payload,readJsonStore(BASE_SNAPSHOT,null)); pendingImport={payload,preview};
-            $("#importBackupSummary").textContent=`Backup válido: ${fileName}`; $("#importAlbumCount").textContent=payload.albums.length; $("#importSourceCount").textContent=payload.sourceDefinitions.length; $("#importConflictCount").textContent=preview.conflicts.length;
-            const details=$("#importConflictDetails"); details.hidden=!preview.conflicts.length; details.innerHTML=preview.conflicts.slice(0,100).map(c=>`<div class="conflict-item"><strong>${esc(describeConflict(c))}</strong><div>Local: ${esc(JSON.stringify(c.localValue))}</div><div>Remoto: ${esc(JSON.stringify(c.remoteValue))}</div></div>`).join("")+(preview.conflicts.length>100?`<div class="conflict-item">Mais ${preview.conflicts.length-100} conflito(s).</div>`:"");
+         function loadImportPreview(value, fileName, fileSize = 0) {
+            if (fileSize > MAX_IMPORT_BYTES)
+               throw new Error("O backup excede 10 MB.");
+            if (
+               !value ||
+               typeof value !== "object" ||
+               !Array.isArray(value.albums)
+            )
+               throw new Error("Estrutura inválida: falta o array albums.");
+            if (value.albums.length > MAX_IMPORT_ALBUMS)
+               throw new Error("O backup excede 25 000 álbuns.");
+            if (
+               Array.isArray(value.sourceDefinitions) &&
+               value.sourceDefinitions.length > MAX_IMPORT_SOURCES
+            )
+               throw new Error("O backup excede 500 fontes.");
+            const payload = {
+               ...value,
+               sourceDefinitions: normalizeSourceDefinitions(
+                  value.sourceDefinitions,
+               ),
+               albums: value.albums.map(normalize),
+               deletedAlbums: value.deletedAlbums || {},
+               preferences: value.preferences || {
+                  sortKey: "createdAt",
+                  sortDir: "desc",
+                  updatedAt: "",
+               },
+            };
+            const preview = mergePayloads(
+               currentPayload(),
+               payload,
+               readJsonStore(BASE_SNAPSHOT, null),
+            );
+            pendingImport = { payload, preview };
+            $("#importBackupSummary").textContent =
+               `Backup válido: ${fileName}`;
+            $("#importAlbumCount").textContent = payload.albums.length;
+            $("#importSourceCount").textContent =
+               payload.sourceDefinitions.length;
+            $("#importConflictCount").textContent = preview.conflicts.length;
+            const details = $("#importConflictDetails");
+            details.hidden = !preview.conflicts.length;
+            details.innerHTML =
+               preview.conflicts
+                  .slice(0, 100)
+                  .map(
+                     (c) =>
+                        `<div class="conflict-item"><strong>${esc(describeConflict(c))}</strong><div>Local: ${esc(JSON.stringify(c.localValue))}</div><div>Remoto: ${esc(JSON.stringify(c.remoteValue))}</div></div>`,
+                  )
+                  .join("") +
+               (preview.conflicts.length > 100
+                  ? `<div class="conflict-item">Mais ${preview.conflicts.length - 100} conflito(s).</div>`
+                  : "");
          }
          function applyImport(mode) {
-            if(!pendingImport)return; const result=mode==="combine"?pendingImport.preview:{payload:pendingImport.payload,conflicts:[]};
-            downloadJson(currentPayload(),`album-diary-before-import-${new Date().toISOString().slice(0,10)}.json`); const previous=cloneData(currentPayload()), payload=result.payload;
-            albums=payload.albums; sourceDefinitions=payload.sourceDefinitions; deletedAlbums=payload.deletedAlbums||{}; const prefs=payload.preferences||{}; sortKey=validSortKey(prefs.sortKey,sortKey); sortDir=prefs.sortDir==="asc"?"asc":"desc"; preferencesUpdatedAt=prefs.updatedAt||""; invalidateDataCaches();
-            if(!persist()){albums=previous.albums;sourceDefinitions=previous.sourceDefinitions;deletedAlbums=previous.deletedAlbums||{};return;} pendingImport=null;$("#importBackupDialog").close();toast(`Backup ${mode==="combine"?"combinado":"substituído"}.`);
+            if (!pendingImport) return;
+            const result =
+               mode === "combine"
+                  ? pendingImport.preview
+                  : { payload: pendingImport.payload, conflicts: [] };
+            downloadJson(
+               currentPayload(),
+               `album-diary-before-import-${new Date().toISOString().slice(0, 10)}.json`,
+            );
+            const previous = cloneData(currentPayload()),
+               payload = result.payload;
+            albums = payload.albums;
+            sourceDefinitions = payload.sourceDefinitions;
+            deletedAlbums = payload.deletedAlbums || {};
+            const prefs = payload.preferences || {};
+            sortKey = validSortKey(prefs.sortKey, sortKey);
+            sortDir = prefs.sortDir === "asc" ? "asc" : "desc";
+            preferencesUpdatedAt = prefs.updatedAt || "";
+            invalidateDataCaches();
+            if (!persist()) {
+               albums = previous.albums;
+               sourceDefinitions = previous.sourceDefinitions;
+               deletedAlbums = previous.deletedAlbums || {};
+               return;
+            }
+            pendingImport = null;
+            $("#importBackupDialog").close();
+            toast(
+               `Backup ${mode === "combine" ? "combinado" : "substituído"}.`,
+            );
          }
-         $("#importBackupBtn").onclick=()=>$("#importBackupInput").click();
-         $("#importBackupInput").onchange=async e=>{const file=e.target.files?.[0];e.target.value="";if(!file)return;try{loadImportPreview(JSON.parse(await file.text()),file.name,file.size);$("#importBackupDialog").showModal();$("#importBackupTitle").focus();}catch(error){toast(`Backup inválido: ${error.message}`,false)}};
-         $("#importCombineBtn").onclick=()=>applyImport("combine");
-         $("#importReplaceBtn").onclick=()=>{if(confirm("Substituir toda a coleção atual?"))applyImport("replace")};
+         $("#importBackupBtn").onclick = () => $("#importBackupInput").click();
+         $("#importBackupInput").onchange = async (e) => {
+            const file = e.target.files?.[0];
+            e.target.value = "";
+            if (!file) return;
+            try {
+               loadImportPreview(
+                  JSON.parse(await file.text()),
+                  file.name,
+                  file.size,
+               );
+               $("#importBackupDialog").showModal();
+               $("#importBackupTitle").focus();
+            } catch (error) {
+               toast(`Backup inválido: ${error.message}`, false);
+            }
+         };
+         $("#importCombineBtn").onclick = () => applyImport("combine");
+         $("#importReplaceBtn").onclick = () => {
+            if (confirm("Substituir toda a coleção atual?"))
+               applyImport("replace");
+         };
          $("#exportBackupBtn").onclick = downloadBackup;
          $("#exportMigrationBackupBtn").onclick = downloadMigrationBackup;
          $("#storageBackupBtn").onclick = downloadBackup;
@@ -7168,24 +7601,132 @@
             }
          });
          function runMergeTests() {
-            const failures=[], check=(ok,name)=>{if(!ok)failures.push(name)}, now=new Date().toISOString(), later=new Date(Date.now()+1000).toISOString();
-            const album={id:"test",album:"Base",artista:"Artista",generos:[],fontes:[],updatedAt:now,createdAt:now};
+            const failures = [],
+               check = (ok, name) => {
+                  if (!ok) failures.push(name);
+               },
+               now = new Date().toISOString(),
+               later = new Date(Date.now() + 1000).toISOString();
+            const album = {
+               id: "test",
+               album: "Base",
+               artista: "Artista",
+               generos: [],
+               fontes: [],
+               updatedAt: now,
+               createdAt: now,
+            };
             try {
-               let conflicts=[]; const different=mergeAlbumThreeWay(album,{...album,album:"Local",updatedAt:later},{...album,artista:"Remoto",updatedAt:later},conflicts); check(different.album==="Local"&&different.artista==="Remoto"&&!conflicts.length,"campos diferentes");
-               conflicts=[]; mergeAlbumThreeWay(album,{...album,album:"Local",updatedAt:later},{...album,album:"Remoto",updatedAt:later},conflicts); check(conflicts.some(c=>c.field==="album"),"conflito no mesmo campo");
-               const base={schemaVersion:2,albums:[album],sourceDefinitions:[],deletedAlbums:{},preferences:{sortKey:"createdAt",sortDir:"desc",updatedAt:now}};
-               const deleted=mergePayloads({...base,albums:[],deletedAlbums:{test:later}},base,base); check(!deleted.payload.albums.some(a=>a.id==="test"),"eliminação vence versão antiga");
-               const pref=mergePayloads({...base,preferences:{sortKey:"album",sortDir:"asc",updatedAt:later}},base,base); check(pref.payload.preferences.sortKey==="album","preferência mais recente");
-               const combined=mergePayloads({...base,albums:[{...album,id:"local"}]},{...base,albums:[{...album,id:"remote"}]},base); check(combined.payload.albums.length===2,"importação combinada");
-            } catch(error) { failures.push(`exceção: ${error.message}`); }
-            if(failures.length) console.error("Testes de merge falharam",failures); else console.info("Testes de merge: OK"); return failures;
+               let conflicts = [];
+               const different = mergeAlbumThreeWay(
+                  album,
+                  { ...album, album: "Local", updatedAt: later },
+                  { ...album, artista: "Remoto", updatedAt: later },
+                  conflicts,
+               );
+               check(
+                  different.album === "Local" &&
+                     different.artista === "Remoto" &&
+                     !conflicts.length,
+                  "campos diferentes",
+               );
+               conflicts = [];
+               mergeAlbumThreeWay(
+                  album,
+                  { ...album, album: "Local", updatedAt: later },
+                  { ...album, album: "Remoto", updatedAt: later },
+                  conflicts,
+               );
+               check(
+                  conflicts.some((c) => c.field === "album"),
+                  "conflito no mesmo campo",
+               );
+               const base = {
+                  schemaVersion: 2,
+                  albums: [album],
+                  sourceDefinitions: [],
+                  deletedAlbums: {},
+                  preferences: {
+                     sortKey: "createdAt",
+                     sortDir: "desc",
+                     updatedAt: now,
+                  },
+               };
+               const deleted = mergePayloads(
+                  { ...base, albums: [], deletedAlbums: { test: later } },
+                  base,
+                  base,
+               );
+               check(
+                  !deleted.payload.albums.some((a) => a.id === "test"),
+                  "eliminação vence versão antiga",
+               );
+               const pref = mergePayloads(
+                  {
+                     ...base,
+                     preferences: {
+                        sortKey: "album",
+                        sortDir: "asc",
+                        updatedAt: later,
+                     },
+                  },
+                  base,
+                  base,
+               );
+               check(
+                  pref.payload.preferences.sortKey === "album",
+                  "preferência mais recente",
+               );
+               const combined = mergePayloads(
+                  { ...base, albums: [{ ...album, id: "local" }] },
+                  { ...base, albums: [{ ...album, id: "remote" }] },
+                  base,
+               );
+               check(
+                  combined.payload.albums.length === 2,
+                  "importação combinada",
+               );
+            } catch (error) {
+               failures.push(`exceção: ${error.message}`);
+            }
+            if (failures.length)
+               console.error("Testes de merge falharam", failures);
+            else console.info("Testes de merge: OK");
+            return failures;
          }
-         function runFinalSelfTests(){const errors=[],check=(v,n)=>{if(!v)errors.push(n)};try{const migrated=migratePayload({schemaVersion:1,albums:[],sourceDefinitions:[]});check(migrated.schemaVersion===3,"migração v1-v3");const now=new Date().toISOString(),old=new Date(Date.now()-800*86400000).toISOString();const tombs=pruneTombstones({keep:now,drop:old});check(!!tombs.keep&&!tombs.drop,"retenção tombstones");check(!document.getElementById("luckyBtn"),"trevo legado removido");check(document.getElementById("dot"),"indicador Gist");}catch(e){errors.push(e.message)}if(errors.length)console.error("Auditoria interna",errors);else console.info("Auditoria interna final: OK");return errors}
+         function runFinalSelfTests() {
+            const errors = [],
+               check = (v, n) => {
+                  if (!v) errors.push(n);
+               };
+            try {
+               const migrated = migratePayload({
+                  schemaVersion: 1,
+                  albums: [],
+                  sourceDefinitions: [],
+               });
+               check(migrated.schemaVersion === 3, "migração v1-v3");
+               const now = new Date().toISOString(),
+                  old = new Date(Date.now() - 800 * 86400000).toISOString();
+               const tombs = pruneTombstones({ keep: now, drop: old });
+               check(!!tombs.keep && !tombs.drop, "retenção tombstones");
+               check(
+                  !document.getElementById("luckyBtn"),
+                  "trevo legado removido",
+               );
+               check(document.getElementById("dot"), "indicador Gist");
+            } catch (e) {
+               errors.push(e.message);
+            }
+            if (errors.length) console.error("Auditoria interna", errors);
+            else console.info("Auditoria interna final: OK");
+            return errors;
+         }
          loadLocal();
          runFinalSelfTests();
          runMergeTests();
          checkStorageHealth();
          setTimeout(checkRemoteUpdate, 0);
       </script>
-</body>
+   </body>
 </html>
