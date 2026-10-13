@@ -619,6 +619,66 @@ label,
 .toast.error {
    background: var(--danger);
 }
+.toast.show {
+   display: flex;
+   align-items: center;
+   gap: 14px;
+}
+.toast-action {
+   flex: 0 0 auto;
+   padding: 6px 12px;
+   border: 1px solid rgba(255, 255, 255, 0.45);
+   border-radius: 8px;
+   background: transparent;
+   color: #fff;
+   font-weight: 700;
+}
+.album-modal-head {
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   gap: 10px;
+}
+.listen-links {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 6px;
+}
+.album-modal-head h2 {
+   flex: 0 0 auto;
+   white-space: nowrap;
+}
+.album-modal-head .listen-links {
+   flex-wrap: nowrap;
+}
+.lucky-pick .listen-links {
+   justify-content: center;
+   margin-top: 8px;
+}
+.listen-link {
+   display: inline-flex;
+   align-items: center;
+   min-height: 28px;
+   padding: 4px 10px;
+   border: 1px solid var(--line);
+   border-radius: 999px;
+   color: var(--ink);
+   font-size: 11px;
+   font-weight: 700;
+   text-decoration: none;
+   white-space: nowrap;
+}
+.listen-link.spotify {
+   border-color: rgba(29, 185, 84, 0.45);
+   color: #1db954;
+}
+.listen-link.bandcamp {
+   border-color: rgba(98, 154, 169, 0.5);
+   color: #629aa9;
+}
+.listen-link:hover {
+   background: var(--tint);
+}
 
 /* ---------- Tabela ---------- */
 .table-wrap {
@@ -1597,6 +1657,12 @@ dialog::backdrop {
    padding: 20px;
    overflow: hidden;
 }
+#auditDialog .queue-modal {
+   overflow-y: auto;
+}
+#auditDialog .audit-list {
+   overflow: visible;
+}
 #auditDialog .modal-actions,
 #queuePreviewDialog .modal-actions {
    margin-top: 16px;
@@ -1731,6 +1797,82 @@ dialog::backdrop {
 .audit-arrow {
    color: var(--brand);
    font-size: 12px;
+}
+.source-stats {
+   margin-top: 4px;
+   padding-top: 12px;
+   border-top: 1px solid var(--line);
+}
+.source-stats h3 {
+   margin: 0 0 2px;
+   font-size: 13px;
+}
+.source-stats > p {
+   margin: 0 0 10px;
+   font-size: 11px;
+}
+.source-stats-list {
+   display: grid;
+   gap: 6px;
+}
+.source-stat {
+   display: grid;
+   grid-template-columns: minmax(0, 1fr) 70px 52px;
+   align-items: center;
+   gap: 10px;
+   width: 100%;
+   min-height: 44px;
+   padding: 8px 11px;
+   border: 1px solid var(--line);
+   border-radius: 10px;
+   background: transparent;
+   color: inherit;
+   text-align: left;
+}
+.source-stat:hover:not(:disabled) {
+   background: rgba(49, 87, 213, 0.08);
+}
+.source-stat:disabled {
+   cursor: default;
+}
+.source-stat-name {
+   display: flex;
+   flex-direction: column;
+   min-width: 0;
+}
+.source-stat-name strong,
+.source-stat-name small {
+   overflow: hidden;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+}
+.source-stat-name strong {
+   font-size: 12px;
+}
+.source-stat-name small {
+   font-size: 10px;
+   color: var(--muted);
+}
+.source-stat-bar {
+   height: 6px;
+   border-radius: 999px;
+   background: rgba(127, 127, 127, 0.18);
+   overflow: hidden;
+}
+.source-stat-bar > span {
+   display: block;
+   height: 100%;
+   border-radius: inherit;
+   background: #f5a623;
+}
+.source-stat-avg {
+   font-weight: 800;
+   font-variant-numeric: tabular-nums;
+   text-align: right;
+   white-space: nowrap;
+}
+.source-stat.few {
+   opacity: 0.6;
 }
 .integrity-report {
    margin-top: 14px;
@@ -2401,6 +2543,17 @@ dialog::backdrop {
    }
 }
 
+@media (max-width: 760px) {
+   .toast {
+      left: 10px;
+      right: 10px;
+      bottom: max(10px, env(safe-area-inset-bottom));
+      max-width: none;
+   }
+   .toast.show {
+      justify-content: space-between;
+   }
+}
 /* iOS: inputs com 16px evitam o zoom automático ao focar. */
 @supports (-webkit-touch-callout: none) {
    @media (max-width: 760px) {
@@ -2868,6 +3021,10 @@ dialog::backdrop {
                <h2 id="formTitle" class="dialog-focus-anchor" tabindex="-1">
                   Novo álbum
                </h2>
+               <div class="listen-links" id="editorLinks">
+                  <a class="listen-link spotify" target="_blank" rel="noopener" data-service="spotify">Spotify ↗</a
+                  ><a class="listen-link bandcamp" target="_blank" rel="noopener" data-service="bandcamp">Bandcamp ↗</a>
+               </div>
             </div>
             <div class="album-modal-body">
                <div class="album-form-grid">
@@ -3371,7 +3528,7 @@ dialog::backdrop {
                   <h2 id="auditTitle" class="dialog-focus-anchor" tabindex="-1">
                      Auditoria da coleção
                   </h2>
-                  <p class="muted">Campos em falta e álbuns esquecidos.</p>
+                  <p class="muted">Campos em falta, álbuns esquecidos e fontes.</p>
                </div>
                <button
                   type="button"
@@ -3383,6 +3540,14 @@ dialog::backdrop {
                </button>
             </div>
             <div class="audit-list" id="auditList"></div>
+            <section class="source-stats" aria-labelledby="sourceStatsTitle">
+               <h3 id="sourceStatsTitle">As tuas avaliações por fonte</h3>
+               <p class="muted">
+                  Média das tuas estrelas nos álbuns recomendados por cada fonte.
+                  Toca numa fonte para filtrar a tabela.
+               </p>
+               <div class="source-stats-list" id="sourceStatsList"></div>
+            </section>
             <div
                class="integrity-report"
                id="integrityReport"
@@ -3405,6 +3570,10 @@ dialog::backdrop {
                <div class="lucky-meta">
                   <span id="luckyGenres" hidden></span
                   ><span id="luckyLastListened" hidden></span>
+               </div>
+               <div class="listen-links" id="luckyLinks">
+                  <a class="listen-link spotify" target="_blank" rel="noopener" data-service="spotify">Spotify ↗</a
+                  ><a class="listen-link bandcamp" target="_blank" rel="noopener" data-service="bandcamp">Bandcamp ↗</a>
                </div>
             </div>
             <div class="modal-actions">
@@ -3843,11 +4012,79 @@ dialog::backdrop {
             localStorage.removeItem(SOURCES_STORE);
             localStorage.removeItem(TOMBSTONES);
          }
+         /* ---------- Armazenamento local (IndexedDB) ----------
+            O Safari no iPhone dá ~5 MB ao localStorage; a coleção e a base de
+            sincronização vivem em IndexedDB, que tem bastante mais espaço.
+            O estado em memória é a fonte de verdade; as escritas são
+            enfileiradas e aplicadas pela ordem em que foram pedidas. */
+         const IDB_NAME = "albumDiary",
+            IDB_STORE = "kv";
+         let idbPromise = null,
+            useIdb = true,
+            basePayload = null,
+            baseKey = "";
+         function openIdb() {
+            if (!idbPromise)
+               idbPromise = new Promise((resolve, reject) => {
+                  if (!window.indexedDB)
+                     return reject(new Error("IndexedDB indisponível"));
+                  const req = indexedDB.open(IDB_NAME, 1);
+                  req.onupgradeneeded = () =>
+                     req.result.createObjectStore(IDB_STORE);
+                  req.onsuccess = () => resolve(req.result);
+                  req.onerror = () => reject(req.error);
+               });
+            return idbPromise;
+         }
+         async function kvGet(key) {
+            const db = await openIdb();
+            return new Promise((resolve, reject) => {
+               const req = db
+                  .transaction(IDB_STORE, "readonly")
+                  .objectStore(IDB_STORE)
+                  .get(key);
+               req.onsuccess = () => resolve(req.result ?? null);
+               req.onerror = () => reject(req.error);
+            });
+         }
+         async function kvSet(key, value) {
+            const db = await openIdb();
+            return new Promise((resolve, reject) => {
+               const tx = db.transaction(IDB_STORE, "readwrite");
+               tx.objectStore(IDB_STORE).put(value, key);
+               tx.oncomplete = () => resolve();
+               tx.onerror = tx.onabort = () =>
+                  reject(tx.error || new Error("Falha ao gravar"));
+            });
+         }
+         /* Grava sem bloquear a interface. O valor é copiado no momento do pedido. */
+         function storeLocal(key, value) {
+            if (!useIdb) {
+               try {
+                  localStorage.setItem(key, JSON.stringify(value));
+                  return true;
+               } catch (error) {
+                  showStorageError(error);
+                  return false;
+               }
+            }
+            let snapshot;
+            try {
+               snapshot = structuredClone(value);
+            } catch {
+               snapshot = cloneData(value);
+            }
+            kvSet(key, snapshot).catch((error) => showStorageError(error));
+            return true;
+         }
+         function saveData() {
+            return storeLocal(STORE, currentPayload());
+         }
          /* Grava o estado atual neste dispositivo e marca-o como pendente de sincronização. */
          function writeLocalChange() {
             const nextVersion = localChangeVersion + 1;
             try {
-               localStorage.setItem(STORE, JSON.stringify(currentPayload()));
+               if (!saveData()) return false;
                setSyncMeta({
                   dirty: true,
                   localChangeVersion: nextVersion,
@@ -3876,17 +4113,12 @@ dialog::backdrop {
          }
          /* "Base" = último estado acordado com o Gist (para o merge a três vias). */
          function readBase() {
-            const stored = readJsonStore(BASE_SNAPSHOT, null);
-            if (!stored || typeof stored !== "object") return null;
-            if ("key" in stored && "payload" in stored)
-               return stored.key === syncKey() ? stored.payload : null;
-            return stored; // formato antigo, sem chave
+            return basePayload && baseKey === syncKey() ? basePayload : null;
          }
          function writeBase(payload) {
-            localStorage.setItem(
-               BASE_SNAPSHOT,
-               JSON.stringify({ key: syncKey(), payload }),
-            );
+            basePayload = payload;
+            baseKey = syncKey();
+            storeLocal(BASE_SNAPSHOT, { key: baseKey, payload });
          }
          const ALBUM_MERGE_FIELDS = [
             "album",
@@ -4114,11 +4346,31 @@ dialog::backdrop {
                updatedAt: String(a.updatedAt || new Date().toISOString()),
             };
          }
-         function loadLocal() {
-            let raw = null;
+         /* Lê do IndexedDB; na primeira vez migra o que estava no localStorage. */
+         async function loadLocal() {
+            let raw = null,
+               storedBase = null,
+               migrateFromLocalStorage = false;
             try {
-               raw = JSON.parse(localStorage.getItem(STORE));
-            } catch {}
+               raw = await kvGet(STORE);
+               storedBase = await kvGet(BASE_SNAPSHOT);
+            } catch {
+               useIdb = false;
+            }
+            if (!raw) {
+               raw = readJsonStore(STORE, null);
+               storedBase = storedBase || readJsonStore(BASE_SNAPSHOT, null);
+               migrateFromLocalStorage = useIdb && (raw || storedBase);
+            }
+            if (storedBase && typeof storedBase === "object") {
+               if ("key" in storedBase && "payload" in storedBase) {
+                  baseKey = storedBase.key;
+                  basePayload = storedBase.payload;
+               } else {
+                  baseKey = syncKey(); // formato antigo, sem chave
+                  basePayload = storedBase;
+               }
+            }
             // A cópia pré-migração deixou de ser usada: liberta o espaço.
             localStorage.removeItem(OLD_MIGRATION_BACKUP);
             // Versões anteriores guardavam fontes e eliminações em chaves separadas.
@@ -4149,10 +4401,21 @@ dialog::backdrop {
             localChangeVersion = Number(meta.localChangeVersion) || 0;
             remoteUpdatedAt = meta.remoteUpdatedAt || null;
             if (normalizeQueueRanks()) {
+               dirty = true;
+               setSyncMeta({ dirty, localChangeVersion, remoteUpdatedAt });
+               saveData();
+            }
+            if (migrateFromLocalStorage) {
                try {
-                  localStorage.setItem(STORE, JSON.stringify(currentPayload()));
-                  dirty = true;
-                  setSyncMeta({ dirty, localChangeVersion, remoteUpdatedAt });
+                  await kvSet(STORE, cloneData(currentPayload()));
+                  if (basePayload)
+                     await kvSet(BASE_SNAPSHOT, {
+                        key: baseKey,
+                        payload: basePayload,
+                     });
+                  localStorage.removeItem(STORE);
+                  localStorage.removeItem(BASE_SNAPSHOT);
+                  dropLegacyKeys();
                } catch (error) {
                   showStorageError(error);
                }
@@ -4167,14 +4430,35 @@ dialog::backdrop {
             requestAutoSync();
             return true;
          }
-         let toastTimer = null;
-         function toast(msg, ok = true) {
+         let toastTimer = null,
+            actionToastUntil = 0;
+         /* action = { label, onClick } mostra um botão no aviso (ex.: "Desfazer").
+            Enquanto esse aviso está visível, só um erro o pode substituir. */
+         function toast(msg, ok = true, action = null) {
             const t = $("#toast");
+            if (!action && ok && Date.now() < actionToastUntil) return;
+            actionToastUntil = action ? Date.now() + 7000 : 0;
             t.textContent = msg;
+            if (action) {
+               const b = document.createElement("button");
+               b.type = "button";
+               b.className = "toast-action";
+               b.textContent = action.label;
+               b.onclick = () => {
+                  actionToastUntil = 0;
+                  t.classList.remove("show");
+                  clearTimeout(toastTimer);
+                  action.onClick();
+               };
+               t.append(b);
+            }
             t.classList.toggle("error", !ok);
             t.classList.add("show");
             clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => t.classList.remove("show"), 3500);
+            toastTimer = setTimeout(
+               () => t.classList.remove("show"),
+               action ? 7000 : 3500,
+            );
          }
          function updateSyncTooltip() {
             const cfg = getConfig(),
@@ -4315,25 +4599,31 @@ dialog::backdrop {
                   ? Number(a.proximoRank) || 1e9
                   : 1e12;
             if (key === "estado") return isHeard(a) ? 1 : 0;
-            return String(a[key] || "").toLocaleLowerCase("pt-PT");
+            return String(a[key] || "");
          }
-         function compareAlbums(a, b) {
-            const av = sortValue(a, sortKey),
-               bv = sortValue(b, sortKey),
-               cmp = (x, y) =>
-                  String(x || "").localeCompare(String(y || ""), "pt-PT", {
-                     numeric: true,
-                     sensitivity: "base",
-                  });
-            let c = typeof av === "number" ? av - bv : cmp(av, bv);
-            if (c === 0)
-               c =
+         // Um único comparador: criar um por comparação tornava a ordenação ~40× mais lenta.
+         const COLLATOR = new Intl.Collator("pt-PT", {
+            numeric: true,
+            sensitivity: "base",
+         });
+         function sortAlbums(list) {
+            const cmp = COLLATOR.compare,
+               dir = sortDir === "asc" ? 1 : -1,
+               tie =
                   sortKey === "album"
-                     ? cmp(a.artista, b.artista)
+                     ? (a, b) => cmp(a.artista, b.artista)
                      : sortKey === "artista"
-                       ? cmp(a.album, b.album)
-                       : cmp(a.album, b.album) || cmp(a.artista, b.artista);
-            return sortDir === "asc" ? c : -c;
+                       ? (a, b) => cmp(a.album, b.album)
+                       : (a, b) =>
+                            cmp(a.album, b.album) || cmp(a.artista, b.artista);
+            return list
+               .map((a) => ({ a, k: sortValue(a, sortKey) }))
+               .sort((x, y) => {
+                  const c =
+                     typeof x.k === "number" ? x.k - y.k : cmp(x.k, y.k);
+                  return (c || tie(x.a, y.a)) * dir;
+               })
+               .map((x) => x.a);
          }
          function updateSortMarks() {
             document.querySelectorAll("[data-sort]").forEach((b) => {
@@ -4387,7 +4677,7 @@ dialog::backdrop {
             let view;
             if (viewCache.key === cacheKey) view = viewCache.items;
             else {
-               view = albums
+               view = sortAlbums(albums
                   .filter(
                      (a) =>
                         (!q || albumSearchIndex(a).includes(q)) &&
@@ -4414,8 +4704,7 @@ dialog::backdrop {
                            (auditFilter === "nosources" &&
                               !(a.fontes || []).length) ||
                            (auditFilter === "forgotten" && isForgotten(a))),
-                  )
-                  .sort(compareAlbums);
+                  ));
                viewCache = { key: cacheKey, items: view };
             }
             renderDashboard();
@@ -4527,6 +4816,7 @@ dialog::backdrop {
                '[name="queuePlacement"][value="end"] + span',
             ).textContent = queuePos ? `Manter #${queuePos}` : "No fim";
             $("#createdAtDisplay").textContent = dateLabel(a.createdAt);
+            updateEditorLinks();
             const dialog = $("#albumDialog"),
                body = dialog.querySelector(".album-modal-body");
             if (body) body.scrollTop = 0;
@@ -4584,6 +4874,23 @@ dialog::backdrop {
             if (!data.album || !data.artista) return;
             const moveToTop =
                data.ouvirBrevemente && $("#moveQueueTop").checked;
+            if (
+               editingId &&
+               !albumChanged(old, data) &&
+               (!moveToTop || orderedQueue()[0]?.id === editingId)
+            ) {
+               $("#albumDialog").close();
+               toast("Sem alterações.");
+               return;
+            }
+            const duplicate = findDuplicate(data, editingId);
+            if (
+               duplicate &&
+               !confirm(
+                  `Já existe “${duplicate.album}”, de ${duplicate.artista}.\n\nGuardar mesmo assim?`,
+               )
+            )
+               return;
             const previous = cloneData(albums);
             if (editingId)
                albums = albums.map((a) => (a.id === editingId ? data : a));
@@ -4658,6 +4965,35 @@ dialog::backdrop {
             render();
             schedulePreferenceSave();
          });
+         /* Duplicado = mesmo álbum e artista, ignorando acentos, maiúsculas e pontuação. */
+         const dupPart = (v) =>
+            searchable(v).replace(/[^a-z0-9]+/g, " ").trim();
+         const dupKey = (a) => `${dupPart(a.album)}|${dupPart(a.artista)}`;
+         function findDuplicate(data, exceptId = null) {
+            const key = dupKey(data);
+            return albums.find((a) => a.id !== exceptId && dupKey(a) === key);
+         }
+         /* Pesquisa o álbum no serviço (no iPhone abre a app do Spotify, se instalada). */
+         function listenUrl(service, album, artist) {
+            const q = `${artist} ${album}`.trim();
+            return service === "spotify"
+               ? `https://open.spotify.com/search/${encodeURIComponent(q)}`
+               : `https://bandcamp.com/search?q=${encodeURIComponent(q)}&item_type=a`;
+         }
+         function setListenLinks(container, album, artist) {
+            const box = $(container);
+            if (!box) return;
+            const ok = !!(album.trim() && artist.trim());
+            box.hidden = !ok;
+            box.querySelectorAll("a").forEach((a) => {
+               a.href = ok ? listenUrl(a.dataset.service, album, artist) : "#";
+            });
+         }
+         function updateEditorLinks() {
+            setListenLinks("#editorLinks", $("#album").value, $("#artist").value);
+         }
+         $("#album").addEventListener("input", updateEditorLinks);
+         $("#artist").addEventListener("input", updateEditorLinks);
          function askDelete(id) {
             deleteId = id;
             const a = albums.find((x) => x.id === deleteId);
@@ -4726,11 +5062,15 @@ dialog::backdrop {
                const id = b.dataset.id,
                   today = localMonthNow(),
                   previous = albums;
+               const wasQueued = albums.find((a) => a.id === id)?.ouvirBrevemente;
                albums = albums.map((a) =>
                   a.id === id
                      ? {
                           ...a,
                           ultimaAudicao: today,
+                          ouvirBrevemente: false,
+                          proximoRank: 0,
+                          proximoAddedAt: "",
                           updatedAt: new Date().toISOString(),
                        }
                      : a,
@@ -4739,7 +5079,11 @@ dialog::backdrop {
                   albums = previous;
                   return;
                }
-               toast("Marcado como ouvido este mês.");
+               toast(
+                  wasQueued
+                     ? "Marcado como ouvido e retirado da fila."
+                     : "Marcado como ouvido este mês.",
+               );
                return;
             }
             if (b.classList.contains("edit")) openAlbum(b.dataset.id);
@@ -4758,10 +5102,28 @@ dialog::backdrop {
                   else delete deletedAlbums[deleteId];
                   return;
                }
-               toast("Álbum removido.");
+               toast("Álbum removido.", true, {
+                  label: "Desfazer",
+                  onClick: () => undoDelete(removed),
+               });
             }
             deleteId = null;
          });
+         /* Repõe o álbum. O updatedAt novo garante que vence a eliminação,
+            mesmo que esta já tenha chegado ao Gist. */
+         function undoDelete(album) {
+            if (!album || albums.some((a) => a.id === album.id)) return;
+            const previous = albums,
+               previousTomb = deletedAlbums[album.id];
+            albums = [...albums, { ...album, updatedAt: new Date().toISOString() }];
+            delete deletedAlbums[album.id];
+            if (!persist()) {
+               albums = previous;
+               if (previousTomb) deletedAlbums[album.id] = previousTomb;
+               return;
+            }
+            toast("Álbum reposto.");
+         }
          $("#addBtn").onclick = () => openAlbum();
          function mobileFilterCount() {
             let n = selectedSources.length + (auditFilter ? 1 : 0);
@@ -4954,8 +5316,11 @@ dialog::backdrop {
             .forEach(
                (b) => (b.onclick = () => $("#" + b.dataset.close).close()),
             );
+         let lastPickId = null;
          function showAlbumPick(pick, reason, mode = "lucky") {
             if (!pick) return;
+            lastPickId = pick.id;
+            setListenLinks("#luckyLinks", pick.album, pick.artista);
             $("#luckyAlbum").textContent = pick.album;
             $("#luckyArtist").textContent = pick.artista;
             const genre = $("#luckyGenres"),
@@ -5098,6 +5463,9 @@ dialog::backdrop {
                toast("Não há álbuns elegíveis para o trevo.", false);
                return;
             }
+            // "Escolher outro" não repete o álbum anterior (quando há alternativa).
+            if (pool.length > 1 && $("#luckyDialog").open)
+               pool = pool.filter((a) => a.id !== lastPickId);
             const pick = weightedRandom(pool, weightFn);
             if (!pick) {
                toast("Não foi possível escolher um álbum.", false);
@@ -5224,10 +5592,94 @@ dialog::backdrop {
                      `<div class="audit-row"><button type="button" data-audit-filter="${x.filter}" ${x.count ? "" : "disabled"}><span>${x.label}</span><strong>${x.count}</strong>${x.count ? '<span class="audit-arrow">›</span>' : ""}</button></div>`,
                )
                .join("");
+            renderSourceStats();
             renderIntegrityReport();
             $("#auditDialog").showModal();
             focusDialogAnchor("#auditDialog", "#auditTitle");
          }
+         /* Média das TUAS avaliações agrupadas pela fonte que recomendou o álbum.
+            Um álbum com várias fontes conta para cada uma delas. */
+         const MIN_RATED_FOR_RANK = 3;
+         function sourceStats() {
+            const rows = sourceDefinitions.map((d) => ({
+               id: d.id,
+               name: d.name,
+               shortName: d.shortName,
+               total: 0,
+               rated: 0,
+               sum: 0,
+               high: 0,
+            }));
+            const byId = new Map(rows.map((r) => [r.id, r])),
+               none = {
+                  id: "",
+                  name: "Sem fonte",
+                  shortName: "—",
+                  total: 0,
+                  rated: 0,
+                  sum: 0,
+                  high: 0,
+               };
+            for (const a of albums) {
+               const targets = (a.fontes || [])
+                  .map((id) => byId.get(id))
+                  .filter(Boolean);
+               if (!targets.length) targets.push(none);
+               const r = Number(a.avaliacao) || 0;
+               for (const t of targets) {
+                  t.total++;
+                  if (r) {
+                     t.rated++;
+                     t.sum += r;
+                     if (r >= 4) t.high++;
+                  }
+               }
+            }
+            const all = [...rows, none].filter((r) => r.total);
+            all.forEach((r) => (r.avg = r.rated ? r.sum / r.rated : 0));
+            // Fontes com poucas avaliações vão para o fim (média pouco fiável).
+            const reliable = (r) => r.rated >= MIN_RATED_FOR_RANK;
+            return all.sort(
+               (a, b) =>
+                  reliable(b) - reliable(a) ||
+                  b.avg - a.avg ||
+                  b.rated - a.rated ||
+                  COLLATOR.compare(a.name, b.name),
+            );
+         }
+         function renderSourceStats() {
+            const stats = sourceStats(),
+               fmt = (n) => n.toLocaleString("pt-PT", {
+                  minimumFractionDigits: 1,
+                  maximumFractionDigits: 1,
+               });
+            $("#sourceStatsList").innerHTML = stats.length
+               ? stats
+                    .map((r) => {
+                       const few = r.rated < MIN_RATED_FOR_RANK,
+                          pct = r.rated ? Math.round((r.high / r.rated) * 100) : 0,
+                          detail = r.rated
+                             ? `${r.rated}/${r.total} avaliado${r.rated === 1 ? "" : "s"} · ${pct}% com 4★+`
+                             : `${r.total} álbu${r.total === 1 ? "m" : "ns"}, nenhum avaliado`;
+                       return `<button type="button" class="source-stat${few ? " few" : ""}" data-stat-source="${esc(r.id)}" ${r.id ? "" : "disabled"} title="${few && r.rated ? "Poucas avaliações: média pouco fiável" : ""}"><span class="source-stat-name"><strong>${esc(r.name)}</strong><small>${detail}</small></span><span class="source-stat-bar" aria-hidden="true"><span style="width:${(r.avg / 5) * 100}%"></span></span><span class="source-stat-avg">${r.rated ? `${fmt(r.avg)} ★` : "—"}</span></button>`;
+                    })
+                    .join("")
+               : '<p class="muted">Ainda não há álbuns.</p>';
+         }
+         $("#sourceStatsList").onclick = (e) => {
+            const b = e.target.closest("[data-stat-source]");
+            if (!b || b.disabled) return;
+            const id = b.dataset.statSource;
+            document
+               .querySelectorAll("#sourceFilterPanel input")
+               .forEach((x) => (x.checked = x.value === id));
+            $("#auditDialog").close();
+            currentPage = 1;
+            updateSourceFilter();
+            toast(
+               `Filtro aplicado: ${b.querySelector("strong").textContent}.`,
+            );
+         };
          $("#auditList").onclick = (e) => {
             const button = e.target.closest("[data-audit-filter]");
             if (!button || button.disabled) return;
@@ -5497,14 +5949,27 @@ dialog::backdrop {
                headers,
                cache: "no-store",
             });
+            if (opts.onResponse) opts.onResponse(r);
+            if (r.status === 304) return null;
             if (!r.ok) {
                let d = {};
                try {
                   d = await r.json();
                } catch {}
-               throw new Error(d.message || `Erro HTTP ${r.status}`);
+               throw new Error(apiErrorMessage(r, d));
             }
             return r.status === 204 ? null : r.json();
+         }
+         function apiErrorMessage(r, d) {
+            if (r.status === 401)
+               return "Token do GitHub inválido ou expirado. Cria um novo e atualiza-o em ⚙ Gist.";
+            if (r.status === 403 && r.headers.get("x-ratelimit-remaining") === "0")
+               return "Limite de pedidos à API do GitHub atingido. Tenta daqui a alguns minutos.";
+            if (r.status === 403)
+               return "O token não tem permissão para este Gist (precisa de acesso a Gists, leitura e escrita).";
+            if (r.status === 404)
+               return "Gist não encontrado. Confirma o ID e se o token tem acesso a Gists.";
+            return d.message || `Erro HTTP ${r.status}`;
          }
          /* Devolve null se o ficheiro ainda não existir no Gist. */
          async function gistFileContent(gist, fileName) {
@@ -5553,7 +6018,8 @@ dialog::backdrop {
             const names = new Set(conflicts.map((x) => x.album));
             return `${conflicts.length} conflito${conflicts.length === 1 ? "" : "s"} em ${names.size} álbum${names.size === 1 ? "" : "s"}`;
          }
-         let lastRemoteCheck = 0;
+         let lastRemoteCheck = 0,
+            remoteEtag = "";
          /* Ao voltar à app: se o Gist mudou noutro dispositivo, lê-o (ou sincroniza). */
          async function checkRemoteUpdate() {
             const c = getConfig();
@@ -5561,7 +6027,13 @@ dialog::backdrop {
                return;
             lastRemoteCheck = Date.now();
             try {
-               const g = await api(`/gists/${encodeURIComponent(c.gistId)}`);
+               let etag = "";
+               const g = await api(`/gists/${encodeURIComponent(c.gistId)}`, {
+                  headers: remoteEtag ? { "If-None-Match": remoteEtag } : {},
+                  onResponse: (r) => (etag = r.headers.get("etag") || ""),
+               });
+               if (!g) return; // 304: nada mudou e não gasta quota da API
+               remoteEtag = etag;
                if (!remoteUpdatedAt || g.updated_at === remoteUpdatedAt) return;
                if (!dirty) {
                   await loadFromGist({ silent: true });
@@ -5632,7 +6104,7 @@ dialog::backdrop {
                const queueChanged = applyPayload(result.payload);
                remoteUpdatedAt = g.updated_at;
                dirty = Boolean(local) || migrated || queueChanged;
-               localStorage.setItem(STORE, JSON.stringify(currentPayload()));
+               saveData();
                writeBase(remote);
                setSyncMeta({ dirty, localChangeVersion, remoteUpdatedAt });
                dropLegacyKeys();
@@ -5735,7 +6207,7 @@ dialog::backdrop {
                   method: "PATCH",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
-                     files: { [c.file]: { content: JSON.stringify(sent, null, 2) } },
+                     files: { [c.file]: { content: JSON.stringify(sent) } },
                   }),
                });
                remoteUpdatedAt = g.updated_at;
@@ -5746,7 +6218,7 @@ dialog::backdrop {
                dirty = localChangeVersion !== sentVersion;
                if (dirty) autoSyncPending = true;
                try {
-                  localStorage.setItem(STORE, JSON.stringify(currentPayload()));
+                  saveData();
                   writeBase(sent);
                   setSyncMeta({ dirty, localChangeVersion, remoteUpdatedAt });
                   dropLegacyKeys();
@@ -6248,6 +6720,11 @@ dialog::backdrop {
                   "fonte eliminada não regressa",
                );
                check(normalize({ avaliacao: 9 }).avaliacao === 5, "avaliação limitada");
+               check(
+                  dupKey({ album: "Álbum  Ótimo!", artista: "Sigur Rós" }) ===
+                     dupKey({ album: "album otimo", artista: "sigur ros" }),
+                  "deteção de duplicados",
+               );
                check(normalize({ id: '"><x' }).id === "---x", "id seguro");
             } catch (error) {
                failures.push(`exceção: ${error.message}`);
@@ -6258,9 +6735,13 @@ dialog::backdrop {
          }
 
          if (new URLSearchParams(location.search).has("debug")) runMergeTests();
-         loadLocal();
-         checkStorageHealth();
-         setTimeout(autoLoadFromGist, 0);
+         (async () => {
+            await loadLocal();
+            checkStorageHealth();
+            // Pede ao browser para não apagar os dados locais por falta de espaço.
+            navigator.storage?.persist?.().catch(() => {});
+            autoLoadFromGist();
+         })();
       </script>
    </body>
 </html>
