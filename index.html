@@ -1208,7 +1208,7 @@ dialog::backdrop {
 }
 .listening-summary {
    display: grid;
-   grid-template-columns: minmax(0, 1fr) 165px;
+   grid-template-columns: minmax(0, 1fr) 150px 150px;
    gap: 14px;
    align-items: start;
 }
@@ -1224,6 +1224,19 @@ dialog::backdrop {
    min-height: 42px;
    max-height: 42px;
    margin: 0;
+}
+/* Campos de mês: o iOS impõe uma largura mínima própria; isto prende-os à caixa. */
+#albumDialog input[type="month"] {
+   -webkit-appearance: none;
+   appearance: none;
+   display: block;
+   width: 100%;
+   min-width: 0;
+   max-width: 100%;
+   text-align: left;
+}
+#albumDialog input[type="month"]::-webkit-date-and-time-value {
+   text-align: left;
 }
 #albumDialog #lastListened {
    display: block;
@@ -1257,8 +1270,7 @@ dialog::backdrop {
    padding: 0;
    border: 0;
 }
-.queue-placement legend,
-.availability-title {
+.queue-placement legend {
    display: block;
    width: 100%;
    margin: 0 0 8px;
@@ -1319,35 +1331,27 @@ dialog::backdrop {
    margin: 7px 2px 0;
    font-size: 10px;
 }
-.availability-block {
-   padding-top: 2px;
-}
-.spotify-check {
-   display: flex;
-   align-items: center;
-   gap: 10px;
-   height: 100%;
-   min-height: 36px;
-   padding: 6px 10px;
-   border: 1px solid var(--line);
-   border-radius: 9px;
+/* Spotify: caixa com o mesmo aspeto do Estado; tocar alterna. */
+.spotify-state {
+   position: relative;
    cursor: pointer;
+   user-select: none;
 }
-.spotify-check input {
-   flex: 0 0 auto;
-   width: 16px;
-   height: 16px;
-   margin: 0;
-   accent-color: #1db954;
+.spotify-state input {
+   position: absolute;
+   width: 1px;
+   height: 1px;
+   opacity: 0;
+   pointer-events: none;
 }
-.spotify-check span {
-   display: grid;
-   grid-template-columns: auto 1fr;
-   align-items: baseline;
-   gap: 7px;
+.spotify-state:has(input:checked) {
+   border-color: rgba(29, 185, 84, 0.35);
+   background: rgba(29, 185, 84, 0.08);
+   color: #1db954;
 }
-.spotify-check strong {
-   font-size: 12px;
+.spotify-state:has(input:focus-visible) {
+   outline: 2px solid var(--brand);
+   outline-offset: 2px;
 }
 .listening-metadata {
    align-items: baseline;
@@ -1450,7 +1454,7 @@ dialog::backdrop {
 }
 .manager-tools {
    display: flex;
-   flex-wrap: wrap;
+   flex-wrap: nowrap;
    gap: 8px;
    margin-top: 12px;
 }
@@ -2355,10 +2359,6 @@ dialog::backdrop {
    .listening-summary {
       gap: 12px;
    }
-   #releaseDate {
-      display: block;
-      min-width: 0;
-   }
    #recordOrigin {
       min-height: 96px;
    }
@@ -2382,11 +2382,6 @@ dialog::backdrop {
       padding: 7px 4px;
       white-space: normal;
       line-height: 1.2;
-   }
-   .spotify-check span {
-      display: flex;
-      flex-direction: column;
-      gap: 1px;
    }
    #albumDialog .modal-actions {
       display: grid;
@@ -2987,6 +2982,13 @@ dialog::backdrop {
                                  ○ Por ouvir
                               </div>
                            </div>
+                           <div class="field">
+                              <label for="spotifyAvailable">Spotify</label>
+                              <label class="listening-state spotify-state" id="spotifyState">
+                                 <input id="spotifyAvailable" type="checkbox" checked />
+                                 <span id="spotifyStateText">✓ Disponível</span>
+                              </label>
+                           </div>
                         </div>
                         <div class="field full listening-options-row">
                            <fieldset
@@ -3027,23 +3029,6 @@ dialog::backdrop {
                                  #1.</small
                               >
                            </fieldset>
-                           <div class="availability-block">
-                              <span class="availability-title"
-                                 >Disponibilidade</span
-                              >
-                              <label
-                                 class="spotify-check listening-option-card"
-                              >
-                                 <input
-                                    id="spotifyAvailable"
-                                    type="checkbox"
-                                    checked
-                                 />
-                                 <span>
-                                    <strong>Disponível no Spotify</strong>
-                                 </span>
-                              </label>
-                           </div>
                            <input
                               id="listenSoon"
                               type="checkbox"
@@ -3133,16 +3118,7 @@ dialog::backdrop {
             <div class="manager-tools">
                <button type="button" class="btn" id="exportBackupBtn">
                   ↓ Exportar backup JSON</button
-               ><button type="button" class="btn" id="importBackupBtn">↑ Importar backup JSON</button><input id="importBackupInput" type="file" accept="application/json,.json" hidden /><button
-                  type="button"
-                  class="btn"
-                  id="exportMigrationBackupBtn"
-                  hidden
-               >
-                  ↓ Backup pré-migração</button
-               ><button type="button" class="btn" id="restoreDefaultsBtn">
-                  ↺ Repor predefinidas em falta
-               </button>
+               ><button type="button" class="btn" id="importBackupBtn">↑ Importar backup JSON</button><input id="importBackupInput" type="file" accept="application/json,.json" hidden />
             </div>
             <div class="modal-actions">
                <button
@@ -3451,7 +3427,7 @@ dialog::backdrop {
          const $ = (s) => document.querySelector(s);
          const STORE = "albumDiary.data.v1",
             SOURCES_STORE = "albumDiary.sources.v2",
-            MIGRATION_BACKUP = "albumDiary.preMigrationBackup.v1",
+            OLD_MIGRATION_BACKUP = "albumDiary.preMigrationBackup.v1",
             CFG = "albumDiary.config.v1",
             TOKEN = "albumDiary.token.v1",
             SYNC_META = "albumDiary.syncMeta.v1",
@@ -4143,14 +4119,8 @@ dialog::backdrop {
             try {
                raw = JSON.parse(localStorage.getItem(STORE));
             } catch {}
-            try {
-               if (
-                  raw &&
-                  (Array.isArray(raw) || Number(raw.schemaVersion || 1) < 2) &&
-                  !localStorage.getItem(MIGRATION_BACKUP)
-               )
-                  localStorage.setItem(MIGRATION_BACKUP, JSON.stringify(raw));
-            } catch {}
+            // A cópia pré-migração deixou de ser usada: liberta o espaço.
+            localStorage.removeItem(OLD_MIGRATION_BACKUP);
             // Versões anteriores guardavam fontes e eliminações em chaves separadas.
             const input =
                raw && typeof raw === "object" && !Array.isArray(raw)
@@ -4178,8 +4148,6 @@ dialog::backdrop {
             dirty = meta.dirty === true;
             localChangeVersion = Number(meta.localChangeVersion) || 0;
             remoteUpdatedAt = meta.remoteUpdatedAt || null;
-            $("#exportMigrationBackupBtn").hidden =
-               !localStorage.getItem(MIGRATION_BACKUP);
             if (normalizeQueueRanks()) {
                try {
                   localStorage.setItem(STORE, JSON.stringify(currentPayload()));
@@ -4275,6 +4243,15 @@ dialog::backdrop {
          $("#lastListened").addEventListener(
             "input",
             updateListeningStateDisplay,
+         );
+         function updateSpotifyStateDisplay() {
+            $("#spotifyStateText").textContent = $("#spotifyAvailable").checked
+               ? "✓ Disponível"
+               : "× Indisponível";
+         }
+         $("#spotifyAvailable").addEventListener(
+            "change",
+            updateSpotifyStateDisplay,
          );
          function monthsSince(v) {
             const parsed = validMonthValue(v);
@@ -4535,6 +4512,7 @@ dialog::backdrop {
             updateRecordOriginCount();
             renderAlbumSourceChecks(a.fontes || []);
             $("#spotifyAvailable").checked = a.disponivelSpotify !== false;
+            updateSpotifyStateDisplay();
             document
                .querySelectorAll("[name=rating]")
                .forEach((x) => (x.checked = Number(x.value) === a.avaliacao));
@@ -5628,7 +5606,7 @@ dialog::backdrop {
                      );
                   return true;
                }
-               const { parsed, payload: remote, migrated } =
+               const { payload: remote, migrated } =
                   parseRemoteContent(content);
                // Lido depois dos awaits: inclui alterações feitas entretanto.
                const local = dirty ? currentPayload() : null,
@@ -5651,8 +5629,6 @@ dialog::backdrop {
                   )
                      return false;
                }
-               if (migrated)
-                  localStorage.setItem(MIGRATION_BACKUP, JSON.stringify(parsed));
                const queueChanged = applyPayload(result.payload);
                remoteUpdatedAt = g.updated_at;
                dirty = Boolean(local) || migrated || queueChanged;
@@ -6023,15 +5999,6 @@ dialog::backdrop {
             downloadJson(currentPayload(), `album-diary-backup-${stamp}.json`);
             toast("Backup atual exportado.");
          }
-         function downloadMigrationBackup() {
-            const stored = localStorage.getItem(MIGRATION_BACKUP);
-            if (!stored) return toast("Não existe backup pré-migração.", false);
-            downloadJson(
-               JSON.parse(stored),
-               `album-diary-pre-migration-${new Date().toISOString().slice(0, 10)}.json`,
-            );
-            toast("Backup pré-migração exportado.");
-         }
          let pendingImport = null;
          /* Álbuns presentes nos dois lados com conteúdo diferente (fica a versão mais recente). */
          function importDifferences(localAlbums, importedAlbums) {
@@ -6152,51 +6119,7 @@ dialog::backdrop {
                applyImport("replace");
          };
          $("#exportBackupBtn").onclick = downloadBackup;
-         $("#exportMigrationBackupBtn").onclick = downloadMigrationBackup;
          $("#storageBackupBtn").onclick = downloadBackup;
-         $("#restoreDefaultsBtn").onclick = () => {
-            const missing = DEFAULT_SOURCES.filter(
-               (base) => !sourceDefinitions.some((d) => d.id === base.id),
-            );
-            if (!missing.length)
-               return toast(
-                  "As fontes predefinidas já estão todas disponíveis.",
-               );
-            if (sourceDefinitions.length + missing.length > MAX_SOURCES)
-               return toast(
-                  `Não há espaço para repor ${missing.length} fonte${missing.length === 1 ? "" : "s"} sem ultrapassar o limite de 12.`,
-                  false,
-               );
-            const conflict = missing.find((base) => shortInUse(base.shortName));
-            if (conflict) {
-               const used = shortInUse(conflict.shortName);
-               return toast(
-                  `Não é possível repor ${conflict.name}: a sigla “${conflict.shortName}” já é usada por ${used.name}.`,
-                  false,
-               );
-            }
-            if (
-               !confirm(
-                  `Repor ${missing.length} fonte${missing.length === 1 ? " predefinida" : "s predefinidas"} em falta? As fontes personalizadas e associações existentes serão preservadas.`,
-               )
-            )
-               return;
-            const previousDefinitions = cloneData(sourceDefinitions),
-               now = new Date().toISOString();
-            sourceDefinitions.push(
-               ...missing.map((d, i) => ({
-                  ...d,
-                  updatedAt: now,
-                  position: sourceDefinitions.length + i + 1,
-               })),
-            );
-            missing.forEach((d) => delete deletedSources[d.id]);
-            if (!persist({ sources: true })) {
-               sourceDefinitions = previousDefinitions;
-               return;
-            }
-            toast("Fontes predefinidas repostas.");
-         };
          async function checkStorageHealth() {
             try {
                if (!navigator.storage?.estimate) return;
