@@ -3022,7 +3022,7 @@ dialog::backdrop {
                   Novo álbum
                </h2>
                <div class="listen-links" id="editorLinks">
-                  <a class="listen-link spotify" target="_blank" rel="noopener" data-service="spotify">Spotify ↗</a
+                  <a class="listen-link spotify" rel="noopener" data-service="spotify">Spotify ↗</a
                   ><a class="listen-link bandcamp" target="_blank" rel="noopener" data-service="bandcamp">Bandcamp ↗</a>
                </div>
             </div>
@@ -3572,7 +3572,7 @@ dialog::backdrop {
                   ><span id="luckyLastListened" hidden></span>
                </div>
                <div class="listen-links" id="luckyLinks">
-                  <a class="listen-link spotify" target="_blank" rel="noopener" data-service="spotify">Spotify ↗</a
+                  <a class="listen-link spotify" rel="noopener" data-service="spotify">Spotify ↗</a
                   ><a class="listen-link bandcamp" target="_blank" rel="noopener" data-service="bandcamp">Bandcamp ↗</a>
                </div>
             </div>
@@ -4835,16 +4835,16 @@ dialog::backdrop {
             setQueuePlacement(currentQueuePlacement());
             const data = {
                ...old,
-               album: $("#album").value.trim(),
-               artista: $("#artist").value.trim(),
-               generos: $("#genres").value.trim(),
+               album: capitalizeWords($("#album").value.trim()),
+               artista: capitalizeWords($("#artist").value.trim()),
+               generos: capitalizeWords($("#genres").value.trim()),
                lancamento: (() => {
                   const v = $("#releaseDate").value;
                   if (!v) return { mes: "", ano: "" };
                   const [ano, mes] = v.split("-");
                   return { mes: String(Number(mes)), ano };
                })(),
-               origemRegisto: $("#recordOrigin").value.trim(),
+               origemRegisto: capitalizeWords($("#recordOrigin").value.trim()),
                fontes: [
                   ...document.querySelectorAll(
                      "#albumSourceChecks input:checked",
@@ -4965,6 +4965,24 @@ dialog::backdrop {
             render();
             schedulePreferenceSave();
          });
+         /* Maiúscula no início de cada palavra (também depois de / - ( [ " “ e +).
+            O resto da palavra fica como foi escrito: siglas (AOTY, MGMT),
+            "McCartney" ou "LP" não mudam. Depois de apóstrofo não há maiúscula. */
+         function capitalizeWords(text) {
+            return String(text || "").replace(
+               /(^|[\s/(\[{"“'‘«+\-–—&,.:;])(\p{Ll})/gu,
+               (match, before, letter, offset, whole) => {
+                  // "don't", "rock'n'roll": apóstrofo colado a letras não inicia palavra.
+                  if (
+                     (before === "'" || before === "‘") &&
+                     offset > 0 &&
+                     /\p{L}/u.test(whole[offset - 1] || "")
+                  )
+                     return match;
+                  return before + letter.toLocaleUpperCase("pt-PT");
+               },
+            );
+         }
          /* Duplicado = mesmo álbum e artista, ignorando acentos, maiúsculas e pontuação. */
          const dupPart = (v) =>
             searchable(v).replace(/[^a-z0-9]+/g, " ").trim();
@@ -4973,13 +4991,35 @@ dialog::backdrop {
             const key = dupKey(data);
             return albums.find((a) => a.id !== exceptId && dupKey(a) === key);
          }
-         /* Pesquisa o álbum no serviço (no iPhone abre a app do Spotify, se instalada). */
+         /* Pesquisa o álbum no serviço. O Spotify usa o endereço da app (spotify:);
+            o link web fica guardado como alternativa. */
          function listenUrl(service, album, artist) {
             const q = `${artist} ${album}`.trim();
+            if (service === "spotify-web")
+               return `https://open.spotify.com/search/${encodeURIComponent(q)}`;
             return service === "spotify"
-               ? `https://open.spotify.com/search/${encodeURIComponent(q)}`
+               ? `spotify:search:${encodeURIComponent(q)}`
                : `https://bandcamp.com/search?q=${encodeURIComponent(q)}&item_type=a`;
          }
+         /* Abre a app do Spotify. Se a página não perder o foco em ~1,5 s
+            (app não instalada), abre a versão web. */
+         document.addEventListener("click", (e) => {
+            const link = e.target.closest('a.listen-link[data-service="spotify"]');
+            if (!link || link.getAttribute("href") === "#") return;
+            e.preventDefault();
+            const web = link.dataset.web;
+            let left = false;
+            const onHide = () => (left = true);
+            window.addEventListener("blur", onHide, { once: true });
+            document.addEventListener("visibilitychange", onHide, { once: true });
+            location.href = link.href;
+            setTimeout(() => {
+               window.removeEventListener("blur", onHide);
+               document.removeEventListener("visibilitychange", onHide);
+               if (!left && document.visibilityState === "visible" && web)
+                  window.open(web, "_blank", "noopener");
+            }, 1500);
+         });
          function setListenLinks(container, album, artist) {
             const box = $(container);
             if (!box) return;
@@ -4987,6 +5027,8 @@ dialog::backdrop {
             box.hidden = !ok;
             box.querySelectorAll("a").forEach((a) => {
                a.href = ok ? listenUrl(a.dataset.service, album, artist) : "#";
+               if (a.dataset.service === "spotify")
+                  a.dataset.web = ok ? listenUrl("spotify-web", album, artist) : "";
             });
          }
          function updateEditorLinks() {
@@ -6720,6 +6762,13 @@ dialog::backdrop {
                   "fonte eliminada não regressa",
                );
                check(normalize({ avaliacao: 9 }).avaliacao === 5, "avaliação limitada");
+               check(
+                  capitalizeWords("the dark side of the moon") === "The Dark Side Of The Moon" &&
+                     capitalizeWords("alternative / post-punk (live)") === "Alternative / Post-Punk (Live)" &&
+                     capitalizeWords("don't stop AOTY McCartney") === "Don't Stop AOTY McCartney" &&
+                     capitalizeWords("élan ótimo à") === "Élan Ótimo À",
+                  "maiúscula em cada palavra",
+               );
                check(
                   dupKey({ album: "Álbum  Ótimo!", artista: "Sigur Rós" }) ===
                      dupKey({ album: "album otimo", artista: "sigur ros" }),
