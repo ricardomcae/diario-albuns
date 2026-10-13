@@ -3374,6 +3374,71 @@
          /* Valores finais consolidados: alterações responsivas futuras devem ficar neste bloco. */
          @media (max-width:760px){.table-scroll table{min-width:1060px!important}}
                #luckyBtn{display:none!important}.sync-dot,#dot{cursor:help}
+
+         /* Native album-form reorganization. */
+         #settingsDialog .field.full > label:has(input[type="checkbox"]) {
+            display: grid !important;
+            grid-template-columns: 18px minmax(0, 1fr) !important;
+            align-items: start !important;
+            gap: 9px !important;
+            width: 100% !important;
+         }
+         #settingsDialog .field.full > label:has(input[type="checkbox"]) input {
+            width: 18px !important;
+            height: 18px !important;
+            margin: 1px 0 0 !important;
+            justify-self: start !important;
+         }
+         .listening-options-row {
+            display: grid !important;
+            grid-template-columns: minmax(210px, .9fr) minmax(300px, 1.35fr) !important;
+            gap: 12px !important;
+            align-items: stretch !important;
+         }
+         .listening-option-card { height: 100%; }
+         .queue-placement {
+            min-width: 0;
+            margin: 0;
+            padding: 10px 11px 11px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+         }
+         .queue-placement legend {
+            padding: 0 5px;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 750;
+            text-transform: uppercase;
+            letter-spacing: .045em;
+         }
+         .queue-placement-options { display: flex; flex-wrap: wrap; gap: 7px; }
+         .queue-placement-options label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            min-height: 36px;
+            padding: 7px 10px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            cursor: pointer;
+            font-size: 11px;
+         }
+         .queue-placement-options label:has(input:checked) {
+            border-color: var(--brand);
+            background: rgba(49,87,213,.10);
+            color: var(--brand);
+         }
+         .queue-placement-options input { width: 15px; height: 15px; margin: 0; accent-color: var(--brand); }
+         .queue-placement > .hint { display: block; margin-top: 7px; }
+         #albumDialog .field, #albumDialog .meta-grid > *, #albumDialog .listening-grid > * { min-width: 0; }
+         #albumDialog input, #albumDialog select, #albumDialog textarea { max-width: 100%; box-sizing: border-box; }
+         @media (max-width:760px) {
+            .listening-options-row { grid-template-columns: 1fr !important; }
+            .queue-placement-options { display: grid; grid-template-columns: 1fr; }
+            .queue-placement-options label { border-radius: 9px; }
+            #releaseDate { display: block !important; width: 100% !important; min-width: 0 !important; max-width: 100% !important; }
+            .meta-grid { grid-template-columns: minmax(0,1fr) !important; }
+         }
       </style>
    </head>
    <body>
@@ -3853,22 +3918,7 @@
                      >
                      <div class="source-checks" id="albumSourceChecks"></div>
                   </div>
-                  <div class="form-section spotify-section">
-                     <span class="form-section-title">Disponibilidade</span
-                     ><label class="spotify-check"
-                        ><input
-                           id="spotifyAvailable"
-                           type="checkbox"
-                           checked
-                        /><span
-                           ><strong>Disponível no Spotify</strong
-                           ><small
-                              >Desmarca apenas quando o álbum não estiver
-                              disponível.</small
-                           ></span
-                        ></label
-                     >
-                  </div>
+
                   <div class="form-section">
                      <span class="form-section-title">Avaliação</span>
                      <div class="rating-row">
@@ -3931,27 +3981,22 @@
                               “Ouvido”.</span
                            >
                         </div>
-                        <div class="field full">
-                           <label class="spotify-check"
-                              ><input id="listenSoon" type="checkbox" /><span
-                                 ><strong>Adicionar aos próximos</strong
-                                 ><small
-                                    >Permanece selecionado mesmo depois de
-                                    ouvires o álbum.</small
-                                 ></span
-                              ></label
-                           >
-                        </div>
-                        <div class="field full" id="queueTopField" hidden>
-                           <label class="spotify-check queue-top-check"
-                              ><input id="moveQueueTop" type="checkbox" /><span
-                                 ><strong>Enviar para o topo da fila</strong
-                                 ><small
-                                    >Ao guardar, este álbum passa para a posição
-                                    #1 dos próximos.</small
-                                 ></span
-                              ></label
-                           >
+                        <div class="field full listening-options-row">
+                           <label class="spotify-check listening-option-card">
+                              <input id="spotifyAvailable" type="checkbox" checked />
+                              <span><strong>Disponível no Spotify</strong><small>Desmarca apenas quando o álbum não estiver disponível.</small></span>
+                           </label>
+                           <fieldset class="queue-placement" id="queuePlacementGroup">
+                              <legend>Próximos</legend>
+                              <div class="queue-placement-options" role="radiogroup" aria-label="Posição nos próximos">
+                                 <label><input type="radio" name="queuePlacement" value="none" checked /><span>Não adicionar</span></label>
+                                 <label><input type="radio" name="queuePlacement" value="end" /><span>Adicionar ao fim</span></label>
+                                 <label><input type="radio" name="queuePlacement" value="top" /><span>Adicionar ao topo</span></label>
+                              </div>
+                              <small class="hint">A escolha “topo” adiciona o álbum aos próximos e coloca-o na posição #1.</small>
+                           </fieldset>
+                           <input id="listenSoon" type="checkbox" hidden aria-hidden="true" tabindex="-1" />
+                           <input id="moveQueueTop" type="checkbox" hidden aria-hidden="true" tabindex="-1" />
                         </div>
                         <div class="field full">
                            <label>Adicionado em</label>
@@ -5269,12 +5314,23 @@
                }
             });
          }
+         function setQueuePlacement(value) {
+            const valid = ["none", "end", "top"].includes(value) ? value : "none";
+            const radio = document.querySelector(`[name="queuePlacement"][value="${valid}"]`);
+            if (radio) radio.checked = true;
+            $("#listenSoon").checked = valid !== "none";
+            $("#moveQueueTop").checked = valid === "top";
+         }
+         function currentQueuePlacement() {
+            return document.querySelector('[name="queuePlacement"]:checked')?.value || "none";
+         }
          function openAlbum(id = null) {
             editingId = id;
             const a = id
                ? albums.find((x) => x.id === id)
                : normalize({ fontes: {} });
             $("#formTitle").textContent = id ? "Editar álbum" : "Novo álbum";
+            $("#albumForm .primary").textContent = id ? "Guardar alteração" : "Adicionar álbum";
             $("#deleteFromEditor").hidden = !id;
             $("#album").value = a.album;
             $("#artist").value = a.artista;
@@ -5292,11 +5348,12 @@
                .forEach((x) => (x.checked = Number(x.value) === a.avaliacao));
             $("#state").value = a.estado;
             $("#lastListened").value = a.ultimaAudicao;
-            $("#listenSoon").checked = a.ouvirBrevemente === true;
-            $("#moveQueueTop").checked = false;
-            $("#queueTopField").hidden = !$("#listenSoon").checked;
+            setQueuePlacement(a.ouvirBrevemente === true ? "end" : "none");
             $("#createdAtDisplay").textContent = dateLabel(a.createdAt);
-            $("#albumDialog").showModal();
+            const dialog = $("#albumDialog"), body = dialog.querySelector(".album-modal-body");
+            if (body) body.scrollTop = 0;
+            dialog.showModal();
+            requestAnimationFrame(() => { if (body) body.scrollTop = 0; });
             focusDialogAnchor("#albumDialog", "#formTitle");
          }
          $("#albumForm").addEventListener("submit", (e) => {
@@ -5305,6 +5362,7 @@
                ? albums.find((a) => a.id === editingId)
                : normalize({ fontes: {} });
             const last = $("#lastListened").value;
+            setQueuePlacement(currentQueuePlacement());
             const data = {
                ...old,
                album: $("#album").value.trim(),
@@ -5378,10 +5436,11 @@
             $("#albumDialog").close();
             toast(editingId ? "Álbum atualizado." : "Álbum adicionado.");
          });
-         $("#listenSoon").addEventListener("change", () => {
-            $("#queueTopField").hidden = !$("#listenSoon").checked;
-            if (!$("#listenSoon").checked) $("#moveQueueTop").checked = false;
-         });
+         document.querySelectorAll('[name="queuePlacement"]').forEach((radio) =>
+            radio.addEventListener("change", () => {
+               if (radio.checked) setQueuePlacement(radio.value);
+            }),
+         );
          $("#clearRating").onclick = () =>
             document
                .querySelectorAll("[name=rating]")
@@ -6943,60 +7002,5 @@
          checkStorageHealth();
          setTimeout(checkRemoteUpdate, 0);
       </script>
-   
-<style id="ux-reorganization-patch">
-/* Gist settings: keep checkbox and its text together */
-label:has(> #keepToken), label:has(> #autoSave), label:has(> #rememberToken), label:has(> #gistAutoSave){display:inline-flex!important;align-items:center!important;gap:.55rem!important;white-space:nowrap;}
-label:has(> #keepToken) input, label:has(> #autoSave) input, label:has(> #rememberToken) input, label:has(> #gistAutoSave) input{flex:0 0 auto;margin:0!important;}
-/* Listening area */
-#listeningUnified{grid-column:1/-1;border:1px solid var(--border,#d8dee8);border-radius:14px;padding:14px 16px;background:var(--surface,#fff)}
-#listeningUnified h3{margin:0 0 12px;font-size:1rem}
-#listeningUnified .listening-grid{display:grid;grid-template-columns:minmax(210px,1fr) minmax(260px,1.25fr);gap:18px;align-items:start}
-#listeningUnified .spotify-box{display:flex;align-items:center;gap:10px;min-height:48px}
-#listeningUnified .queue-choice{display:flex;flex-wrap:wrap;gap:8px}
-#listeningUnified .queue-choice label{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border,#d8dee8);border-radius:999px;padding:8px 11px;cursor:pointer}
-#listeningUnified .queue-choice label:has(input:checked){border-color:#6d5dfc;background:rgba(109,93,252,.10);color:#5547dc}
-#listeningUnified .queue-choice input{margin:0}
-@media(max-width:640px){
- #listeningUnified .listening-grid{grid-template-columns:1fr}
- #listeningUnified .queue-choice{display:grid;grid-template-columns:1fr}
- #listeningUnified .queue-choice label{border-radius:10px}
- label[for="releaseDate"]{display:block!important;margin-bottom:6px!important}
- #releaseDate{display:block!important;width:100%!important;min-width:0!important;box-sizing:border-box!important}
- #releaseDate, #releaseDate + *{clear:both}
-}
-</style>
-<script id="ux-reorganization-script">
-(function(){
- const nativeShow=HTMLDialogElement&&HTMLDialogElement.prototype.showModal;
- if(nativeShow&&!HTMLDialogElement.prototype.__topPatched){
-   HTMLDialogElement.prototype.showModal=function(){ nativeShow.call(this); const d=this; requestAnimationFrame(()=>{d.scrollTop=0; const c=d.querySelector('.modal-content,.dialog-content,form'); if(c)c.scrollTop=0;}); };
-   HTMLDialogElement.prototype.__topPatched=true;
- }
- function organize(){
-   const spotify=document.getElementById('spotifyAvailable');
-   const soon=document.getElementById('listenSoon');
-   const top=document.getElementById('moveQueueTop');
-   if(!spotify||!soon||!top||document.getElementById('listeningUnified'))return;
-   const sf=spotify.closest('.field, .form-field, label')||spotify.parentElement;
-   const qf=soon.closest('.field, .form-field')||soon.parentElement;
-   const host=document.createElement('section'); host.id='listeningUnified';
-   host.innerHTML='<h3>Audição</h3><div class="listening-grid"><div class="spotify-box"></div><div><strong>Próximos</strong><div class="queue-choice" role="radiogroup" aria-label="Posição nos próximos"></div></div></div>';
-   const sp=host.querySelector('.spotify-box');
-   const spotifyLabel=document.querySelector('label[for="spotifyAvailable"]');
-   sp.append(spotify); if(spotifyLabel)sp.append(spotifyLabel);
-   const choices=host.querySelector('.queue-choice');
-   choices.innerHTML='<label><input type="radio" name="queuePlacement" value="none"> Não adicionar</label><label><input type="radio" name="queuePlacement" value="end"> Adicionar ao fim</label><label><input type="radio" name="queuePlacement" value="top"> Adicionar ao topo</label>';
-   (sf.parentElement||qf.parentElement).insertBefore(host,sf);
-   sf.style.display='none'; qf.style.display='none'; const tf=top.closest('.field, .form-field')||top.parentElement; if(tf)tf.style.display='none';
-   const radios=[...choices.querySelectorAll('input')];
-   function syncFromOld(){ const v=!soon.checked?'none':(top.checked?'top':'end'); const r=radios.find(x=>x.value===v); if(r)r.checked=true; }
-   function syncToOld(v){ soon.checked=v!=='none'; top.checked=v==='top'; soon.dispatchEvent(new Event('change',{bubbles:true})); top.dispatchEvent(new Event('change',{bubbles:true})); }
-   radios.forEach(r=>r.addEventListener('change',()=>r.checked&&syncToOld(r.value))); syncFromOld();
- }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',organize); else organize();
-})();
-</script>
-
 </body>
 </html>
