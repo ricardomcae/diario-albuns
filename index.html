@@ -3364,7 +3364,14 @@
                display: none !important;
             }
          }
-      </style>
+      
+         .import-backup-modal{width:min(480px,calc(100vw - 32px))!important;max-width:480px!important}
+         #importBackupDialog{position:fixed;inset:0;width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;padding:16px;border:0;background:transparent}
+         #importBackupDialog[open]{display:grid;place-items:center}
+         @media(min-width:761px){#luckyBtn{display:none!important}}
+         /* Final consolidated mobile table width. */
+         @media(max-width:760px){.table-scroll table{min-width:1060px!important}}
+</style>
    </head>
    <body>
       <div class="wrap">
@@ -3549,16 +3556,6 @@
                      aria-label="Inverter ordenação"
                   >
                      ↓</button
-                  ><button
-                     class="btn compact-action"
-                     id="luckyBtn"
-                     type="button"
-                     title="Surpreende-me: escolher um álbum para ouvir"
-                     aria-label="Surpreende-me: escolher um álbum para ouvir"
-                  >
-                     <span class="compact-action-icon" aria-hidden="true"
-                        >🍀</span
-                     ></button
                   ><button
                      class="btn primary compact-action"
                      id="addBtn"
@@ -4099,7 +4096,16 @@
             </div>
          </div>
       </dialog>
-      <dialog id="settingsDialog">
+      
+      <dialog id="importBackupDialog">
+         <div class="modal queue-modal import-backup-modal">
+            <div class="manager-head"><div><h2 id="importBackupTitle" class="dialog-focus-anchor" tabindex="-1">Importar backup JSON</h2><p class="muted" id="importBackupSummary">Seleciona um backup válido.</p></div><button type="button" class="drawer-close" data-close="importBackupDialog" aria-label="Fechar">×</button></div>
+            <div class="audit-list"><div class="audit-row"><span>Álbuns</span><strong id="importAlbumCount">0</strong></div><div class="audit-row"><span>Fontes</span><strong id="importSourceCount">0</strong></div></div>
+            <p class="muted">Combinar preserva os dados existentes e aplica o merge. Substituir troca a coleção atual. Antes de qualquer opção é exportado um backup automático.</p>
+            <div class="modal-actions"><button type="button" class="btn" id="importCombineBtn">Combinar</button><button type="button" class="btn danger" id="importReplaceBtn">Substituir</button><button type="button" class="btn primary" data-close="importBackupDialog">Cancelar</button></div>
+         </div>
+      </dialog>
+<dialog id="settingsDialog">
          <form method="dialog" class="modal" id="settingsForm">
             <h2 id="settingsTitle" class="dialog-focus-anchor" tabindex="-1">
                Ligação ao Gist
@@ -4315,10 +4321,13 @@
             editingId = null,
             deleteId = null,
             dirty = false,
+            collectionDirty = false,
+            preferencesDirty = false,
             remoteUpdatedAt = null,
             sortKey = "createdAt",
             sortDir = "desc",
-            deletedAlbums = {};
+            deletedAlbums = {},
+            deletedSources = {};
          let selectedSources = [],
             syncBusy = false,
             autoSyncTimer = null,
@@ -4592,13 +4601,39 @@
          function clearStorageError() {
             $("#storageAlert").classList.remove("show");
          }
+         const CURRENT_SCHEMA_VERSION = 3;
+         function migratePayload(input) {
+            const source = input && typeof input === "object" ? cloneData(input) : {};
+            const version = Number(source.schemaVersion || 1);
+            const migrated = {
+               schemaVersion: CURRENT_SCHEMA_VERSION,
+               updatedAt: source.updatedAt || new Date().toISOString(),
+               sourceDefinitions: normalizeSourceDefinitions(source.sourceDefinitions),
+               albums: Array.isArray(source.albums) ? source.albums.map(normalize) : [],
+               deletedAlbums: source.deletedAlbums && typeof source.deletedAlbums === "object" ? source.deletedAlbums : {},
+               deletedSources: source.deletedSources && typeof source.deletedSources === "object" ? source.deletedSources : {},
+               preferences: source.preferences && typeof source.preferences === "object"
+                  ? { sortKey: source.preferences.sortKey || "createdAt", sortDir: source.preferences.sortDir === "asc" ? "asc" : "desc", updatedAt: source.preferences.updatedAt || "" }
+                  : { sortKey: "createdAt", sortDir: "desc", updatedAt: "" },
+            };
+            return { payload: migrated, migrated: version < CURRENT_SCHEMA_VERSION };
+         }
+         function pruneTombstones(map, retentionDays = 730) {
+            const cutoff = Date.now() - retentionDays * 86400000, clean = {};
+            for (const [id, value] of Object.entries(map || {})) {
+               const time = validTime(value);
+               if (!time || time >= cutoff) clean[id] = value;
+            }
+            return clean;
+         }
          function currentPayload() {
             return {
-               schemaVersion: 2,
+               schemaVersion: 3,
                updatedAt: new Date().toISOString(),
                sourceDefinitions,
                albums,
-               deletedAlbums,
+               deletedAlbums: pruneTombstones(deletedAlbums),
+               deletedSources: pruneTombstones(typeof deletedSources === "object" ? deletedSources : {}),
                preferences: {
                   sortKey,
                   sortDir,
@@ -4615,6 +4650,7 @@
                localStorage.setItem(STORE, JSON.stringify(currentPayload()));
 
                dirty = true;
+               preferencesDirty = true;
 
                setSyncMeta({
                   dirty: true,
@@ -4783,7 +4819,7 @@
             );
             return {
                payload: {
-                  schemaVersion: 2,
+                  schemaVersion: 3,
                   updatedAt: new Date().toISOString(),
                   sourceDefinitions: defs.slice(0, MAX_SOURCES),
                   albums: [...map.values()],
@@ -4871,7 +4907,7 @@
          }
          function normalize(a) {
             return {
-               schemaVersion: 2,
+               schemaVersion: 3,
                id: a.id || uid(),
                album: String(a.album || ""),
                artista: String(a.artista || ""),
@@ -4896,7 +4932,9 @@
          }
          function loadLocal() {
             try {
-               const raw = JSON.parse(localStorage.getItem(STORE));
+               const storedRaw = JSON.parse(localStorage.getItem(STORE));
+               const migrationResult = migratePayload(storedRaw);
+               const raw = migrationResult.payload;
                if (
                   (Array.isArray(raw) || Number(raw?.schemaVersion || 1) < 2) &&
                   raw &&
@@ -4914,6 +4952,7 @@
                   TOMBSTONES,
                   raw?.deletedAlbums || {},
                );
+               deletedSources = pruneTombstones(raw?.deletedSources || {});
 
                const localPreferences = raw?.preferences || {};
 
@@ -4984,6 +5023,7 @@
                   remoteUpdatedAt,
                });
                dirty = true;
+               collectionDirty = true;
                localChangeVersion = nextVersion;
                clearStorageError();
                renderSourceUI();
@@ -5001,6 +5041,7 @@
             t.classList.add("show");
             setTimeout(() => t.classList.remove("show"), 3500);
          }
+         function updateSyncTooltip(){const c=getConfig(),text=[`Modo: ${c.gistId?"Gist configurado":"apenas local"}`,`Dados alterados: ${collectionDirty?"sim":"não"}`,`Preferências alteradas: ${preferencesDirty?"sim":"não"}`,`Versão local: ${localChangeVersion}`,`Última revisão Gist: ${remoteUpdatedAt?new Date(remoteUpdatedAt).toLocaleString("pt-PT"):"desconhecida"}`].join("\n");$("#syncText").title=text;$("#dot").title=text;}
          function updateStatus(msg) {
             const cfg = getConfig();
             $("#syncText").textContent =
@@ -5012,6 +5053,7 @@
             $("#dirtyText").textContent = dirty ? "Alterações por gravar" : "";
             $("#loadBtn").disabled = syncBusy;
             $("#saveBtn").disabled = syncBusy || !cfg.gistId || !getToken();
+            updateSyncTooltip();
          }
          function formatRelease(a) {
             const m = Number(a.lancamento.mes),
@@ -6159,7 +6201,7 @@
                )
                .forEach((x) => x.classList.remove("dragging", "drag-over"));
          });
-         $("#luckyBtn").onclick = chooseLucky;
+         
          $("#luckyAgain").onclick = chooseLucky;
          document.querySelector('[data-close="luckyDialog"]').onclick = () =>
             $("#luckyDialog").close();
@@ -6284,7 +6326,7 @@
                   parsed = JSON.parse(content);
                if (!Array.isArray(parsed.albums))
                   throw new Error("JSON inválido: falta a lista “albums”.");
-               const migrated = Number(parsed.schemaVersion || 1) < 2;
+               const migrated = Number(parsed.schemaVersion || 1) < 3;
 
                const remotePreferences = parsed.preferences || {};
 
@@ -6325,7 +6367,7 @@
                      JSON.stringify(parsed),
                   );
                const remotePayload = {
-                  schemaVersion: 2,
+                  schemaVersion: 3,
                   updatedAt: parsed.updatedAt || new Date().toISOString(),
                   sourceDefinitions: normalizeSourceDefinitions(
                      parsed.sourceDefinitions,
@@ -6404,7 +6446,7 @@
                localStorage.setItem(TOMBSTONES, JSON.stringify(deletedAlbums));
                localStorage.setItem(STORE, JSON.stringify(currentPayload()));
                const loadedPayload = {
-                  schemaVersion: 2,
+                  schemaVersion: 3,
                   updatedAt: parsed.updatedAt || new Date().toISOString(),
                   sourceDefinitions: remotePayload.sourceDefinitions,
                   albums: remotePayload.albums,
@@ -6541,9 +6583,11 @@
                if (
                   localChangeVersion === mergedVersion &&
                   savingVersion <= mergedVersion
-               )
+               ) {
                   dirty = false;
-               else {
+                  collectionDirty = false;
+                  preferencesDirty = false;
+               } else {
                   dirty = true;
                   autoSyncPending = true;
                }
@@ -6811,6 +6855,28 @@
             );
             toast("Backup pré-migração exportado.");
          }
+         let pendingImportPayload = null;
+         function validateImportPayload(value) {
+            if (!value || typeof value !== "object" || !Array.isArray(value.albums)) throw new Error("O ficheiro não contém uma coleção válida.");
+            return migratePayload(value).payload;
+         }
+         function applyImportedBackup(mode) {
+            if (!pendingImportPayload) return;
+            downloadJson(currentPayload(), `album-diary-before-import-${new Date().toISOString().slice(0,10)}.json`);
+            const previous = cloneData(currentPayload());
+            const result = mode === "combine" ? mergePayloads(currentPayload(), pendingImportPayload, readJsonStore(BASE_SNAPSHOT, null)) : { payload: pendingImportPayload, conflicts: [] };
+            if (result.conflicts.length && !confirm(`${result.conflicts.length} conflito(s) encontrado(s). Manter os valores mais recentes?`)) return;
+            const payload = result.payload;
+            albums = payload.albums; sourceDefinitions = payload.sourceDefinitions; deletedAlbums = payload.deletedAlbums || {}; deletedSources = payload.deletedSources || {};
+            const prefs = payload.preferences || {}; if (prefs.sortKey) sortKey = prefs.sortKey; if (prefs.sortDir === "asc" || prefs.sortDir === "desc") sortDir = prefs.sortDir; preferencesUpdatedAt = prefs.updatedAt || "";
+            invalidateDataCaches();
+            if (!persist()) { albums=previous.albums; sourceDefinitions=previous.sourceDefinitions; deletedAlbums=previous.deletedAlbums||{}; deletedSources=previous.deletedSources||{}; return; }
+            pendingImportPayload = null; $("#importBackupDialog").close(); toast(`Backup ${mode === "combine" ? "combinado" : "substituído"} com sucesso.`);
+         }
+         $("#importBackupBtn").onclick=()=>$("#importBackupInput").click();
+         $("#importBackupInput").onchange=async(e)=>{const file=e.target.files?.[0];e.target.value="";if(!file)return;try{pendingImportPayload=validateImportPayload(JSON.parse(await file.text()));$("#importAlbumCount").textContent=pendingImportPayload.albums.length;$("#importSourceCount").textContent=pendingImportPayload.sourceDefinitions.length;$("#importBackupSummary").textContent=`Backup válido: ${file.name}`;$("#importBackupDialog").showModal();focusDialogAnchor("#importBackupDialog","#importBackupTitle")}catch(error){toast(`Backup inválido: ${error.message}`,false)}};
+         $("#importCombineBtn").onclick=()=>applyImportedBackup("combine");
+         $("#importReplaceBtn").onclick=()=>{if(confirm("Substituir toda a coleção atual pelo backup?"))applyImportedBackup("replace")};
          $("#exportBackupBtn").onclick = downloadBackup;
          $("#exportMigrationBackupBtn").onclick = downloadMigrationBackup;
          $("#storageBackupBtn").onclick = downloadBackup;
@@ -6888,12 +6954,26 @@
             flushPendingSync();
          });
          window.addEventListener("beforeunload", (e) => {
-            if (dirty) {
+            if (collectionDirty) {
                e.preventDefault();
                e.returnValue = "";
             }
          });
+         function runInternalTests() {
+            const failures=[]; const check=(condition,name)=>{if(!condition)failures.push(name)};
+            try {
+               const old=migratePayload({schemaVersion:1,albums:[],sourceDefinitions:[]}); check(old.payload.schemaVersion===3,"migração v1→v3");
+               check(Array.isArray(old.payload.albums),"normalização de álbuns");
+               const recent=new Date().toISOString(), expired=new Date(Date.now()-800*86400000).toISOString();
+               const pruned=pruneTombstones({keep:recent,drop:expired}); check(!!pruned.keep&&!pruned.drop,"expiração de tombstones");
+               const base={schemaVersion:3,albums:[],sourceDefinitions:[],deletedAlbums:{},deletedSources:{},preferences:{sortKey:"createdAt",sortDir:"desc",updatedAt:""}};
+               const merged=mergePayloads(base,base,base); check(Array.isArray(merged.payload.albums),"merge vazio");
+            } catch(error) { failures.push(`exceção: ${error.message}`); }
+            if(failures.length) console.error("Testes internos falharam:",failures); else console.info("Testes internos: OK");
+            return failures;
+         }
          loadLocal();
+         runInternalTests();
          checkStorageHealth();
          setTimeout(checkRemoteUpdate, 0);
       </script>
