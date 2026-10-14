@@ -1711,7 +1711,7 @@ dialog::backdrop {
 }
 .queue-preview-row {
    display: grid;
-   grid-template-columns: 26px minmax(0, 1fr);
+   grid-template-columns: 26px minmax(0, 1fr) 34px;
    gap: 9px;
    align-items: center;
    width: 100%;
@@ -1726,7 +1726,7 @@ dialog::backdrop {
    background: rgba(49, 87, 213, 0.08);
 }
 .order-mode .queue-preview-row {
-   grid-template-columns: 26px minmax(0, 1fr) auto;
+   grid-template-columns: 26px minmax(0, 1fr) 34px auto;
    cursor: grab;
 }
 .order-mode .queue-preview-row:active {
@@ -1779,6 +1779,38 @@ dialog::backdrop {
    width: 34px;
    height: 34px;
    padding: 0;
+}
+.queue-spotify {
+   display: grid;
+   place-items: center;
+   width: 34px;
+   height: 34px;
+   min-height: 34px;
+   padding: 0;
+   border-radius: 9px;
+   font-size: 14px;
+   text-decoration: none;
+   overflow: hidden;
+}
+.queue-spotify[aria-disabled="true"] {
+   opacity: 0.35;
+   pointer-events: none;
+}
+@media (max-width: 760px) {
+   .queue-preview-row,
+   .order-mode .queue-preview-row {
+      column-gap: 7px;
+      padding: 8px;
+   }
+   .queue-order-actions {
+      gap: 3px;
+   }
+   .queue-order-actions .btn,
+   .queue-spotify {
+      width: 32px;
+      height: 32px;
+      min-height: 32px;
+   }
 }
 .audit-list {
    display: grid;
@@ -5953,7 +5985,7 @@ dialog::backdrop {
             list.innerHTML = shown
                .map(
                   (a, i) =>
-                     `<div class="queue-preview-row" data-id="${esc(a.id)}" draggable="${orderMode}"><span class="queue-preview-rank">${i + 1}</span><div class="queue-preview-album"><strong>${esc(a.album)}</strong><span>${esc(a.artista)}</span></div><div class="queue-actions queue-order-actions"><button class="btn queue-up" type="button" ${i === 0 ? "disabled" : ""}>↑</button><button class="btn queue-down" type="button" ${i === shown.length - 1 ? "disabled" : ""}>↓</button></div></div>`,
+                     `<div class="queue-preview-row" data-id="${esc(a.id)}" draggable="${orderMode}"><span class="queue-preview-rank">${i + 1}</span><div class="queue-preview-album"><strong>${esc(a.album)}</strong><span>${esc(a.artista)}</span></div><a class="listen-link spotify queue-spotify" data-service="spotify" href="${esc(listenUrl("spotify", a.album, a.artista))}" data-web="${esc(listenUrl("spotify-web", a.album, a.artista))}" title="Abrir ${esc(a.album)} no Spotify" aria-label="Abrir ${esc(a.album)} no Spotify" ${a.disponivelSpotify === false ? 'aria-disabled="true" tabindex="-1"' : ""}>♫</a><div class="queue-actions queue-order-actions"><button class="btn queue-up" type="button" ${i === 0 ? "disabled" : ""} title="Subir">↑</button><button class="btn queue-down" type="button" ${i === shown.length - 1 ? "disabled" : ""} title="Descer">↓</button></div></div>`,
                )
                .join("");
             $("#openFullQueueBtn").textContent = orderMode
@@ -6354,6 +6386,31 @@ dialog::backdrop {
             }
             render();
          });
+         /* Grava a ordem do rascunho imediatamente no dispositivo. Assim,
+            sair por Fechar, ×, Esc ou fechar a app não perde a reordenação. */
+         function persistQueueDraft({ sync = false } = {}) {
+            if (!queueDraft) return true;
+            const previous = cloneData(albums),
+               now = new Date().toISOString();
+            let changed = false;
+            queueDraft.forEach((id, index) => {
+               const a = albums.find((x) => x.id === id),
+                  rank = index + 1;
+               if (a && a.proximoRank !== rank) {
+                  a.proximoRank = rank;
+                  a.updatedAt = now;
+                  changed = true;
+               }
+            });
+            if (!changed) return true;
+            if (!writeLocalChange()) {
+               albums = previous;
+               return false;
+            }
+            render();
+            if (sync) requestAutoSync();
+            return true;
+         }
          $("#openFullQueueBtn").onclick = () => {
             const entering = $("#openFullQueueBtn").dataset.orderMode !== "1";
             if (entering) {
@@ -6361,22 +6418,12 @@ dialog::backdrop {
                renderUnifiedQueue(true);
                return;
             }
-            const previous = cloneData(albums),
-               now = new Date().toISOString();
-            queueDraft.forEach((id, index) => {
-               const a = albums.find((x) => x.id === id);
-               if (a && a.proximoRank !== index + 1) {
-                  a.proximoRank = index + 1;
-                  a.updatedAt = now;
-               }
-            });
-            queueDraft = null;
-            if (!persist()) {
-               albums = previous;
+            if (!persistQueueDraft({ sync: true })) {
                queueDraft = orderedQueue().map((a) => a.id);
                renderUnifiedQueue(true);
                return;
             }
+            queueDraft = null;
             renderUnifiedQueue(false);
             toast("Ordem dos próximos guardada.");
          };
@@ -6450,10 +6497,15 @@ dialog::backdrop {
                j = i + direction;
             if (i < 0 || j < 0 || j >= queueDraft.length) return;
             [queueDraft[i], queueDraft[j]] = [queueDraft[j], queueDraft[i]];
+            if (!persistQueueDraft()) queueDraft = orderedQueue().map((a) => a.id);
             renderUnifiedQueue(true);
          }
          let draggedQueueId = null;
          $("#queuePreviewList").addEventListener("dragstart", (e) => {
+            if (e.target.closest(".queue-spotify,button")) {
+               e.preventDefault();
+               return;
+            }
             const row = e.target.closest(".queue-preview-row[draggable=true]");
             if (!row) return;
             draggedQueueId = row.dataset.id;
@@ -6479,9 +6531,11 @@ dialog::backdrop {
                to = queueDraft.indexOf(row.dataset.id),
                [item] = queueDraft.splice(from, 1);
             queueDraft.splice(to, 0, item);
+            if (!persistQueueDraft()) queueDraft = orderedQueue().map((a) => a.id);
             renderUnifiedQueue(true);
          });
          $("#queuePreviewDialog").addEventListener("close", () => {
+            if (queueDraft) persistQueueDraft({ sync: true });
             queueDraft = null;
          });
          $("#queuePreviewList").addEventListener("dragend", () => {
@@ -7651,6 +7705,11 @@ dialog::backdrop {
                );
                check(normalize({ avaliacao: 9 }).avaliacao === 5, "avaliação limitada");
                check(lastGrapheme("🌙🚗") === "🚗" && lastGrapheme("🌧️") === "🌧️", "emoji único");
+               const queueSample = [
+                  normalize({ id: "q1", album: "A", artista: "X", ouvirBrevemente: true, proximoRank: 2 }),
+                  normalize({ id: "q2", album: "B", artista: "Y", ouvirBrevemente: true, proximoRank: 1 }),
+               ];
+               check(queueSample.sort((a,b) => a.proximoRank-b.proximoRank)[0].id === "q2", "ordem da fila");
                const tag = { id: "t", name: "T", emoji: "🌙", position: 1, updatedAt: now };
                const tagsMerged = mergePayloads(
                   { ...base, tagDefinitions: [], deletedTags: { t: later } },
