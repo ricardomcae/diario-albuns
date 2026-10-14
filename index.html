@@ -1018,7 +1018,8 @@ dialog::backdrop {
 #originDetailsDialog,
 #auditDialog,
 #queuePreviewDialog,
-#sourcesManagerDialog {
+#sourcesManagerDialog,
+#tagsManagerDialog {
    position: fixed;
    inset: 0;
    width: 100vw;
@@ -1039,7 +1040,8 @@ dialog::backdrop {
 #originDetailsDialog[open],
 #auditDialog[open],
 #queuePreviewDialog[open],
-#sourcesManagerDialog[open] {
+#sourcesManagerDialog[open],
+#tagsManagerDialog[open] {
    display: grid;
    place-items: center;
 }
@@ -2439,8 +2441,13 @@ dialog::backdrop {
       width: auto;
       padding: 18px;
    }
-   #sourcesManagerDialog {
+   #sourcesManagerDialog,
+   #tagsManagerDialog {
       padding: 10px;
+   }
+   /* 5 botões em 2 colunas: o último (Gravar) ocupa a linha toda. */
+   .actions.mobile-open > :last-child:nth-child(odd) {
+      grid-column: 1 / -1;
    }
    .sources-manager-modal {
       width: calc(100vw - 20px);
@@ -2621,6 +2628,9 @@ dialog::backdrop {
    margin: 3px 0 0;
    font-size: 12px;
 }
+.tags-manager-modal {
+   width: min(560px, calc(100vw - 40px));
+}
 .tag-manager-row {
    grid-template-columns: 28px 56px minmax(120px, 1fr) 70px auto;
 }
@@ -2739,7 +2749,8 @@ dialog::backdrop {
                <div class="actions" id="mainActions">
                   <button class="btn" id="settingsBtn">⚙ Gist</button
                   ><button class="btn" id="sourcesManagerBtn">
-                     ☑ Fontes e tags</button
+                     ☑ Fontes</button
+                  ><button class="btn" id="tagsManagerBtn">🏷 Tags</button
                   ><button class="btn" id="loadBtn">↓ Ler do Gist</button
                   ><button class="btn primary" id="saveBtn">
                      ↑ Gravar no Gist
@@ -3390,7 +3401,7 @@ dialog::backdrop {
                      class="dialog-focus-anchor"
                      tabindex="-1"
                   >
-                     Gerir fontes e tags
+                     Gerir fontes
                   </h2>
                   <p class="muted">
                      A ordem define os ticks no editor, filtros e tabela.
@@ -3425,12 +3436,43 @@ dialog::backdrop {
                   ＋ Adicionar
                </button>
             </div>
-            <div class="manager-section-title">
-               <span>Tags</span><strong id="tagLimitCount">0 / 12</strong>
+            <div class="manager-tools">
+               <button type="button" class="btn" id="exportBackupBtn">
+                  ↓ Exportar backup JSON</button
+               ><button type="button" class="btn" id="importBackupBtn">↑ Importar backup JSON</button><input id="importBackupInput" type="file" accept="application/json,.json" hidden />
             </div>
-            <p class="muted manager-section-hint">
-               Contextos de audição. Toca no campo do emoji para escolher outro.
-            </p>
+            <div class="modal-actions">
+               <button
+                  type="button"
+                  class="btn"
+                  data-close="sourcesManagerDialog"
+               >
+                  Fechar
+               </button>
+            </div>
+         </div>
+      </dialog>
+      <dialog id="tagsManagerDialog">
+         <div class="modal sources-manager-modal tags-manager-modal overlay-card">
+            <div class="manager-head">
+               <div>
+                  <h2 id="tagsManagerTitle" class="dialog-focus-anchor" tabindex="-1">
+                     Gerir tags
+                  </h2>
+                  <p class="muted">
+                     Contextos de audição. Toca no emoji para escolher outro.
+                     <strong id="tagLimitCount">0 / 12</strong>
+                  </p>
+               </div>
+               <button
+                  type="button"
+                  class="drawer-close"
+                  data-close="tagsManagerDialog"
+                  aria-label="Fechar"
+               >
+                  ×
+               </button>
+            </div>
             <div id="tagManagerList" class="source-manager-list tag-manager-list"></div>
             <div class="source-manager-add tag-manager-add" id="tagManagerAdd">
                <input
@@ -3448,17 +3490,8 @@ dialog::backdrop {
                </button>
             </div>
             <div class="emoji-picker" id="emojiPicker" hidden></div>
-            <div class="manager-tools">
-               <button type="button" class="btn" id="exportBackupBtn">
-                  ↓ Exportar backup JSON</button
-               ><button type="button" class="btn" id="importBackupBtn">↑ Importar backup JSON</button><input id="importBackupInput" type="file" accept="application/json,.json" hidden />
-            </div>
             <div class="modal-actions">
-               <button
-                  type="button"
-                  class="btn"
-                  data-close="sourcesManagerDialog"
-               >
+               <button type="button" class="btn" data-close="tagsManagerDialog">
                   Fechar
                </button>
             </div>
@@ -5609,7 +5642,7 @@ dialog::backdrop {
                           `<label class="source-check"><input type="checkbox" value="${esc(d.id)}" ${set.has(d.id) ? "checked" : ""}> ${esc(d.emoji)} ${esc(d.name)}</label>`,
                     )
                     .join("")
-               : '<span class="hint">Ainda não há tags. Cria-as em ☑ Fontes e tags.</span>';
+               : '<span class="hint">Ainda não há tags. Cria-as em 🏷 Tags.</span>';
          }
          function renderFilterSourceChecks() {
             const valid = new Set(sourceDefinitions.map((d) => d.id));
@@ -5676,10 +5709,8 @@ dialog::backdrop {
             renderFilterSourceChecks();
             renderFilterTagChecks();
             updateSourceFilter();
-            if ($("#sourcesManagerDialog").open) {
-               renderSourceManager();
-               renderTagManager();
-            }
+            if ($("#sourcesManagerDialog").open) renderSourceManager();
+            if ($("#tagsManagerDialog").open) renderTagManager();
          }
          function sourceUsage(id) {
             return albums.filter((a) => (a.fontes || []).includes(id)).length;
@@ -6781,9 +6812,13 @@ dialog::backdrop {
          $("#saveBtn").onclick = () => saveToGist(false);
          $("#sourcesManagerBtn").onclick = () => {
             renderSourceManager();
-            renderTagManager();
             $("#sourcesManagerDialog").showModal();
             focusDialogAnchor("#sourcesManagerDialog", "#sourcesManagerTitle");
+         };
+         $("#tagsManagerBtn").onclick = () => {
+            renderTagManager();
+            $("#tagsManagerDialog").showModal();
+            focusDialogAnchor("#tagsManagerDialog", "#tagsManagerTitle");
          };
          $("#addSourceBtn").onclick = () => {
             if (sourceDefinitions.length >= MAX_SOURCES)
@@ -6982,12 +7017,12 @@ dialog::backdrop {
             if (row) row.querySelector(".manager-save")?.focus();
             else $("#newTagName").focus();
          });
-         $("#sourcesManagerDialog").addEventListener("focusin", (e) => {
+         $("#tagsManagerDialog").addEventListener("focusin", (e) => {
             const input = e.target.closest(".emoji-input");
             if (input) showEmojiPicker(input);
             else if (!e.target.closest("#emojiPicker")) hideEmojiPicker();
          });
-         $("#sourcesManagerDialog").addEventListener("close", hideEmojiPicker);
+         $("#tagsManagerDialog").addEventListener("close", hideEmojiPicker);
          function renderTagManager() {
             hideEmojiPicker();
             const usage = new Map(tagDefinitions.map((d) => [d.id, 0]));
