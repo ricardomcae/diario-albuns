@@ -1925,7 +1925,10 @@ dialog::backdrop {
    }
    #mainFilters > .search-wrap {
       flex: 1;
-      min-width: 250px;
+      min-width: 160px;
+   }
+   #mainFilters > .search-wrap > input {
+      min-width: 160px;
    }
    /* Todos os controlos da barra têm 42px de altura. */
    #mainFilters > .search-wrap > input,
@@ -2556,6 +2559,129 @@ dialog::backdrop {
       justify-content: space-between;
    }
 }
+/* ---------- Tags ---------- */
+.album-tags {
+   display: inline-flex;
+   align-items: center;
+   gap: 1px;
+   margin-left: 5px;
+   vertical-align: middle;
+}
+.tags-desktop,
+.tags-mobile {
+   display: inline-flex;
+   align-items: center;
+   gap: 1px;
+}
+.tags-mobile {
+   display: none;
+}
+.tag-chip {
+   all: unset;
+   display: inline-grid;
+   place-items: center;
+   min-width: 18px;
+   height: 18px;
+   border-radius: 5px;
+   font-size: 13px;
+   line-height: 1;
+   cursor: pointer;
+}
+.tag-chip:hover {
+   background: var(--brand-tint);
+}
+.tag-chip:focus-visible {
+   outline: 2px solid var(--brand);
+   outline-offset: 1px;
+}
+.tag-chip.more {
+   min-width: 0;
+   height: 16px;
+   padding: 0 4px;
+   border: 1px solid var(--line);
+   border-radius: 999px;
+   color: var(--muted);
+   font-size: 9px;
+   font-weight: 800;
+}
+.manager-section-title {
+   display: flex;
+   justify-content: space-between;
+   align-items: baseline;
+   margin-top: 18px;
+   padding-top: 14px;
+   border-top: 1px solid var(--line);
+   font-size: 15px;
+   font-weight: 750;
+}
+.manager-section-title strong {
+   font-size: 12px;
+}
+.manager-section-hint {
+   margin: 3px 0 0;
+   font-size: 12px;
+}
+.tag-manager-row {
+   grid-template-columns: 28px 56px minmax(120px, 1fr) 70px auto;
+}
+.tag-manager-add {
+   grid-template-columns: 56px minmax(120px, 1fr) auto;
+}
+.emoji-input {
+   text-align: center;
+   font-size: 18px;
+}
+.emoji-picker {
+   display: grid;
+   grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
+   gap: 4px;
+   margin: 6px 0 8px;
+   padding: 8px;
+   border: 1px solid var(--line);
+   border-radius: 10px;
+   background: var(--card);
+   box-shadow: 0 10px 30px rgba(16, 24, 40, 0.16);
+}
+.emoji-picker button {
+   height: 38px;
+   padding: 0;
+   border: 0;
+   border-radius: 8px;
+   background: transparent;
+   font-size: 21px;
+   line-height: 1;
+}
+.emoji-picker button:hover {
+   background: var(--tint);
+}
+.tag-detail {
+   width: 100%;
+   background: transparent;
+   color: inherit;
+   font: inherit;
+   text-align: left;
+   cursor: pointer;
+}
+.tag-detail:hover {
+   background: var(--brand-tint);
+}
+@media (max-width: 760px) {
+   .tags-desktop {
+      display: none;
+   }
+   .tags-mobile {
+      display: inline-flex;
+   }
+   .tag-manager-row {
+      grid-template-columns: 28px 56px 1fr;
+   }
+   .tag-manager-row .source-usage {
+      grid-column: 1 / -1;
+   }
+   .tag-manager-add {
+      grid-template-columns: 56px 1fr;
+   }
+}
 /* iOS: inputs com 16px evitam o zoom automático ao focar. */
 @supports (-webkit-touch-callout: none) {
    @media (max-width: 760px) {
@@ -2613,7 +2739,7 @@ dialog::backdrop {
                <div class="actions" id="mainActions">
                   <button class="btn" id="settingsBtn">⚙ Gist</button
                   ><button class="btn" id="sourcesManagerBtn">
-                     ☑ Gerir fontes</button
+                     ☑ Fontes e tags</button
                   ><button class="btn" id="loadBtn">↓ Ler do Gist</button
                   ><button class="btn primary" id="saveBtn">
                      ↑ Gravar no Gist
@@ -2745,6 +2871,28 @@ dialog::backdrop {
                               id="clearSourceFilter"
                               type="button"
                            >
+                              Limpar
+                           </button>
+                        </div>
+                     </div>
+                  </div>
+                  <div class="source-filter tag-filter">
+                     <button
+                        class="btn source-filter-btn"
+                        id="tagFilterBtn"
+                        type="button"
+                        aria-expanded="false"
+                        aria-controls="tagFilterPanel"
+                     >
+                        Tags ▾
+                     </button>
+                     <div class="source-filter-panel" id="tagFilterPanel" hidden>
+                        <div class="source-filter-title">Filtrar por tags</div>
+                        <div class="source-filter-options" id="filterTagChecks"></div>
+                        <div class="source-filter-foot">
+                           <span class="source-filter-mode"
+                              >Correspondência: qualquer uma</span
+                           ><button class="source-filter-clear" id="clearTagFilter" type="button">
                               Limpar
                            </button>
                         </div>
@@ -3076,6 +3224,10 @@ dialog::backdrop {
                      >
                      <div class="source-checks" id="albumSourceChecks"></div>
                   </div>
+                  <div class="form-section">
+                     <span class="form-section-title">Tags</span>
+                     <div class="source-checks tag-checks" id="albumTagChecks"></div>
+                  </div>
 
                   <div class="form-section">
                      <span class="form-section-title">Avaliação</span>
@@ -3238,7 +3390,7 @@ dialog::backdrop {
                      class="dialog-focus-anchor"
                      tabindex="-1"
                   >
-                     Gerir fontes
+                     Gerir fontes e tags
                   </h2>
                   <p class="muted">
                      A ordem define os ticks no editor, filtros e tabela.
@@ -3273,6 +3425,29 @@ dialog::backdrop {
                   ＋ Adicionar
                </button>
             </div>
+            <div class="manager-section-title">
+               <span>Tags</span><strong id="tagLimitCount">0 / 12</strong>
+            </div>
+            <p class="muted manager-section-hint">
+               Contextos de audição. Toca no campo do emoji para escolher outro.
+            </p>
+            <div id="tagManagerList" class="source-manager-list tag-manager-list"></div>
+            <div class="source-manager-add tag-manager-add" id="tagManagerAdd">
+               <input
+                  id="newTagEmoji"
+                  class="emoji-input"
+                  placeholder="🙂"
+                  maxlength="16"
+                  aria-label="Emoji da nova tag"
+               /><input
+                  id="newTagName"
+                  placeholder="Nome da tag"
+                  maxlength="30"
+               /><button type="button" class="btn primary" id="addTagBtn">
+                  ＋ Adicionar
+               </button>
+            </div>
+            <div class="emoji-picker" id="emojiPicker" hidden></div>
             <div class="manager-tools">
                <button type="button" class="btn" id="exportBackupBtn">
                   ↓ Exportar backup JSON</button
@@ -3317,7 +3492,7 @@ dialog::backdrop {
       <dialog id="sourceDetailsDialog">
          <div class="modal source-details-modal">
             <div class="manager-head">
-               <h2>Fontes do álbum</h2>
+               <h2 id="detailsTitle">Fontes do álbum</h2>
                <button
                   type="button"
                   class="drawer-close"
@@ -3612,8 +3787,11 @@ dialog::backdrop {
             sortKey = "createdAt",
             sortDir = "desc",
             deletedAlbums = {},
-            deletedSources = {};
+            deletedSources = {},
+            tagDefinitions = [],
+            deletedTags = {};
          let selectedSources = [],
+            selectedTags = [],
             syncBusy = false,
             autoSyncTimer = null,
             autoSyncPending = false,
@@ -3624,6 +3802,7 @@ dialog::backdrop {
             preferenceSaveTimer = null,
             preferencesUpdatedAt = "",
             sourceById = new Map(),
+            tagById = new Map(),
             searchIndexCache = new Map(),
             viewCache = { key: "", items: [] },
             dashboardCache = { version: -1, stats: null },
@@ -3647,6 +3826,30 @@ dialog::backdrop {
                name: "Outer Frequencies",
                shortName: "OF",
             },
+         ];
+         /* Tags = contextos de audição. Criadas só quando ainda não existe lista. */
+         const MAX_TAGS = 12,
+            MAX_VISIBLE_TAGS_DESKTOP = 5,
+            MAX_VISIBLE_TAGS_MOBILE = 3;
+         const DEFAULT_TAGS = [
+            { id: "noite", name: "Noite", emoji: "🌙" },
+            { id: "carro", name: "Carro", emoji: "🚗" },
+            { id: "foco", name: "Foco", emoji: "🎧" },
+            { id: "audicao-atenta", name: "Audição atenta", emoji: "🎼" },
+            { id: "manha", name: "Manhã", emoji: "☀️" },
+            { id: "relaxar", name: "Relaxar", emoji: "😌" },
+            { id: "exercicio", name: "Exercício", emoji: "🏃" },
+            { id: "jantar", name: "Jantar", emoji: "🍷" },
+            { id: "festa", name: "Festa", emoji: "🎉" },
+            { id: "dia-cinzento", name: "Dia cinzento", emoji: "🌧️" },
+            { id: "viagem", name: "Viagem", emoji: "✈️" },
+            { id: "ouvir-alto", name: "Ouvir alto", emoji: "🔊" },
+         ];
+         const TAG_EMOJI_SUGGESTIONS = [
+            "🌙", "🚗", "🎧", "🎼", "☀️", "😌", "🏃", "🍷", "🎉", "🌧️",
+            "✈️", "🔊", "📚", "🧘", "🍳", "🌅", "🌃", "☕", "🛋️", "🚶",
+            "🚴", "🏖️", "❄️", "🍂", "🔥", "💤", "💼", "🧹", "❤️", "⭐",
+            "🎸", "🎹", "🎷", "🥁", "🌿", "🌊",
          ];
          const normalizeSourceName = (name) =>
             String(name || "")
@@ -3691,6 +3894,7 @@ dialog::backdrop {
                .toLocaleLowerCase("pt-PT");
          function rebuildLookupCaches() {
             sourceById = new Map(sourceDefinitions.map((d) => [d.id, d]));
+            tagById = new Map(tagDefinitions.map((d) => [d.id, d]));
             searchIndexCache.clear();
             viewCache = { key: "", items: [] };
          }
@@ -3706,6 +3910,10 @@ dialog::backdrop {
                   ...(a.fontes || []).map(
                      (id) => sourceById.get(id)?.name || "",
                   ),
+                  ...(a.tags || []).map((id) => {
+                     const t = tagById.get(id);
+                     return t ? `${t.emoji} ${t.name}` : "";
+                  }),
                ].join(" "),
             );
             searchIndexCache.set(a.id, { updatedAt: a.updatedAt, text });
@@ -3825,7 +4033,8 @@ dialog::backdrop {
                         !$("#stateFilter").value &&
                         !$("#ratingFilter").value &&
                         !$("#spotifyFilter").value &&
-                        selectedSources.length === 0) ||
+                        selectedSources.length === 0 &&
+                        selectedTags.length === 0) ||
                         (b.dataset.dashboardFilter === "next" &&
                            $("#stateFilter").value === "breve") ||
                         (b.dataset.dashboardFilter === "unheard" &&
@@ -3992,6 +4201,8 @@ dialog::backdrop {
                albums: [...byId.values()],
                deletedAlbums: normalizeTombstones(input.deletedAlbums),
                deletedSources: normalizeTombstones(input.deletedSources),
+               tagDefinitions: normalizeTagDefinitions(input.tagDefinitions),
+               deletedTags: normalizeTombstones(input.deletedTags),
                preferences: normalizePreferences(input.preferences),
             };
          }
@@ -4003,6 +4214,8 @@ dialog::backdrop {
                albums,
                deletedAlbums: pruneTombstones(deletedAlbums),
                deletedSources: pruneTombstones(deletedSources),
+               tagDefinitions,
+               deletedTags: pruneTombstones(deletedTags),
                preferences: {
                   sortKey,
                   sortDir,
@@ -4129,6 +4342,7 @@ dialog::backdrop {
             "lancamento",
             "origemRegisto",
             "fontes",
+            "tags",
             "disponivelSpotify",
             "avaliacao",
             "ouvirBrevemente",
@@ -4195,13 +4409,38 @@ dialog::backdrop {
                   : remote.updatedAt;
             return normalize(merged);
          }
+         /* Junta listas de definições (fontes ou tags): vence a versão editada
+            mais recentemente; eliminações (tombstones) mais recentes ganham. */
+         function mergeDefinitions(localList, remoteList, tombs, max) {
+            const localDefs = new Map(localList.map((d) => [d.id, d])),
+               remoteDefs = new Map(remoteList.map((d) => [d.id, d])),
+               defs = [];
+            for (const id of new Set([...localDefs.keys(), ...remoteDefs.keys()])) {
+               const local = localDefs.get(id),
+                  remote = remoteDefs.get(id),
+                  winner = !local
+                     ? remote
+                     : !remote
+                       ? local
+                       : validTime(local.updatedAt) >= validTime(remote.updatedAt)
+                         ? local
+                         : remote;
+               const tombTime = validTime(tombs[id]);
+               if (tombTime && tombTime >= validTime(winner.updatedAt)) continue;
+               defs.push({ ...winner });
+            }
+            defs.sort((a, b) => a.position - b.position);
+            defs.forEach((d, i) => (d.position = i + 1));
+            return defs.slice(0, max);
+         }
          function mergePayloads(localPayload, remotePayload, basePayload = null) {
             const L = migratePayload(localPayload),
                R = migratePayload(remotePayload),
                B = basePayload ? migratePayload(basePayload) : null,
                conflicts = [],
                tombs = maxTombstones(L.deletedAlbums, R.deletedAlbums),
-               sourceTombs = maxTombstones(L.deletedSources, R.deletedSources);
+               sourceTombs = maxTombstones(L.deletedSources, R.deletedSources),
+               tagTombs = maxTombstones(L.deletedTags, R.deletedTags);
             const localMap = new Map(L.albums.map((a) => [a.id, a])),
                remoteMap = new Map(R.albums.map((a) => [a.id, a])),
                baseMap = new Map((B?.albums || []).map((a) => [a.id, a])),
@@ -4232,30 +4471,26 @@ dialog::backdrop {
                );
                if (merged) mergedAlbums.push(merged);
             }
-            const localDefs = new Map(L.sourceDefinitions.map((d) => [d.id, d])),
-               remoteDefs = new Map(R.sourceDefinitions.map((d) => [d.id, d])),
-               defs = [];
-            for (const id of new Set([...localDefs.keys(), ...remoteDefs.keys()])) {
-               const local = localDefs.get(id),
-                  remote = remoteDefs.get(id),
-                  winner = !local
-                     ? remote
-                     : !remote
-                       ? local
-                       : validTime(local.updatedAt) >= validTime(remote.updatedAt)
-                         ? local
-                         : remote;
-               const tombTime = validTime(sourceTombs[id]);
-               if (tombTime && tombTime >= validTime(winner.updatedAt)) continue;
-               defs.push({ ...winner });
-            }
-            defs.sort((a, b) => a.position - b.position);
-            defs.forEach((d, i) => (d.position = i + 1));
-            const sourceDefinitionsMerged = defs.slice(0, MAX_SOURCES),
-               known = new Set(sourceDefinitionsMerged.map((d) => d.id));
-            for (const album of mergedAlbums)
+            const sourceDefinitionsMerged = mergeDefinitions(
+                  L.sourceDefinitions,
+                  R.sourceDefinitions,
+                  sourceTombs,
+                  MAX_SOURCES,
+               ),
+               tagDefinitionsMerged = mergeDefinitions(
+                  L.tagDefinitions,
+                  R.tagDefinitions,
+                  tagTombs,
+                  MAX_TAGS,
+               ),
+               known = new Set(sourceDefinitionsMerged.map((d) => d.id)),
+               knownTags = new Set(tagDefinitionsMerged.map((d) => d.id));
+            for (const album of mergedAlbums) {
                if (album.fontes.some((id) => !known.has(id)))
                   album.fontes = album.fontes.filter((id) => known.has(id));
+               if (album.tags.some((id) => !knownTags.has(id)))
+                  album.tags = album.tags.filter((id) => knownTags.has(id));
+            }
             const preferences =
                validTime(R.preferences.updatedAt) >
                validTime(L.preferences.updatedAt)
@@ -4269,6 +4504,8 @@ dialog::backdrop {
                   albums: mergedAlbums,
                   deletedAlbums: pruneTombstones(tombs),
                   deletedSources: pruneTombstones(sourceTombs),
+                  tagDefinitions: tagDefinitionsMerged,
+                  deletedTags: pruneTombstones(tagTombs),
                   preferences,
                },
                conflicts,
@@ -4314,6 +4551,42 @@ dialog::backdrop {
                .sort((a, b) => a.position - b.position)
                .slice(0, MAX_SOURCES);
          }
+         function firstGrapheme(value) {
+            const s = String(value || "").trim();
+            if (!s) return "";
+            if (window.Intl?.Segmenter)
+               return (
+                  new Intl.Segmenter(undefined, { granularity: "grapheme" })
+                     .segment(s)
+                     [Symbol.iterator]()
+                     .next().value?.segment || ""
+               );
+            return Array.from(s)[0] || "";
+         }
+         function isEmojiLike(g) {
+            return /\p{Extended_Pictographic}|\p{Regional_Indicator}|\p{So}/u.test(g);
+         }
+         function normalizeTagDefinitions(defs) {
+            const input = Array.isArray(defs) ? defs : DEFAULT_TAGS,
+               seen = new Set();
+            return input
+               .filter((d) => d && typeof d === "object")
+               .map((d, index) => ({
+                  id: safeId(d.id),
+                  name: String(d.name || "").trim().replace(/\s+/g, " ").slice(0, 30),
+                  emoji: firstGrapheme(d.emoji),
+                  updatedAt: typeof d.updatedAt === "string" ? d.updatedAt : "",
+                  position: Number.isFinite(Number(d.position))
+                     ? Number(d.position)
+                     : index + 1,
+               }))
+               .filter(
+                  (d) =>
+                     d.id && d.name && d.emoji && !seen.has(d.id) && seen.add(d.id),
+               )
+               .sort((a, b) => a.position - b.position)
+               .slice(0, MAX_TAGS);
+         }
          function legacySources(fontes) {
             if (Array.isArray(fontes))
                return [...new Set(fontes.map(safeId).filter(Boolean))];
@@ -4336,6 +4609,9 @@ dialog::backdrop {
                },
                origemRegisto: String(a.origemRegisto || ""),
                fontes: legacySources(a.fontes),
+               tags: Array.isArray(a.tags)
+                  ? [...new Set(a.tags.map(safeId).filter(Boolean))]
+                  : [],
                disponivelSpotify: a.disponivelSpotify !== false,
                avaliacao: Math.min(5, Math.max(0, rating)),
                ouvirBrevemente: a.ouvirBrevemente === true,
@@ -4393,6 +4669,8 @@ dialog::backdrop {
             sourceDefinitions = payload.sourceDefinitions;
             deletedAlbums = payload.deletedAlbums;
             deletedSources = payload.deletedSources;
+            tagDefinitions = payload.tagDefinitions;
+            deletedTags = payload.deletedTags;
             ({
                sortKey,
                sortDir,
@@ -4689,7 +4967,7 @@ dialog::backdrop {
                   ? "Ordem ascendente. Clicar para descendente."
                   : "Ordem descendente. Clicar para ascendente.";
          }
-         function render() {
+         function viewFilters() {
             const q = searchable($("#search").value.trim()),
                sf = $("#stateFilter").value,
                rf = Number($("#ratingFilter").value) || 0,
@@ -4700,53 +4978,73 @@ dialog::backdrop {
                rf,
                spf,
                [...selectedSources].sort(),
+               [...selectedTags].sort(),
                auditFilter,
                sortKey,
                sortDir,
             ]);
-            if (signature !== lastViewSignature) {
-               currentPage = 1;
-               lastViewSignature = signature;
-            }
+            return { q, sf, rf, spf, signature };
+         }
+         /* Álbuns que passam os filtros ativos, já ordenados (com cache). */
+         function filteredView() {
+            const { q, sf, rf, spf, signature } = viewFilters();
             const cacheKey = JSON.stringify([
                localChangeVersion,
                albums.length,
                sourceDefinitions.map((d) => [d.id, d.name]),
+               tagDefinitions.map((d) => [d.id, d.name, d.emoji]),
                signature,
             ]);
-            let view;
-            if (viewCache.key === cacheKey) view = viewCache.items;
-            else {
-               view = sortAlbums(albums
-                  .filter(
-                     (a) =>
-                        (!q || albumSearchIndex(a).includes(q)) &&
-                        (!sf ||
-                           (sf === "breve"
-                              ? a.ouvirBrevemente === true
-                              : sf === "ouvido"
-                                ? isHeard(a)
-                                : !isHeard(a))) &&
-                        (!rf || a.avaliacao >= rf) &&
-                        (!spf ||
-                           (spf === "yes"
-                              ? a.disponivelSpotify !== false
-                              : a.disponivelSpotify === false)) &&
-                        selectedSources.every((source) =>
-                           (a.fontes || []).includes(source),
-                        ) &&
-                        (!auditFilter ||
-                           (auditFilter === "unrated" &&
-                              !Number(a.avaliacao)) ||
-                           (auditFilter === "nogenre" && !a.generos.trim()) ||
-                           (auditFilter === "noorigin" &&
-                              !a.origemRegisto.trim()) ||
-                           (auditFilter === "nosources" &&
-                              !(a.fontes || []).length) ||
-                           (auditFilter === "forgotten" && isForgotten(a))),
-                  ));
-               viewCache = { key: cacheKey, items: view };
+            if (viewCache.key === cacheKey) return viewCache.items;
+            const view = sortAlbums(
+               albums.filter(
+                  (a) =>
+                     (!q || albumSearchIndex(a).includes(q)) &&
+                     (!sf ||
+                        (sf === "breve"
+                           ? a.ouvirBrevemente === true
+                           : sf === "ouvido"
+                             ? isHeard(a)
+                             : !isHeard(a))) &&
+                     (!rf || a.avaliacao >= rf) &&
+                     (!spf ||
+                        (spf === "yes"
+                           ? a.disponivelSpotify !== false
+                           : a.disponivelSpotify === false)) &&
+                     selectedSources.every((source) =>
+                        (a.fontes || []).includes(source),
+                     ) &&
+                     // Tags: basta ter uma das escolhidas.
+                     (!selectedTags.length ||
+                        selectedTags.some((t) => (a.tags || []).includes(t))) &&
+                     (!auditFilter ||
+                        (auditFilter === "unrated" && !Number(a.avaliacao)) ||
+                        (auditFilter === "nogenre" && !a.generos.trim()) ||
+                        (auditFilter === "noorigin" && !a.origemRegisto.trim()) ||
+                        (auditFilter === "nosources" && !(a.fontes || []).length) ||
+                        (auditFilter === "forgotten" && isForgotten(a))),
+               ),
+            );
+            viewCache = { key: cacheKey, items: view };
+            return view;
+         }
+         function tagChips(a) {
+            const own = new Set(a.tags || []),
+               defs = tagDefinitions.filter((d) => own.has(d.id));
+            if (!defs.length) return "";
+            const chip = (d) =>
+                  `<button type="button" class="tag-chip" data-tag="${esc(d.id)}" title="${esc(d.name)} · filtrar">${esc(d.emoji)}</button>`,
+               part = (n, cls) =>
+                  `<span class="${cls}">${defs.slice(0, n).map(chip).join("")}${defs.length > n ? `<button type="button" class="tag-chip more" data-tags="${esc(JSON.stringify(defs.map((d) => d.id)))}" title="${esc(defs.map((d) => d.name).join(", "))}">+${defs.length - n}</button>` : ""}</span>`;
+            return `<span class="album-tags">${part(MAX_VISIBLE_TAGS_DESKTOP, "tags-desktop")}${part(MAX_VISIBLE_TAGS_MOBILE, "tags-mobile")}</span>`;
+         }
+         function render() {
+            const { signature } = viewFilters();
+            if (signature !== lastViewSignature) {
+               currentPage = 1;
+               lastViewSignature = signature;
             }
+            const view = filteredView();
             renderDashboard();
             updateAuditFilterIndicator();
 
@@ -4761,7 +5059,7 @@ dialog::backdrop {
             $("#tbody").innerHTML = pageView
                .map(
                   (a) =>
-                     `<tr><td><strong>${esc(a.album)}${isForgotten(a) ? `<span class="forgotten-mark" title="${forgottenReason(a)}">⏳</span>` : ""}</strong><span class="sub">${esc(a.artista)}</span></td><td title="${esc(a.generos) || "—"}"><div class="genre-clamp">${esc(a.generos) || "—"}</div></td><td class="date-col">${formatRelease(a)}</td><td><button type="button" class="origin-cell${a.origemRegisto ? " has-origin" : ""}" data-origin="${esc(a.origemRegisto)}" title="${esc(a.origemRegisto) || "Sem origem do registo"}" ${a.origemRegisto ? 'aria-label="Ver origem do registo completa"' : "disabled"}><span>${esc(a.origemRegisto) || "—"}</span></button></td><td>${sourceBadges(a)}</td><td class="spotify-col"><span class="spotify-status ${a.disponivelSpotify !== false ? "available" : "unavailable"}" title="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}" aria-label="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}">${a.disponivelSpotify !== false ? "✓" : "×"}</span></td><td class="rating-col"><span class="stars${a.avaliacao ? " rating-" + a.avaliacao : ""}" title="${a.avaliacao || "Sem"} avaliação">${a.avaliacao ? "★".repeat(a.avaliacao) + "☆".repeat(5 - a.avaliacao) : "—"}</span></td><td class="soon-col"><span class="soon-cell-wrap"><input class="soon-toggle" type="checkbox" data-id="${esc(a.id)}" ${a.ouvirBrevemente ? "checked" : ""} title="Adicionar ou remover da fila de audição" aria-label="Álbum na fila de audição">${a.ouvirBrevemente ? `<span class="soon-rank" title="Posição ${queuePosition.get(a.id) || "—"} nos próximos">#${queuePosition.get(a.id) || "—"}</span>` : ""}</span></td><td class="state-col">${(() => {
+                     `<tr><td><strong>${esc(a.album)}${isForgotten(a) ? `<span class="forgotten-mark" title="${forgottenReason(a)}">⏳</span>` : ""}</strong>${tagChips(a)}<span class="sub">${esc(a.artista)}</span></td><td title="${esc(a.generos) || "—"}"><div class="genre-clamp">${esc(a.generos) || "—"}</div></td><td class="date-col">${formatRelease(a)}</td><td><button type="button" class="origin-cell${a.origemRegisto ? " has-origin" : ""}" data-origin="${esc(a.origemRegisto)}" title="${esc(a.origemRegisto) || "Sem origem do registo"}" ${a.origemRegisto ? 'aria-label="Ver origem do registo completa"' : "disabled"}><span>${esc(a.origemRegisto) || "—"}</span></button></td><td>${sourceBadges(a)}</td><td class="spotify-col"><span class="spotify-status ${a.disponivelSpotify !== false ? "available" : "unavailable"}" title="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}" aria-label="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}">${a.disponivelSpotify !== false ? "✓" : "×"}</span></td><td class="rating-col"><span class="stars${a.avaliacao ? " rating-" + a.avaliacao : ""}" title="${a.avaliacao || "Sem"} avaliação">${a.avaliacao ? "★".repeat(a.avaliacao) + "☆".repeat(5 - a.avaliacao) : "—"}</span></td><td class="soon-col"><span class="soon-cell-wrap"><input class="soon-toggle" type="checkbox" data-id="${esc(a.id)}" ${a.ouvirBrevemente ? "checked" : ""} title="Adicionar ou remover da fila de audição" aria-label="Álbum na fila de audição">${a.ouvirBrevemente ? `<span class="soon-rank" title="Posição ${queuePosition.get(a.id) || "—"} nos próximos">#${queuePosition.get(a.id) || "—"}</span>` : ""}</span></td><td class="state-col">${(() => {
                         const age = listeningAge(a),
                            tip = [
                               age.label,
@@ -4844,6 +5142,7 @@ dialog::backdrop {
             $("#recordOrigin").value = a.origemRegisto;
             updateRecordOriginCount();
             renderAlbumSourceChecks(a.fontes || []);
+            renderAlbumTagChecks(a.tags || []);
             $("#spotifyAvailable").checked = a.disponivelSpotify !== false;
             updateSpotifyStateDisplay();
             document
@@ -4894,6 +5193,9 @@ dialog::backdrop {
                   ...document.querySelectorAll(
                      "#albumSourceChecks input:checked",
                   ),
+               ].map((x) => x.value),
+               tags: [
+                  ...document.querySelectorAll("#albumTagChecks input:checked"),
                ].map((x) => x.value),
                disponivelSpotify: $("#spotifyAvailable").checked,
                avaliacao:
@@ -5131,6 +5433,12 @@ dialog::backdrop {
             );
          });
          $("#tbody").onclick = (e) => {
+            const chip = e.target.closest(".tag-chip");
+            if (chip) {
+               if (chip.dataset.tag) applyTagFilter([chip.dataset.tag]);
+               else openTagDetails(JSON.parse(chip.dataset.tags || "[]"));
+               return;
+            }
             const origin = e.target.closest(".origin-cell.has-origin");
             if (origin) {
                openOriginDetails(origin.dataset.origin || "");
@@ -5213,7 +5521,8 @@ dialog::backdrop {
          }
          $("#addBtn").onclick = () => openAlbum();
          function mobileFilterCount() {
-            let n = selectedSources.length + (auditFilter ? 1 : 0);
+            let n =
+               selectedSources.length + selectedTags.length + (auditFilter ? 1 : 0);
             if ($("#stateFilter").value) n++;
             if ($("#ratingFilter").value) n++;
             if ($("#spotifyFilter").value) n++;
@@ -5255,7 +5564,9 @@ dialog::backdrop {
             $("#ratingFilter").value = "";
             $("#spotifyFilter").value = "";
             selectedSources = [];
+            selectedTags = [];
             auditFilter = "";
+            closeTagPanel();
             document
                .querySelectorAll("#filterSourceChecks input")
                .forEach((x) => (x.checked = false));
@@ -5263,6 +5574,7 @@ dialog::backdrop {
             $("#sourceFilterBtn").setAttribute("aria-expanded", "false");
             updateSearchClear();
             renderFilterSourceChecks();
+            renderFilterTagChecks();
             updateSourceFilter();
             toast("Filtros limpos.");
          }
@@ -5288,6 +5600,17 @@ dialog::backdrop {
                )
                .join("");
          }
+         function renderAlbumTagChecks(selected = []) {
+            const set = new Set(selected);
+            $("#albumTagChecks").innerHTML = tagDefinitions.length
+               ? tagDefinitions
+                    .map(
+                       (d) =>
+                          `<label class="source-check"><input type="checkbox" value="${esc(d.id)}" ${set.has(d.id) ? "checked" : ""}> ${esc(d.emoji)} ${esc(d.name)}</label>`,
+                    )
+                    .join("")
+               : '<span class="hint">Ainda não há tags. Cria-as em ☑ Fontes e tags.</span>';
+         }
          function renderFilterSourceChecks() {
             const valid = new Set(sourceDefinitions.map((d) => d.id));
             selectedSources = selectedSources.filter((id) => valid.has(id));
@@ -5301,11 +5624,62 @@ dialog::backdrop {
                .querySelectorAll("#filterSourceChecks input")
                .forEach((x) => (x.onchange = updateSourceFilter));
          }
+         function renderFilterTagChecks() {
+            const valid = new Set(tagDefinitions.map((d) => d.id));
+            selectedTags = selectedTags.filter((id) => valid.has(id));
+            $("#filterTagChecks").innerHTML = tagDefinitions.length
+               ? tagDefinitions
+                    .map(
+                       (d) =>
+                          `<label class="source-filter-option"><input type="checkbox" value="${esc(d.id)}" ${selectedTags.includes(d.id) ? "checked" : ""}> ${esc(d.emoji)} ${esc(d.name)}</label>`,
+                    )
+                    .join("")
+               : '<span class="hint">Sem tags.</span>';
+            document
+               .querySelectorAll("#filterTagChecks input")
+               .forEach((x) => (x.onchange = updateTagFilter));
+            updateTagFilterButton();
+         }
+         function updateTagFilterButton() {
+            const n = selectedTags.length;
+            $("#tagFilterBtn").textContent = n
+               ? n === 1
+                  ? `Tags · ${tagById.get(selectedTags[0])?.emoji || "1"} ✓`
+                  : `Tags · ${n} ✓`
+               : "Tags ▾";
+            $("#tagFilterBtn").classList.toggle("active", n > 0);
+         }
+         function updateTagFilter() {
+            selectedTags = [
+               ...document.querySelectorAll("#filterTagChecks input:checked"),
+            ].map((x) => x.value);
+            updateTagFilterButton();
+            render();
+         }
+         /* Filtrar por tags a partir da tabela (tocar no emoji) ou dos detalhes. */
+         function applyTagFilter(ids) {
+            selectedTags = ids.filter((id) => tagById.has(id));
+            renderFilterTagChecks();
+            currentPage = 1;
+            render();
+            const names = selectedTags
+               .map((id) => `${tagById.get(id).emoji} ${tagById.get(id).name}`)
+               .join(", ");
+            if (names) toast(`Filtro aplicado: ${names}.`);
+         }
+         function closeTagPanel() {
+            $("#tagFilterPanel").hidden = true;
+            $("#tagFilterBtn").setAttribute("aria-expanded", "false");
+         }
          function renderSourceUI() {
             rebuildLookupCaches();
             renderFilterSourceChecks();
+            renderFilterTagChecks();
             updateSourceFilter();
-            if ($("#sourcesManagerDialog").open) renderSourceManager();
+            if ($("#sourcesManagerDialog").open) {
+               renderSourceManager();
+               renderTagManager();
+            }
          }
          function sourceUsage(id) {
             return albums.filter((a) => (a.fontes || []).includes(id)).length;
@@ -5375,6 +5749,26 @@ dialog::backdrop {
                .forEach((x) => (x.checked = false));
             updateSourceFilter();
          };
+         $("#tagFilterBtn").onclick = (e) => {
+            e.stopPropagation();
+            const panel = $("#tagFilterPanel"),
+               open = panel.hidden;
+            $("#sourceFilterPanel").hidden = true;
+            $("#sourceFilterBtn").setAttribute("aria-expanded", "false");
+            panel.hidden = !open;
+            $("#tagFilterBtn").setAttribute("aria-expanded", String(open));
+         };
+         $("#sourceFilterBtn").addEventListener("click", closeTagPanel);
+         $("#tagFilterPanel").onclick = (e) => e.stopPropagation();
+         $("#clearTagFilter").onclick = () => {
+            selectedTags = [];
+            renderFilterTagChecks();
+            render();
+         };
+         document.addEventListener("click", closeTagPanel);
+         document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") closeTagPanel();
+         });
          document.addEventListener("click", () => {
             const p = $("#sourceFilterPanel");
             if (!p.hidden) {
@@ -5420,7 +5814,8 @@ dialog::backdrop {
                ? `Última audição: ${listenDateLabel(pick.ultimaAudicao)}`
                : "";
             last.hidden = !pick.ultimaAudicao;
-            $("#luckyReason").textContent = reason;
+            $("#luckyReason").textContent =
+               reason + (mobileFilterCount() ? " Dentro dos filtros ativos." : "");
             $("#luckyDialog").classList.toggle("smart-mode", mode === "smart");
             $("#luckyDialog h2").textContent =
                mode === "smart" ? "Escolha recomendada" : "Álbum escolhido";
@@ -5521,9 +5916,14 @@ dialog::backdrop {
             const rank = Number(album.proximoRank) || 999;
             return Math.max(1, 2.5 - (rank - 1) * 0.12);
          }
+         /* 🎯/🍀 escolhem dentro dos filtros ativos (ex.: só 🚗 Carro). */
+         function pickBase() {
+            return mobileFilterCount() ? filteredView() : albums;
+         }
          function chooseLucky() {
-            const soon = albums.filter((a) => a.ouvirBrevemente === true),
-               unheard = albums.filter((a) => !isHeard(a));
+            const base = pickBase(),
+               soon = base.filter((a) => a.ouvirBrevemente === true),
+               unheard = base.filter((a) => !isHeard(a));
             let pool, reason, weightFn;
             if (soon.length) {
                pool = soon;
@@ -5539,7 +5939,7 @@ dialog::backdrop {
                reason = `Escolhido entre ${unheard.length} álbum${unheard.length === 1 ? "" : "s"} por ouvir, favorecendo ligeiramente os adicionados há mais tempo.`;
                weightFn = (a) => ageWeightFromDate(a.createdAt);
             } else {
-               pool = albums.filter((a) => isHeard(a) && a.avaliacao >= 4);
+               pool = base.filter((a) => isHeard(a) && a.avaliacao >= 4);
                reason =
                   "Escolhido entre as reescutas de 4 ou 5 estrelas, com preferência pelas ouvidas há mais tempo.";
                weightFn = (a) =>
@@ -5547,7 +5947,12 @@ dialog::backdrop {
                   (a.avaliacao === 5 ? 0.35 : 0);
             }
             if (!pool.length) {
-               toast("Não há álbuns elegíveis para o trevo.", false);
+               toast(
+                  mobileFilterCount()
+                     ? "Não há álbuns elegíveis com os filtros ativos."
+                     : "Não há álbuns elegíveis para o trevo.",
+                  false,
+               );
                return;
             }
             // "Escolher outro" não repete o álbum anterior (quando há alternativa).
@@ -5779,22 +6184,25 @@ dialog::backdrop {
             );
          };
          function chooseSmart() {
-            let pool = albums.filter((a) => a.ouvirBrevemente && !isHeard(a));
+            const base = pickBase();
+            let pool = base.filter((a) => a.ouvirBrevemente && !isHeard(a));
             let reason =
                "Recomendação racional: está nos próximos, ainda não foi ouvido e beneficia da posição e antiguidade.";
             if (!pool.length) {
-               pool = albums.filter((a) => !isHeard(a));
+               pool = base.filter((a) => !isHeard(a));
                reason =
                   "Recomendação racional entre os álbuns por ouvir, favorecendo os que esperam há mais tempo.";
             }
             if (!pool.length) {
-               pool = albums.filter((a) => isHeard(a) && a.avaliacao >= 4);
+               pool = base.filter((a) => isHeard(a) && a.avaliacao >= 4);
                reason =
                   "Recomendação racional de reescuta, favorecendo avaliações altas e audições antigas.";
             }
             if (!pool.length)
                return toast(
-                  "Não há álbuns elegíveis para a escolha recomendada.",
+                  mobileFilterCount()
+                     ? "Não há álbuns elegíveis com os filtros ativos."
+                     : "Não há álbuns elegíveis para a escolha recomendada.",
                   false,
                );
             const score = (a) =>
@@ -6090,6 +6498,8 @@ dialog::backdrop {
             sourceDefinitions = payload.sourceDefinitions;
             deletedAlbums = payload.deletedAlbums || {};
             deletedSources = payload.deletedSources || {};
+            tagDefinitions = payload.tagDefinitions || [];
+            deletedTags = payload.deletedTags || {};
             const prefs = normalizePreferences(payload.preferences, {
                sortKey,
                sortDir,
@@ -6371,6 +6781,7 @@ dialog::backdrop {
          $("#saveBtn").onclick = () => saveToGist(false);
          $("#sourcesManagerBtn").onclick = () => {
             renderSourceManager();
+            renderTagManager();
             $("#sourcesManagerDialog").showModal();
             focusDialogAnchor("#sourcesManagerDialog", "#sourcesManagerTitle");
          };
@@ -6512,7 +6923,204 @@ dialog::backdrop {
                return;
             }
          };
+         function uniqueSlug(name, list, fallback) {
+            const base =
+               name
+                  .normalize("NFD")
+                  .replace(/[\u0300-\u036f]/g, "")
+                  .toLowerCase()
+                  .replace(/[^a-z0-9]+/g, "-")
+                  .replace(/^-|-$/g, "") || fallback;
+            let id = base,
+               n = 2;
+            while (list.some((d) => d.id === id)) id = `${base}-${n++}`;
+            return id;
+         }
+         const normalizeTagName = (name) =>
+            String(name || "").trim().replace(/\s+/g, " ").slice(0, 30);
+         function validateTag(emoji, name, exceptId = "") {
+            if (!emoji) return "Escolhe um emoji para a tag.";
+            if (!isEmojiLike(emoji)) return "O símbolo da tag tem de ser um emoji.";
+            if (!name) return "Indica o nome da tag.";
+            if (
+               tagDefinitions.some(
+                  (d) => d.id !== exceptId && COLLATOR.compare(d.name, name) === 0,
+               )
+            )
+               return "Já existe uma tag com esse nome.";
+            const same = tagDefinitions.find(
+               (d) => d.id !== exceptId && d.emoji === emoji,
+            );
+            if (same) return `O emoji ${emoji} já é usado por “${same.name}”.`;
+            return "";
+         }
+         /* Grelha de emojis sugeridos: aparece por baixo do campo de emoji focado. */
+         let emojiTarget = null;
+         const emojiPicker = $("#emojiPicker");
+         emojiPicker.innerHTML = TAG_EMOJI_SUGGESTIONS.map(
+            (x) => `<button type="button" data-emoji="${x}" aria-label="${x}">${x}</button>`,
+         ).join("");
+         function hideEmojiPicker() {
+            emojiPicker.hidden = true;
+            emojiTarget = null;
+            $("#tagManagerAdd").after(emojiPicker);
+         }
+         function showEmojiPicker(input) {
+            emojiTarget = input;
+            (input.closest(".tag-manager-row") || input.closest(".tag-manager-add")).after(
+               emojiPicker,
+            );
+            emojiPicker.hidden = false;
+         }
+         emojiPicker.addEventListener("mousedown", (e) => e.preventDefault());
+         emojiPicker.addEventListener("click", (e) => {
+            const b = e.target.closest("[data-emoji]");
+            if (!b || !emojiTarget) return;
+            emojiTarget.value = b.dataset.emoji;
+            const row = emojiTarget.closest(".tag-manager-row");
+            hideEmojiPicker();
+            if (row) row.querySelector(".manager-save")?.focus();
+            else $("#newTagName").focus();
+         });
+         $("#sourcesManagerDialog").addEventListener("focusin", (e) => {
+            const input = e.target.closest(".emoji-input");
+            if (input) showEmojiPicker(input);
+            else if (!e.target.closest("#emojiPicker")) hideEmojiPicker();
+         });
+         $("#sourcesManagerDialog").addEventListener("close", hideEmojiPicker);
+         function renderTagManager() {
+            hideEmojiPicker();
+            const usage = new Map(tagDefinitions.map((d) => [d.id, 0]));
+            for (const a of albums)
+               for (const id of a.tags || [])
+                  if (usage.has(id)) usage.set(id, usage.get(id) + 1);
+            const over = tagDefinitions.length >= MAX_TAGS;
+            $("#tagLimitCount").textContent = `${tagDefinitions.length} / ${MAX_TAGS}`;
+            $("#tagManagerAdd").classList.toggle("limit-reached", over);
+            ["#newTagEmoji", "#newTagName", "#addTagBtn"].forEach(
+               (sel) => ($(sel).disabled = over),
+            );
+            $("#tagManagerList").innerHTML = tagDefinitions.length
+               ? tagDefinitions
+                    .map((d, i) => {
+                       const n = usage.get(d.id) || 0;
+                       return `<div class="source-manager-row tag-manager-row" data-id="${esc(d.id)}"><span class="source-position">${i + 1}</span><input class="emoji-input manager-emoji" value="${esc(d.emoji)}" maxlength="16" aria-label="Emoji da tag"><input class="manager-name" value="${esc(d.name)}" maxlength="30" aria-label="Nome da tag"><span class="source-usage">${n} álbum${n === 1 ? "" : "s"}</span><div class="source-manager-actions"><button class="btn manager-save" title="Guardar">✓</button><button class="btn manager-up" ${i === 0 ? "disabled" : ""} title="Subir">↑</button><button class="btn manager-down" ${i === tagDefinitions.length - 1 ? "disabled" : ""} title="Descer">↓</button><button class="btn danger manager-delete" title="Eliminar">×</button></div></div>`;
+                    })
+                    .join("")
+               : '<p class="muted">Sem tags. Adiciona a primeira abaixo.</p>';
+         }
+         $("#addTagBtn").onclick = () => {
+            if (tagDefinitions.length >= MAX_TAGS)
+               return toast(`Limite de ${MAX_TAGS} tags atingido.`, false);
+            const emoji = firstGrapheme($("#newTagEmoji").value),
+               name = normalizeTagName($("#newTagName").value),
+               error = validateTag(emoji, name);
+            if (error) return toast(error, false);
+            const previous = cloneData(tagDefinitions),
+               id = uniqueSlug(name, tagDefinitions, "tag");
+            tagDefinitions.push({
+               id,
+               name,
+               emoji,
+               updatedAt: new Date().toISOString(),
+               position: tagDefinitions.length + 1,
+            });
+            delete deletedTags[id];
+            if (!persist({ sources: true })) {
+               tagDefinitions = previous;
+               return;
+            }
+            $("#newTagEmoji").value = "";
+            $("#newTagName").value = "";
+            toast("Tag adicionada.");
+         };
+         $("#tagManagerList").onclick = (e) => {
+            const row = e.target.closest(".tag-manager-row");
+            if (!row || !e.target.closest("button")) return;
+            const id = row.dataset.id,
+               i = tagDefinitions.findIndex((d) => d.id === id),
+               previousDefs = cloneData(tagDefinitions),
+               previousAlbums = albums,
+               previousDeleted = { ...deletedTags };
+            if (i < 0) return;
+            if (e.target.closest(".manager-save")) {
+               const emoji = firstGrapheme(row.querySelector(".manager-emoji").value),
+                  name = normalizeTagName(row.querySelector(".manager-name").value),
+                  error = validateTag(emoji, name, id);
+               if (error) return toast(error, false);
+               tagDefinitions[i] = {
+                  ...tagDefinitions[i],
+                  emoji,
+                  name,
+                  updatedAt: new Date().toISOString(),
+               };
+               if (!persist({ sources: true })) {
+                  tagDefinitions = previousDefs;
+                  return;
+               }
+               toast("Tag atualizada.");
+               return;
+            }
+            if (e.target.closest(".manager-up") && i > 0)
+               [tagDefinitions[i - 1], tagDefinitions[i]] = [
+                  tagDefinitions[i],
+                  tagDefinitions[i - 1],
+               ];
+            else if (e.target.closest(".manager-down") && i < tagDefinitions.length - 1)
+               [tagDefinitions[i + 1], tagDefinitions[i]] = [
+                  tagDefinitions[i],
+                  tagDefinitions[i + 1],
+               ];
+            else if (e.target.closest(".manager-delete")) {
+               const d = tagDefinitions[i],
+                  n = albums.filter((a) => (a.tags || []).includes(id)).length;
+               if (
+                  !confirm(
+                     `Eliminar a tag “${d.emoji} ${d.name}”?${n ? `\n\n${n} álbum${n === 1 ? " perde" : "s perdem"} esta tag.` : ""}`,
+                  )
+               )
+                  return;
+               const deletedAt = new Date().toISOString();
+               tagDefinitions.splice(i, 1);
+               deletedTags[id] = deletedAt;
+               // Só os álbuns que usavam a tag mudam.
+               albums = albums.map((a) =>
+                  (a.tags || []).includes(id)
+                     ? { ...a, tags: a.tags.filter((x) => x !== id), updatedAt: deletedAt }
+                     : a,
+               );
+               selectedTags = selectedTags.filter((x) => x !== id);
+            } else return;
+            const now = new Date().toISOString();
+            tagDefinitions.forEach((d, index) => {
+               d.position = index + 1;
+               d.updatedAt = now;
+            });
+            if (!persist({ sources: true })) {
+               tagDefinitions = previousDefs;
+               albums = previousAlbums;
+               deletedTags = previousDeleted;
+            }
+         };
+         function openTagDetails(ids) {
+            const defs = ids.map((id) => tagById.get(id)).filter(Boolean);
+            $("#detailsTitle").textContent = "Tags do álbum";
+            $("#sourceDetailsList").innerHTML = defs
+               .map(
+                  (d) =>
+                     `<button type="button" class="source-details-item tag-detail" data-tag="${esc(d.id)}"><strong>${esc(d.emoji)} ${esc(d.name)}</strong><span>Filtrar ›</span></button>`,
+               )
+               .join("");
+            $("#sourceDetailsDialog").showModal();
+         }
+         $("#sourceDetailsList").addEventListener("click", (e) => {
+            const b = e.target.closest(".tag-detail");
+            if (!b) return;
+            $("#sourceDetailsDialog").close();
+            applyTagFilter([b.dataset.tag]);
+         });
          function openSourceDetails(ids) {
+            $("#detailsTitle").textContent = "Fontes do álbum";
             const defs = ids
                .map((id) => sourceDefinitions.find((d) => d.id === id))
                .filter(Boolean);
@@ -6629,7 +7237,8 @@ dialog::backdrop {
                const now = new Date().toISOString();
                payload = cloneData(pendingImport.payload);
                const keepAlbums = new Set(payload.albums.map((a) => a.id)),
-                  keepSources = new Set(payload.sourceDefinitions.map((d) => d.id));
+                  keepSources = new Set(payload.sourceDefinitions.map((d) => d.id)),
+                  keepTags = new Set(payload.tagDefinitions.map((d) => d.id));
                albums.forEach((a) => {
                   if (!keepAlbums.has(a.id)) payload.deletedAlbums[a.id] = now;
                });
@@ -6638,6 +7247,11 @@ dialog::backdrop {
                });
                keepAlbums.forEach((id) => delete payload.deletedAlbums[id]);
                keepSources.forEach((id) => delete payload.deletedSources[id]);
+               tagDefinitions.forEach((d) => {
+                  if (!keepTags.has(d.id)) payload.deletedTags[d.id] = now;
+               });
+               keepTags.forEach((id) => delete payload.deletedTags[id]);
+               payload.tagDefinitions.forEach((d) => (d.updatedAt = now));
                payload.albums.forEach((a) => (a.updatedAt = now));
                payload.sourceDefinitions.forEach((d) => (d.updatedAt = now));
                payload.preferences.updatedAt = now;
@@ -6807,6 +7421,30 @@ dialog::backdrop {
                   "fonte eliminada não regressa",
                );
                check(normalize({ avaliacao: 9 }).avaliacao === 5, "avaliação limitada");
+               const tag = { id: "t", name: "T", emoji: "🌙", position: 1, updatedAt: now };
+               const tagsMerged = mergePayloads(
+                  { ...base, tagDefinitions: [], deletedTags: { t: later } },
+                  { ...base, tagDefinitions: [tag], albums: [{ ...album, tags: ["t"] }] },
+                  base,
+               );
+               check(
+                  !tagsMerged.payload.tagDefinitions.length &&
+                     !tagsMerged.payload.albums[0].tags.length,
+                  "tag eliminada não regressa",
+               );
+               const tagEdits = mergePayloads(
+                  { ...base, tagDefinitions: [tag], albums: [{ ...album, tags: ["t"], updatedAt: later }] },
+                  { ...base, tagDefinitions: [tag], albums: [{ ...album, artista: "Outro", updatedAt: later }] },
+                  { ...base, tagDefinitions: [tag] },
+               );
+               check(
+                  tagEdits.payload.albums[0].tags[0] === "t" &&
+                     tagEdits.payload.albums[0].artista === "Outro",
+                  "tags combinam com outras edições",
+               );
+               check(normalize({ tags: ["a", "a", "b"] }).tags.length === 2, "tags sem repetidos");
+               check(normalizeTagDefinitions(undefined).length === 12, "12 tags iniciais");
+               check(normalizeTagDefinitions([]).length === 0, "lista vazia não é recriada");
                check(
                   normalize({ ultimaAudicao: "2025-03" }).ultimaAudicao === "2025-03-01" &&
                      normalize({ ultimaAudicao: "2025-03-17" }).ultimaAudicao === "2025-03-17" &&
