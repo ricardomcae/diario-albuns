@@ -2717,6 +2717,51 @@ dialog::backdrop {
       grid-template-columns: 56px 1fr;
    }
 }
+/* Gerir fontes/tags no iPhone: número, (emoji), nome, (sigla) e ↑ ↓ × numa
+   só linha; a contagem de álbuns fica por baixo do nome. */
+@media (max-width: 760px) {
+   .source-manager-row {
+      grid-template-columns: 24px minmax(0, 1fr) 56px auto;
+      column-gap: 6px;
+      row-gap: 2px;
+      padding: 8px;
+   }
+   .tag-manager-row {
+      grid-template-columns: 24px 44px minmax(0, 1fr) auto;
+   }
+   .source-manager-row > * {
+      grid-row: 1;
+   }
+   .source-manager-row .source-position {
+      width: 24px;
+      height: 24px;
+   }
+   .source-manager-row .source-usage {
+      grid-row: 2;
+      grid-column: 2 / 4;
+   }
+   .tag-manager-row .source-usage {
+      grid-column: 3 / 4;
+   }
+   .source-manager-actions {
+      grid-column: auto;
+      justify-content: flex-end;
+      gap: 4px;
+   }
+   .source-manager-actions .btn {
+      width: 32px;
+      min-width: 32px;
+      height: 34px;
+      padding: 0;
+   }
+   .source-manager-row input {
+      min-width: 0;
+      padding: 7px 8px;
+   }
+   .tag-manager-row .emoji-input {
+      padding: 4px;
+   }
+}
 /* iOS: inputs com 16px evitam o zoom automático ao focar. */
 @supports (-webkit-touch-callout: none) {
    @media (max-width: 760px) {
@@ -3429,7 +3474,7 @@ dialog::backdrop {
                      Gerir fontes
                   </h2>
                   <p class="muted">
-                     A ordem define os ticks no editor, filtros e tabela.
+                     As alterações ficam guardadas ao sair de cada campo.
                      <strong id="sourceLimitCount">0 / 12</strong>
                   </p>
                </div>
@@ -3452,7 +3497,7 @@ dialog::backdrop {
                <input
                   id="newSourceName"
                   placeholder="Nome da fonte"
-                  maxlength="40"
+                  maxlength="30"
                /><input
                   id="newSourceShort"
                   placeholder="Sigla"
@@ -3485,7 +3530,7 @@ dialog::backdrop {
                      Gerir tags
                   </h2>
                   <p class="muted">
-                     Contextos de audição. Toca no emoji para escolher outro.
+                     Toca no emoji para o trocar. As alterações ficam guardadas.
                      <strong id="tagLimitCount">0 / 12</strong>
                   </p>
                </div>
@@ -3913,7 +3958,7 @@ dialog::backdrop {
             String(name || "")
                .trim()
                .replace(/\s+/g, " ")
-               .slice(0, 40);
+               .slice(0, 30);
          const shortInUse = (shortName, exceptId = "") =>
             sourceDefinitions.find(
                (d) =>
@@ -5780,7 +5825,7 @@ dialog::backdrop {
             $("#sourceManagerList").innerHTML = sourceDefinitions
                .map(
                   (d, i) =>
-                     `<div class="source-manager-row" data-id="${esc(d.id)}"><span class="source-position">${i + 1}</span><input class="manager-name" value="${esc(d.name)}" maxlength="40" aria-label="Nome da fonte"><input class="manager-short" value="${esc(d.shortName)}" maxlength="6" aria-label="Sigla"><span class="source-usage">${usage.get(d.id) || 0} álbum${usage.get(d.id) === 1 ? "" : "s"}</span><div class="source-manager-actions"><button class="btn manager-save" title="Guardar">✓</button><button class="btn manager-up" ${i === 0 ? "disabled" : ""} title="Subir">↑</button><button class="btn manager-down" ${i === sourceDefinitions.length - 1 ? "disabled" : ""} title="Descer">↓</button><button class="btn danger manager-delete" title="Eliminar">×</button></div></div>`,
+                     `<div class="source-manager-row" data-id="${esc(d.id)}"><span class="source-position">${i + 1}</span><input class="manager-name" value="${esc(d.name)}" maxlength="30" aria-label="Nome da fonte"><input class="manager-short" value="${esc(d.shortName)}" maxlength="6" aria-label="Sigla"><span class="source-usage">${usage.get(d.id) || 0} álbum${usage.get(d.id) === 1 ? "" : "s"}</span><div class="source-manager-actions"><button class="btn manager-up" ${i === 0 ? "disabled" : ""} title="Subir">↑</button><button class="btn manager-down" ${i === sourceDefinitions.length - 1 ? "disabled" : ""} title="Descer">↓</button><button class="btn danger manager-delete" title="Eliminar">×</button></div></div>`,
                )
                .join("");
          }
@@ -6831,6 +6876,9 @@ dialog::backdrop {
             autoSyncTimer = null;
             const c = getConfig();
             if (!c.autoSync || !dirty) return;
+            // Em "Gerir fontes/tags" grava-se no Gist só ao fechar o ecrã.
+            if ($("#sourcesManagerDialog").open || $("#tagsManagerDialog").open)
+               return;
             if (syncBusy) {
                autoSyncPending = true;
                return;
@@ -6895,52 +6943,14 @@ dialog::backdrop {
          };
          $("#sourceManagerList").onclick = (e) => {
             const row = e.target.closest(".source-manager-row");
-            if (!row) return;
+            if (!row || !e.target.closest("button")) return;
+            if (!commitSourceRow(row)) return;
             const id = row.dataset.id,
                i = sourceDefinitions.findIndex((d) => d.id === id),
                previousDefinitions = cloneData(sourceDefinitions),
                previousAlbums = albums,
                previousDeleted = { ...deletedSources };
             if (i < 0) return;
-            if (e.target.closest(".manager-save")) {
-               const name = normalizeSourceName(
-                     row.querySelector(".manager-name").value,
-                  ),
-                  shortName = row
-                     .querySelector(".manager-short")
-                     .value.trim()
-                     .toUpperCase();
-               if (!name || !shortName || shortName.length > 6)
-                  return toast("Nome e sigla válida são obrigatórios.", false);
-               if (
-                  sourceDefinitions.some(
-                     (d, j) =>
-                        j !== i &&
-                        d.name.localeCompare(name, "pt-PT", {
-                           sensitivity: "base",
-                        }) === 0,
-                  )
-               )
-                  return toast("Já existe uma fonte com esse nome.", false);
-               const used = shortInUse(shortName, id);
-               if (used)
-                  return toast(
-                     `A sigla “${shortName}” já é usada por ${used.name}.`,
-                     false,
-                  );
-               sourceDefinitions[i] = {
-                  ...sourceDefinitions[i],
-                  name,
-                  shortName,
-                  updatedAt: new Date().toISOString(),
-               };
-               if (!persist({ sources: true })) {
-                  sourceDefinitions = previousDefinitions;
-                  return;
-               }
-               toast("Fonte atualizada.");
-               return;
-            }
             if (e.target.closest(".manager-up") && i > 0)
                [sourceDefinitions[i - 1], sourceDefinitions[i]] = [
                   sourceDefinitions[i],
@@ -6989,6 +6999,161 @@ dialog::backdrop {
                return;
             }
          };
+         /* ---------- Edição direta em "Gerir fontes" e "Gerir tags" ----------
+            Cada campo fica guardado neste dispositivo ao sair dele (e antes de
+            ↑ ↓ ×). O Gist só é atualizado quando o ecrã fecha. */
+         function persistDefinitions() {
+            if (!writeLocalChange()) return false;
+            rebuildLookupCaches();
+            renderFilterSourceChecks();
+            renderFilterTagChecks();
+            updateSourceFilter();
+            requestAutoSync();
+            return true;
+         }
+         function commitSourceRow(row) {
+            const id = row.dataset.id,
+               i = sourceDefinitions.findIndex((d) => d.id === id);
+            if (i < 0) return true;
+            const d = sourceDefinitions[i],
+               nameInput = row.querySelector(".manager-name"),
+               shortInput = row.querySelector(".manager-short"),
+               name = normalizeSourceName(nameInput.value),
+               shortName = shortInput.value.trim().toUpperCase(),
+               revert = () => {
+                  nameInput.value = d.name;
+                  shortInput.value = d.shortName;
+               };
+            if (name === d.name && shortName === d.shortName) {
+               revert();
+               return true;
+            }
+            let error = "";
+            if (!name) error = "O nome da fonte não pode ficar vazio.";
+            else if (!shortName) error = "A sigla não pode ficar vazia.";
+            else if (
+               sourceDefinitions.some(
+                  (x, j) => j !== i && COLLATOR.compare(x.name, name) === 0,
+               )
+            )
+               error = "Já existe uma fonte com esse nome.";
+            else {
+               const used = shortInUse(shortName, id);
+               if (used) error = `A sigla “${shortName}” já é usada por ${used.name}.`;
+            }
+            if (error) {
+               revert();
+               toast(error, false);
+               return false;
+            }
+            const previous = cloneData(sourceDefinitions);
+            sourceDefinitions[i] = {
+               ...d,
+               name,
+               shortName,
+               updatedAt: new Date().toISOString(),
+            };
+            if (!persistDefinitions()) {
+               sourceDefinitions = previous;
+               revert();
+               return false;
+            }
+            nameInput.value = name;
+            shortInput.value = shortName;
+            return true;
+         }
+         function commitTagRow(row) {
+            const id = row.dataset.id,
+               i = tagDefinitions.findIndex((d) => d.id === id);
+            if (i < 0) return true;
+            const d = tagDefinitions[i],
+               emojiInput = row.querySelector(".manager-emoji"),
+               nameInput = row.querySelector(".manager-name"),
+               emoji = firstGrapheme(emojiInput.value),
+               name = normalizeTagName(nameInput.value),
+               revert = () => {
+                  emojiInput.value = d.emoji;
+                  nameInput.value = d.name;
+               };
+            if (emoji === d.emoji && name === d.name) {
+               revert();
+               return true;
+            }
+            const error = validateTag(emoji, name, id);
+            if (error) {
+               revert();
+               toast(error, false);
+               return false;
+            }
+            const previous = cloneData(tagDefinitions);
+            tagDefinitions[i] = {
+               ...d,
+               emoji,
+               name,
+               updatedAt: new Date().toISOString(),
+            };
+            if (!persistDefinitions()) {
+               tagDefinitions = previous;
+               revert();
+               return false;
+            }
+            return true;
+         }
+         $("#sourceManagerList").addEventListener("change", (e) => {
+            const row = e.target.closest(".source-manager-row");
+            if (row) commitSourceRow(row);
+         });
+         $("#tagManagerList").addEventListener("change", (e) => {
+            const row = e.target.closest(".tag-manager-row");
+            if (row) commitTagRow(row);
+         });
+         // Enter num campo = terminar a edição desse campo.
+         ["#sourceManagerList", "#tagManagerList"].forEach((sel) =>
+            $(sel).addEventListener("keydown", (e) => {
+               if (e.key === "Enter" && e.target.matches("input")) {
+                  e.preventDefault();
+                  e.target.blur();
+               }
+            }),
+         );
+         /* Campo do emoji: só um emoji. Um novo substitui o anterior. */
+         function lastGrapheme(value) {
+            const s = String(value || "").trim();
+            if (!s) return "";
+            if (window.Intl?.Segmenter) {
+               let last = "";
+               for (const part of new Intl.Segmenter(undefined, {
+                  granularity: "grapheme",
+               }).segment(s))
+                  last = part.segment;
+               return last;
+            }
+            const chars = Array.from(s);
+            return chars[chars.length - 1];
+         }
+         document.addEventListener("input", (e) => {
+            const el = e.target.closest?.(".emoji-input");
+            if (!el) return;
+            const g = lastGrapheme(el.value);
+            if (el.value !== g) el.value = g;
+         });
+         document.addEventListener("focusin", (e) => {
+            const el = e.target.closest?.(".emoji-input");
+            if (el) setTimeout(() => el.select(), 0);
+         });
+         /* Ao fechar: guarda o que ainda estiver por guardar e sincroniza. */
+         function closeManager(listSel, commit) {
+            document
+               .querySelectorAll(`${listSel} .source-manager-row`)
+               .forEach((row) => commit(row));
+            if (dirty) requestAutoSync();
+         }
+         $("#sourcesManagerDialog").addEventListener("close", () =>
+            closeManager("#sourceManagerList", commitSourceRow),
+         );
+         $("#tagsManagerDialog").addEventListener("close", () =>
+            closeManager("#tagManagerList", commitTagRow),
+         );
          function uniqueSlug(name, list, fallback) {
             const base =
                name
@@ -7042,11 +7207,14 @@ dialog::backdrop {
          emojiPicker.addEventListener("click", (e) => {
             const b = e.target.closest("[data-emoji]");
             if (!b || !emojiTarget) return;
-            emojiTarget.value = b.dataset.emoji;
-            const row = emojiTarget.closest(".tag-manager-row");
+            const input = emojiTarget,
+               row = input.closest(".tag-manager-row");
+            input.value = b.dataset.emoji;
             hideEmojiPicker();
-            if (row) row.querySelector(".manager-save")?.focus();
-            else $("#newTagName").focus();
+            if (row) {
+               commitTagRow(row);
+               input.blur();
+            } else $("#newTagName").focus();
          });
          $("#tagsManagerDialog").addEventListener("focusin", (e) => {
             const input = e.target.closest(".emoji-input");
@@ -7070,7 +7238,7 @@ dialog::backdrop {
                ? tagDefinitions
                     .map((d, i) => {
                        const n = usage.get(d.id) || 0;
-                       return `<div class="source-manager-row tag-manager-row" data-id="${esc(d.id)}"><span class="source-position">${i + 1}</span><input class="emoji-input manager-emoji" value="${esc(d.emoji)}" maxlength="16" aria-label="Emoji da tag"><input class="manager-name" value="${esc(d.name)}" maxlength="30" aria-label="Nome da tag"><span class="source-usage">${n} álbum${n === 1 ? "" : "s"}</span><div class="source-manager-actions"><button class="btn manager-save" title="Guardar">✓</button><button class="btn manager-up" ${i === 0 ? "disabled" : ""} title="Subir">↑</button><button class="btn manager-down" ${i === tagDefinitions.length - 1 ? "disabled" : ""} title="Descer">↓</button><button class="btn danger manager-delete" title="Eliminar">×</button></div></div>`;
+                       return `<div class="source-manager-row tag-manager-row" data-id="${esc(d.id)}"><span class="source-position">${i + 1}</span><input class="emoji-input manager-emoji" value="${esc(d.emoji)}" maxlength="16" aria-label="Emoji da tag"><input class="manager-name" value="${esc(d.name)}" maxlength="30" aria-label="Nome da tag"><span class="source-usage">${n} álbum${n === 1 ? "" : "s"}</span><div class="source-manager-actions"><button class="btn manager-up" ${i === 0 ? "disabled" : ""} title="Subir">↑</button><button class="btn manager-down" ${i === tagDefinitions.length - 1 ? "disabled" : ""} title="Descer">↓</button><button class="btn danger manager-delete" title="Eliminar">×</button></div></div>`;
                     })
                     .join("")
                : '<p class="muted">Sem tags. Adiciona a primeira abaixo.</p>';
@@ -7103,30 +7271,13 @@ dialog::backdrop {
          $("#tagManagerList").onclick = (e) => {
             const row = e.target.closest(".tag-manager-row");
             if (!row || !e.target.closest("button")) return;
+            if (!commitTagRow(row)) return;
             const id = row.dataset.id,
                i = tagDefinitions.findIndex((d) => d.id === id),
                previousDefs = cloneData(tagDefinitions),
                previousAlbums = albums,
                previousDeleted = { ...deletedTags };
             if (i < 0) return;
-            if (e.target.closest(".manager-save")) {
-               const emoji = firstGrapheme(row.querySelector(".manager-emoji").value),
-                  name = normalizeTagName(row.querySelector(".manager-name").value),
-                  error = validateTag(emoji, name, id);
-               if (error) return toast(error, false);
-               tagDefinitions[i] = {
-                  ...tagDefinitions[i],
-                  emoji,
-                  name,
-                  updatedAt: new Date().toISOString(),
-               };
-               if (!persist({ sources: true })) {
-                  tagDefinitions = previousDefs;
-                  return;
-               }
-               toast("Tag atualizada.");
-               return;
-            }
             if (e.target.closest(".manager-up") && i > 0)
                [tagDefinitions[i - 1], tagDefinitions[i]] = [
                   tagDefinitions[i],
@@ -7499,6 +7650,7 @@ dialog::backdrop {
                   "fonte eliminada não regressa",
                );
                check(normalize({ avaliacao: 9 }).avaliacao === 5, "avaliação limitada");
+               check(lastGrapheme("🌙🚗") === "🚗" && lastGrapheme("🌧️") === "🌧️", "emoji único");
                const tag = { id: "t", name: "T", emoji: "🌙", position: 1, updatedAt: now };
                const tagsMerged = mergePayloads(
                   { ...base, tagDefinitions: [], deletedTags: { t: later } },
