@@ -849,6 +849,21 @@ td .sub {
    font-size: 9px;
    font-weight: 750;
 }
+button.source-badge {
+   background: transparent;
+   color: inherit;
+   font-family: inherit;
+   line-height: 1;
+   cursor: pointer;
+}
+button.source-badge:hover {
+   border-color: var(--brand);
+   background: var(--brand-tint);
+}
+button.source-badge:focus-visible {
+   outline: 2px solid var(--brand);
+   outline-offset: 1px;
+}
 .source-badge-more {
    background: rgba(152, 162, 179, 0.18);
 }
@@ -1019,7 +1034,8 @@ dialog::backdrop {
 #auditDialog,
 #queuePreviewDialog,
 #sourcesManagerDialog,
-#tagsManagerDialog {
+#tagsManagerDialog,
+#sourceDetailsDialog {
    position: fixed;
    inset: 0;
    width: 100vw;
@@ -1041,7 +1057,8 @@ dialog::backdrop {
 #auditDialog[open],
 #queuePreviewDialog[open],
 #sourcesManagerDialog[open],
-#tagsManagerDialog[open] {
+#tagsManagerDialog[open],
+#sourceDetailsDialog[open] {
    display: grid;
    place-items: center;
 }
@@ -1637,6 +1654,10 @@ dialog::backdrop {
    grid-template-columns: 1fr 1fr;
    gap: 9px;
    margin: 0;
+}
+#luckyDialog.smart-mode .modal-actions {
+   grid-template-columns: minmax(0, 50%);
+   justify-content: center;
 }
 #luckyDialog .modal-actions .btn {
    width: 100%;
@@ -2437,9 +2458,13 @@ dialog::backdrop {
    .origin-details-text {
       max-height: 55dvh;
    }
+   #sourceDetailsDialog {
+      padding: 10px;
+   }
    .source-details-modal {
-      width: auto;
+      width: calc(100vw - 20px);
       padding: 18px;
+      border-radius: 16px;
    }
    #sourcesManagerDialog,
    #tagsManagerDialog {
@@ -3523,7 +3548,7 @@ dialog::backdrop {
          </div>
       </dialog>
       <dialog id="sourceDetailsDialog">
-         <div class="modal source-details-modal">
+         <div class="modal source-details-modal overlay-card">
             <div class="manager-head">
                <h2 id="detailsTitle">Fontes do álbum</h2>
                <button
@@ -4915,9 +4940,16 @@ dialog::backdrop {
                desktopExtra = defs.length - desktop.length,
                mobileExtra = defs.length - mobile.length,
                all = defs.map((d) => d.name).join(", "),
-               interactive = defs.length > 2;
+               _unused = 0;
+            const ids = esc(JSON.stringify(defs.map((d) => d.id))),
+               badge = (d) =>
+                  `<button type="button" class="source-badge" data-source="${esc(d.id)}" title="${esc(d.name)} · filtrar">${esc(d.shortName)}</button>`,
+               more = (n) =>
+                  n
+                     ? `<button type="button" class="source-badge source-badge-more" data-source-ids="${ids}" title="${esc(all)}">+${n}</button>`
+                     : "";
             return defs.length
-               ? `<div class="source-badges${interactive ? " has-more" : ""}" title="${esc(all)}" ${interactive ? `role="button" tabindex="0" data-source-ids="${esc(JSON.stringify(defs.map((d) => d.id)))}"` : ""}><span class="source-badges-desktop">${desktop.map((d) => `<span class="source-badge">${esc(d.shortName)}</span>`).join("")}${desktopExtra ? `<span class="source-badge source-badge-more">+${desktopExtra}</span>` : ""}</span><span class="source-badges-mobile">${mobile.map((d) => `<span class="source-badge">${esc(d.shortName)}</span>`).join("")}${mobileExtra ? `<span class="source-badge source-badge-more">+${mobileExtra}</span>` : ""}</span></div>`
+               ? `<div class="source-badges"><span class="source-badges-desktop">${desktop.map(badge).join("")}${more(desktopExtra)}</span><span class="source-badges-mobile">${mobile.map(badge).join("")}${more(mobileExtra)}</span></div>`
                : "—";
          }
          function sortValue(a, key) {
@@ -5477,11 +5509,10 @@ dialog::backdrop {
                openOriginDetails(origin.dataset.origin || "");
                return;
             }
-            const sourceBox = e.target.closest(".source-badges.has-more");
-            if (sourceBox) {
-               openSourceDetails(
-                  JSON.parse(sourceBox.dataset.sourceIds || "[]"),
-               );
+            const badge = e.target.closest(".source-badge");
+            if (badge) {
+               if (badge.dataset.source) applySourceFilter(badge.dataset.source);
+               else openSourceDetails(JSON.parse(badge.dataset.sourceIds || "[]"));
                return;
             }
             const b = e.target.closest("button");
@@ -7152,8 +7183,20 @@ dialog::backdrop {
             const b = e.target.closest(".tag-detail");
             if (!b) return;
             $("#sourceDetailsDialog").close();
-            applyTagFilter([b.dataset.tag]);
+            if (b.dataset.source) applySourceFilter(b.dataset.source);
+            else applyTagFilter([b.dataset.tag]);
          });
+         /* Filtrar por uma única fonte (a partir da tabela ou dos detalhes). */
+         function applySourceFilter(id) {
+            const def = sourceDefinitions.find((d) => d.id === id);
+            if (!def) return;
+            document
+               .querySelectorAll("#sourceFilterPanel input")
+               .forEach((x) => (x.checked = x.value === id));
+            currentPage = 1;
+            updateSourceFilter();
+            toast(`Filtro aplicado: ${def.name}.`);
+         }
          function openSourceDetails(ids) {
             $("#detailsTitle").textContent = "Fontes do álbum";
             const defs = ids
@@ -7162,7 +7205,7 @@ dialog::backdrop {
             $("#sourceDetailsList").innerHTML = defs
                .map(
                   (d) =>
-                     `<div class="source-details-item"><strong>${esc(d.name)}</strong><span>${esc(d.shortName)}</span></div>`,
+                     `<button type="button" class="source-details-item tag-detail" data-source="${esc(d.id)}"><strong>${esc(d.name)} <span class="muted">${esc(d.shortName)}</span></strong><span>Filtrar ›</span></button>`,
                )
                .join("");
             $("#sourceDetailsDialog").showModal();
