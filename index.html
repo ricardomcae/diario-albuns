@@ -1286,7 +1286,8 @@ dialog::backdrop {
    margin: 0;
 }
 /* Campos de mês: o iOS impõe uma largura mínima própria; isto prende-os à caixa. */
-#albumDialog input[type="month"] {
+#albumDialog input[type="month"],
+#albumDialog input[type="date"] {
    -webkit-appearance: none;
    appearance: none;
    display: block;
@@ -1295,7 +1296,8 @@ dialog::backdrop {
    max-width: 100%;
    text-align: left;
 }
-#albumDialog input[type="month"]::-webkit-date-and-time-value {
+#albumDialog input[type="month"]::-webkit-date-and-time-value,
+#albumDialog input[type="date"]::-webkit-date-and-time-value {
    text-align: left;
 }
 #albumDialog #lastListened {
@@ -3126,7 +3128,7 @@ dialog::backdrop {
                         <div class="field full listening-summary">
                            <div class="field">
                               <label for="lastListened">Última audição</label>
-                              <input id="lastListened" type="month" />
+                              <input id="lastListened" type="date" />
                            </div>
                            <div class="field">
                               <label>Estado</label>
@@ -4339,7 +4341,7 @@ dialog::backdrop {
                ouvirBrevemente: a.ouvirBrevemente === true,
                proximoRank: Math.max(0, Math.floor(Number(a.proximoRank) || 0)),
                proximoAddedAt: String(a.proximoAddedAt || ""),
-               ultimaAudicao: String(a.ultimaAudicao || ""),
+               ultimaAudicao: normalizeListenDate(a.ultimaAudicao),
                createdAt: String(
                   a.createdAt || a.adicionadoEm || new Date().toISOString(),
                ),
@@ -4503,24 +4505,40 @@ dialog::backdrop {
                     year: "numeric",
                  });
          }
-         function monthLabel(v) {
-            return v ? String(v).split("-").reverse().join("/") : "Sem registo";
+         /* Última audição: guardada como AAAA-MM-DD, mostrada como DD/MM/AAAA
+            (o mesmo formato de "Adicionado em"). Registos antigos só com mês
+            (AAAA-MM) passam a usar o dia 1. */
+         function validListenDate(v) {
+            const m = /^(\d{4})-(0[1-9]|1[0-2])(?:-(0[1-9]|[12]\d|3[01]))?$/.exec(
+               String(v || "").trim(),
+            );
+            return m
+               ? { year: Number(m[1]), month: Number(m[2]), day: Number(m[3] || 1) }
+               : null;
          }
-         function localMonthNow() {
+         function normalizeListenDate(v) {
+            const d = validListenDate(v);
+            return d
+               ? `${d.year}-${String(d.month).padStart(2, "0")}-${String(d.day).padStart(2, "0")}`
+               : "";
+         }
+         function listenDateLabel(v) {
+            const d = validListenDate(v);
+            return d
+               ? `${String(d.day).padStart(2, "0")}/${String(d.month).padStart(2, "0")}/${d.year}`
+               : "Sem registo";
+         }
+         function localDateToday() {
             const d = new Date();
-            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-         }
-         function validMonthValue(v) {
-            const m = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(String(v || ""));
-            return m ? { year: Number(m[1]), month: Number(m[2]) } : null;
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
          }
          function isHeard(a) {
-            return !!validMonthValue(a?.ultimaAudicao);
+            return !!validListenDate(a?.ultimaAudicao);
          }
          function updateListeningStateDisplay() {
             const display = $("#stateDisplay");
             if (!display) return;
-            const heard = !!validMonthValue($("#lastListened").value);
+            const heard = !!validListenDate($("#lastListened").value);
             display.textContent = heard ? "✓ Ouvido" : "○ Por ouvir";
             display.classList.toggle("heard", heard);
          }
@@ -4537,13 +4555,22 @@ dialog::backdrop {
             "change",
             updateSpotifyStateDisplay,
          );
+         /* Meses completos desde a data (negativo se estiver no futuro). */
          function monthsSince(v) {
-            const parsed = validMonthValue(v);
+            const parsed = validListenDate(v);
             if (!parsed) return null;
-            const now = new Date(),
-               diff =
-                  (now.getFullYear() - parsed.year) * 12 +
-                  (now.getMonth() + 1 - parsed.month);
+            const now = new Date();
+            let diff =
+               (now.getFullYear() - parsed.year) * 12 +
+               (now.getMonth() + 1 - parsed.month);
+            if (diff > 0 && now.getDate() < parsed.day) diff--;
+            if (
+               diff === 0 &&
+               now.getMonth() + 1 === parsed.month &&
+               now.getFullYear() === parsed.year &&
+               now.getDate() < parsed.day
+            )
+               diff = -1;
             return diff;
          }
          function listeningAge(a) {
@@ -4723,7 +4750,11 @@ dialog::backdrop {
                   (a) =>
                      `<tr><td><strong>${esc(a.album)}${isForgotten(a) ? `<span class="forgotten-mark" title="${forgottenReason(a)}">⏳</span>` : ""}</strong><span class="sub">${esc(a.artista)}</span></td><td title="${esc(a.generos) || "—"}"><div class="genre-clamp">${esc(a.generos) || "—"}</div></td><td class="date-col">${formatRelease(a)}</td><td><button type="button" class="origin-cell${a.origemRegisto ? " has-origin" : ""}" data-origin="${esc(a.origemRegisto)}" title="${esc(a.origemRegisto) || "Sem origem do registo"}" ${a.origemRegisto ? 'aria-label="Ver origem do registo completa"' : "disabled"}><span>${esc(a.origemRegisto) || "—"}</span></button></td><td>${sourceBadges(a)}</td><td class="spotify-col"><span class="spotify-status ${a.disponivelSpotify !== false ? "available" : "unavailable"}" title="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}" aria-label="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}">${a.disponivelSpotify !== false ? "✓" : "×"}</span></td><td class="rating-col"><span class="stars${a.avaliacao ? " rating-" + a.avaliacao : ""}" title="${a.avaliacao || "Sem"} avaliação">${a.avaliacao ? "★".repeat(a.avaliacao) + "☆".repeat(5 - a.avaliacao) : "—"}</span></td><td class="soon-col"><span class="soon-cell-wrap"><input class="soon-toggle" type="checkbox" data-id="${esc(a.id)}" ${a.ouvirBrevemente ? "checked" : ""} title="Adicionar ou remover da fila de audição" aria-label="Álbum na fila de audição">${a.ouvirBrevemente ? `<span class="soon-rank" title="Posição ${queuePosition.get(a.id) || "—"} nos próximos">#${queuePosition.get(a.id) || "—"}</span>` : ""}</span></td><td class="state-col">${(() => {
                         const age = listeningAge(a),
-                           tip = `${age.label} · Cada • representa aproximadamente 3 meses · Última audição: ${monthLabel(a.ultimaAudicao)} · Adicionado em: ${dateLabel(a.createdAt)}`;
+                           tip = [
+                              age.label,
+                              `Última audição: ${listenDateLabel(a.ultimaAudicao)}`,
+                              `Adicionado em: ${dateLabel(a.createdAt)}`,
+                           ].join("\n");
                         return `<span class="state-icon ${isHeard(a) ? "heard" : ""}" title="${esc(tip)}" aria-label="${esc(tip)}">${age.symbol}</span>`;
                      })()}</td><td><div class="row-actions"><button class="icon heard-today" data-id="${esc(a.id)}" title="Ouvi hoje">♫</button><button class="icon edit" data-id="${esc(a.id)}" title="Editar">✎</button><button class="icon delete" data-id="${esc(a.id)}" title="Apagar">×</button></div></td></tr>`,
                )
@@ -4805,7 +4836,8 @@ dialog::backdrop {
             document
                .querySelectorAll("[name=rating]")
                .forEach((x) => (x.checked = Number(x.value) === a.avaliacao));
-            $("#lastListened").value = a.ultimaAudicao;
+            $("#lastListened").value = normalizeListenDate(a.ultimaAudicao);
+            $("#lastListened").max = localDateToday();
             updateListeningStateDisplay();
             setQueuePlacement(a.ouvirBrevemente === true ? "end" : "none");
             // Se já está na fila, "No fim" significa manter a posição atual.
@@ -4831,7 +4863,7 @@ dialog::backdrop {
             const old = editingId
                ? albums.find((a) => a.id === editingId)
                : normalize({ fontes: {} });
-            const last = $("#lastListened").value;
+            const last = normalizeListenDate($("#lastListened").value);
             setQueuePlacement(currentQueuePlacement());
             const data = {
                ...old,
@@ -5102,7 +5134,7 @@ dialog::backdrop {
             if (!b || !lockButton(b)) return;
             if (b.classList.contains("heard-today")) {
                const id = b.dataset.id,
-                  today = localMonthNow(),
+                  today = localDateToday(),
                   previous = albums;
                const wasQueued = albums.find((a) => a.id === id)?.ouvirBrevemente;
                albums = albums.map((a) =>
@@ -5124,7 +5156,7 @@ dialog::backdrop {
                toast(
                   wasQueued
                      ? "Marcado como ouvido e retirado da fila."
-                     : "Marcado como ouvido este mês.",
+                     : "Marcado como ouvido hoje.",
                );
                return;
             }
@@ -5372,7 +5404,7 @@ dialog::backdrop {
                : "";
             genre.hidden = !pick.generos;
             last.textContent = pick.ultimaAudicao
-               ? `Última audição: ${monthLabel(pick.ultimaAudicao)}`
+               ? `Última audição: ${listenDateLabel(pick.ultimaAudicao)}`
                : "";
             last.hidden = !pick.ultimaAudicao;
             $("#luckyReason").textContent = reason;
@@ -6762,6 +6794,12 @@ dialog::backdrop {
                   "fonte eliminada não regressa",
                );
                check(normalize({ avaliacao: 9 }).avaliacao === 5, "avaliação limitada");
+               check(
+                  normalize({ ultimaAudicao: "2025-03" }).ultimaAudicao === "2025-03-01" &&
+                     normalize({ ultimaAudicao: "2025-03-17" }).ultimaAudicao === "2025-03-17" &&
+                     listenDateLabel("2025-03-17") === "17/03/2025",
+                  "datas de audição",
+               );
                check(
                   capitalizeWords("the dark side of the moon") === "The Dark Side Of The Moon" &&
                      capitalizeWords("alternative / post-punk (live)") === "Alternative / Post-Punk (Live)" &&
