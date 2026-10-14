@@ -698,12 +698,12 @@ table {
 col:nth-child(1) { width: 19%; }
 col:nth-child(2) { width: 14%; }
 col:nth-child(3) { width: 8%; }
-col:nth-child(4) { width: 15%; }
+col:nth-child(4) { width: 13%; }
 col:nth-child(5) { width: 9%; }
 col:nth-child(6) { width: 6%; }
 col:nth-child(7) { width: 9%; }
 col:nth-child(8) { width: 6%; }
-col:nth-child(9) { width: 5%; }
+col:nth-child(9) { width: 7%; }
 col:nth-child(10) { width: 9%; }
 th,
 td {
@@ -2768,8 +2768,7 @@ dialog::backdrop {
                      <option value="disponivelSpotify">Spotify</option>
                      <option value="avaliacao">Avaliação</option>
                      <option value="ouvirBrevemente">Fila de audição</option>
-                     <option value="estado">Estado</option>
-                     <option value="ultimaAudicao">Última audição</option>
+                     <option value="ultimaAudicao">Audição (última data)</option>
                      <option value="createdAt">Adicionado em</option></select
                   ><button
                      class="btn"
@@ -2973,8 +2972,8 @@ dialog::backdrop {
                         </button>
                      </th>
                      <th class="state-col">
-                        <button class="sort-btn" data-sort="estado">
-                           Estado <span class="sort-mark"></span>
+                        <button class="sort-btn" data-sort="ultimaAudicao" title="Ordenar pela data da última audição">
+                           Audição <span class="sort-mark"></span>
                         </button>
                      </th>
                      <th></th>
@@ -3924,6 +3923,7 @@ dialog::backdrop {
             "disponivelSpotify",
          ]);
          function validSortKey(value, fallback = "createdAt") {
+            if (value === "estado") value = "ultimaAudicao"; // coluna antiga
             return typeof value === "string" && VALID_SORT_KEYS.has(value)
                ? value
                : fallback;
@@ -4643,9 +4643,22 @@ dialog::backdrop {
                        ? (a, b) => cmp(a.album, b.album)
                        : (a, b) =>
                             cmp(a.album, b.album) || cmp(a.artista, b.artista);
+            const byDate = sortKey === "ultimaAudicao";
             return list
-               .map((a) => ({ a, k: sortValue(a, sortKey) }))
+               .map((a) => ({
+                  a,
+                  k: byDate
+                     ? normalizeListenDate(a.ultimaAudicao)
+                     : sortValue(a, sortKey),
+               }))
                .sort((x, y) => {
+                  if (byDate) {
+                     // AAAA-MM-DD ordena corretamente como texto; por ouvir fica sempre no fim.
+                     if (!x.k || !y.k)
+                        return (!x.k - !y.k) || tie(x.a, y.a);
+                     const c = x.k < y.k ? -1 : x.k > y.k ? 1 : 0;
+                     return (c || tie(x.a, y.a)) * dir;
+                  }
                   const c =
                      typeof x.k === "number" ? x.k - y.k : cmp(x.k, y.k);
                   return (c || tie(x.a, y.a)) * dir;
