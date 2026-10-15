@@ -405,6 +405,12 @@ label,
    font-size: 10px;
    color: var(--muted);
 }
+.source-filter-actions {
+   display: inline-flex;
+   align-items: center;
+   gap: 10px;
+   white-space: nowrap;
+}
 .source-filter-clear {
    border: 0;
    background: transparent;
@@ -3029,9 +3035,11 @@ dialog::backdrop {
                         <div class="source-filter-foot">
                            <span class="source-filter-mode"
                               >Correspondência: qualquer uma</span
-                           ><button class="source-filter-clear" id="clearTagFilter" type="button">
+                           ><span class="source-filter-actions"><button class="source-filter-clear" id="selectAllTagFilter" type="button">
+                              Selecionar todas
+                           </button><button class="source-filter-clear" id="clearTagFilter" type="button">
                               Limpar
-                           </button>
+                           </button></span>
                         </div>
                      </div>
                   </div>
@@ -5988,6 +5996,12 @@ dialog::backdrop {
          };
          $("#sourceFilterBtn").addEventListener("click", closeTagPanel);
          $("#tagFilterPanel").onclick = (e) => e.stopPropagation();
+         $("#selectAllTagFilter").onclick = () => {
+            document
+               .querySelectorAll("#filterTagChecks input")
+               .forEach((x) => (x.checked = true));
+            updateTagFilter();
+         };
          $("#clearTagFilter").onclick = () => {
             selectedTags = [];
             renderFilterTagChecks();
