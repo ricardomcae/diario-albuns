@@ -782,6 +782,7 @@ td .sub {
    line-height: 1.35;
    max-height: 2.7em;
 }
+.genre-cell,
 .origin-cell {
    all: unset;
    display: block;
@@ -790,13 +791,16 @@ td .sub {
    color: inherit;
    cursor: default;
 }
+.genre-cell.has-genre,
 .origin-cell.has-origin {
    cursor: pointer;
 }
+.genre-cell.has-genre:hover span,
 .origin-cell.has-origin:hover span {
    text-decoration: underline dotted;
    text-underline-offset: 2px;
 }
+.genre-cell:focus-visible,
 .origin-cell:focus-visible {
    outline: 2px solid var(--brand);
    outline-offset: 2px;
@@ -1033,6 +1037,7 @@ dialog::backdrop {
 #originDetailsDialog,
 #auditDialog,
 #queuePreviewDialog,
+#heardTodayDialog,
 #sourcesManagerDialog,
 #tagsManagerDialog,
 #sourceDetailsDialog {
@@ -1056,6 +1061,7 @@ dialog::backdrop {
 #originDetailsDialog[open],
 #auditDialog[open],
 #queuePreviewDialog[open],
+#heardTodayDialog[open],
 #sourcesManagerDialog[open],
 #tagsManagerDialog[open],
 #sourceDetailsDialog[open] {
@@ -1583,6 +1589,24 @@ dialog::backdrop {
 }
 
 /* ---------- Escolha (trevo / recomendada) ---------- */
+/* Ouvi hoje: diálogo compacto e centrado. */
+.heard-today-modal { width: min(460px, calc(100vw - 28px)); max-width: 460px; max-height: calc(100dvh - 28px); overflow-y: auto; }
+.heard-today-album { margin: 2px 0 14px; color: var(--muted); font-size: 13px; }
+.heard-today-fieldset { margin: 0 0 16px; padding: 0; border: 0; }
+.heard-today-fieldset legend { margin-bottom: 8px; font-size: 12px; font-weight: 750; }
+.heard-rating { display: flex; justify-content: center; gap: 5px; direction: rtl; }
+.heard-rating input { position: absolute; opacity: 0; pointer-events: none; }
+.heard-rating label { padding: 3px; color: var(--line); font-size: 30px; line-height: 1; cursor: pointer; }
+.heard-rating label:hover, .heard-rating label:hover ~ label, .heard-rating input:checked ~ label { color: #f5a623; }
+.heard-rating input:focus-visible + label { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 5px; }
+#heardTodayTags { max-height: 180px; overflow-y: auto; }
+.heard-today-error { min-height: 16px; margin: -7px 0 8px; color: var(--danger); font-size: 11px; text-align: center; }
+@media (max-width: 760px) {
+   #heardTodayDialog { padding: 10px; }
+   .heard-today-modal { width: calc(100vw - 20px); max-height: calc(100dvh - 20px); padding: 18px; border-radius: 16px; }
+   .heard-rating label { font-size: 28px; }
+   #heardTodayDialog .modal-actions { grid-template-columns: 1fr 1fr; }
+}
 .lucky-modal {
    width: min(430px, calc(100vw - 40px));
    max-width: 430px;
@@ -3199,7 +3223,7 @@ dialog::backdrop {
                      </th>
                      <th>
                         <button class="sort-btn" data-sort="generos">
-                           Género(s) <span class="sort-mark"></span>
+                           Géneros <span class="sort-mark"></span>
                         </button>
                      </th>
                      <th class="date-col">
@@ -3602,7 +3626,7 @@ dialog::backdrop {
       <dialog id="originDetailsDialog">
          <div class="modal origin-details-modal overlay-card">
             <div class="manager-head">
-               <h2>Origem do registo</h2>
+               <h2 id="originDetailsTitle">Origem do registo</h2>
                <button
                   type="button"
                   class="drawer-close"
@@ -3766,6 +3790,17 @@ dialog::backdrop {
             </div>
          </form>
       </dialog>
+      <dialog id="heardTodayDialog">
+         <form method="dialog" class="modal overlay-card heard-today-modal" id="heardTodayForm">
+            <div class="manager-head"><div><h2 id="heardTodayTitle" class="dialog-focus-anchor" tabindex="-1">Ouvi hoje</h2><p class="heard-today-album" id="heardTodayAlbum"></p></div><button type="button" class="drawer-close" data-close="heardTodayDialog" aria-label="Fechar">×</button></div>
+            <fieldset class="heard-today-fieldset"><legend>Avaliação obrigatória</legend><div class="heard-rating" role="radiogroup" aria-label="Avaliação de uma a cinco estrelas">
+               <input id="heardRate5" name="heardRating" type="radio" value="5"><label for="heardRate5" title="5 estrelas">★</label><input id="heardRate4" name="heardRating" type="radio" value="4"><label for="heardRate4" title="4 estrelas">★</label><input id="heardRate3" name="heardRating" type="radio" value="3"><label for="heardRate3" title="3 estrelas">★</label><input id="heardRate2" name="heardRating" type="radio" value="2"><label for="heardRate2" title="2 estrelas">★</label><input id="heardRate1" name="heardRating" type="radio" value="1"><label for="heardRate1" title="1 estrela">★</label>
+            </div></fieldset>
+            <fieldset class="heard-today-fieldset"><legend>Tags opcionais</legend><div class="source-checks tag-checks" id="heardTodayTags"></div></fieldset>
+            <div class="heard-today-error" id="heardTodayError" role="alert"></div>
+            <div class="modal-actions"><button type="button" class="btn" data-close="heardTodayDialog">Cancelar</button><button type="submit" class="btn primary">Guardar audição</button></div>
+         </form>
+      </dialog>
       <dialog id="confirmDialog">
          <form method="dialog" class="modal">
             <h2>Apagar álbum?</h2>
@@ -3917,6 +3952,7 @@ dialog::backdrop {
             sourceDefinitions = [],
             editingId = null,
             deleteId = null,
+            heardTodayId = null,
             dirty = false,
             remoteUpdatedAt = null,
             sortKey = "createdAt",
@@ -3936,6 +3972,7 @@ dialog::backdrop {
             searchDebounceTimer = null,
             preferenceSaveTimer = null,
             preferencesUpdatedAt = "",
+            queueUpdatedAt = "",
             sourceById = new Map(),
             tagById = new Map(),
             searchIndexCache = new Map(),
@@ -4338,6 +4375,12 @@ dialog::backdrop {
                deletedSources: normalizeTombstones(input.deletedSources),
                tagDefinitions: normalizeTagDefinitions(input.tagDefinitions),
                deletedTags: normalizeTombstones(input.deletedTags),
+               queueOrder: Array.isArray(input.queueOrder)
+                  ? input.queueOrder.map(safeId).filter(Boolean)
+                  : [...byId.values()].filter((a) => a.ouvirBrevemente)
+                       .sort((a, b) => a.proximoRank - b.proximoRank).map((a) => a.id),
+               queueUpdatedAt: typeof input.queueUpdatedAt === "string"
+                  ? input.queueUpdatedAt : "",
                preferences: normalizePreferences(input.preferences),
             };
          }
@@ -4351,6 +4394,8 @@ dialog::backdrop {
                deletedSources: pruneTombstones(deletedSources),
                tagDefinitions,
                deletedTags: pruneTombstones(deletedTags),
+               queueOrder: orderedQueue().map((a) => a.id),
+               queueUpdatedAt,
                preferences: {
                   sortKey,
                   sortDir,
@@ -4480,9 +4525,6 @@ dialog::backdrop {
             "tags",
             "disponivelSpotify",
             "avaliacao",
-            "ouvirBrevemente",
-            "proximoRank",
-            "proximoAddedAt",
             "ultimaAudicao",
             "createdAt",
          ];
@@ -4626,6 +4668,24 @@ dialog::backdrop {
                if (album.tags.some((id) => !knownTags.has(id)))
                   album.tags = album.tags.filter((id) => knownTags.has(id));
             }
+            // A fila é uma lista atómica: a revisão mais recente ganha por inteiro.
+            const queueSource = validTime(L.queueUpdatedAt) >= validTime(R.queueUpdatedAt) ? L : R,
+               queueIds = [...new Set(queueSource.queueOrder || [])],
+               queueSet = new Set(queueIds),
+               queued = new Map(mergedAlbums.map((a) => [a.id, a]));
+            queueIds.forEach((id, index) => {
+               const a = queued.get(id);
+               if (a) {
+                  a.ouvirBrevemente = true;
+                  a.proximoRank = index + 1;
+                  a.proximoAddedAt ||= queueSource.albums.find((x) => x.id === id)?.proximoAddedAt || "";
+               }
+            });
+            mergedAlbums.forEach((a) => {
+               if (!queueSet.has(a.id)) {
+                  a.ouvirBrevemente = false; a.proximoRank = 0; a.proximoAddedAt = "";
+               }
+            });
             const preferences =
                validTime(R.preferences.updatedAt) >
                validTime(L.preferences.updatedAt)
@@ -4641,6 +4701,8 @@ dialog::backdrop {
                   deletedSources: pruneTombstones(sourceTombs),
                   tagDefinitions: tagDefinitionsMerged,
                   deletedTags: pruneTombstones(tagTombs),
+                  queueOrder: queueIds.filter((id) => queued.has(id)),
+                  queueUpdatedAt: queueSource.queueUpdatedAt,
                   preferences,
                },
                conflicts,
@@ -4806,6 +4868,7 @@ dialog::backdrop {
             deletedSources = payload.deletedSources;
             tagDefinitions = payload.tagDefinitions;
             deletedTags = payload.deletedTags;
+            queueUpdatedAt = payload.queueUpdatedAt || "";
             ({
                sortKey,
                sortDir,
@@ -5201,7 +5264,7 @@ dialog::backdrop {
             $("#tbody").innerHTML = pageView
                .map(
                   (a) =>
-                     `<tr><td><strong>${esc(a.album)}${isForgotten(a) ? `<span class="forgotten-mark" title="${forgottenReason(a)}">⏳</span>` : ""}</strong>${tagChips(a)}<span class="sub">${esc(a.artista)}</span></td><td title="${esc(a.generos) || "—"}"><div class="genre-clamp">${esc(a.generos) || "—"}</div></td><td class="date-col">${formatRelease(a)}</td><td><button type="button" class="origin-cell${a.origemRegisto ? " has-origin" : ""}" data-origin="${esc(a.origemRegisto)}" title="${esc(a.origemRegisto) || "Sem origem do registo"}" ${a.origemRegisto ? 'aria-label="Ver origem do registo completa"' : "disabled"}><span>${esc(a.origemRegisto) || "—"}</span></button></td><td>${sourceBadges(a)}</td><td class="spotify-col"><span class="spotify-status ${a.disponivelSpotify !== false ? "available" : "unavailable"}" title="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}" aria-label="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}">${a.disponivelSpotify !== false ? "✓" : "×"}</span></td><td class="rating-col"><span class="stars${a.avaliacao ? " rating-" + a.avaliacao : ""}" title="${a.avaliacao || "Sem"} avaliação">${a.avaliacao ? "★".repeat(a.avaliacao) + "☆".repeat(5 - a.avaliacao) : "—"}</span></td><td class="soon-col"><span class="soon-cell-wrap"><input class="soon-toggle" type="checkbox" data-id="${esc(a.id)}" ${a.ouvirBrevemente ? "checked" : ""} title="Adicionar ou remover da fila de audição" aria-label="Álbum na fila de audição">${a.ouvirBrevemente ? `<span class="soon-rank" title="Posição ${queuePosition.get(a.id) || "—"} nos próximos">#${queuePosition.get(a.id) || "—"}</span>` : ""}</span></td><td class="state-col">${(() => {
+                     `<tr><td><strong>${esc(a.album)}${isForgotten(a) ? `<span class="forgotten-mark" title="${forgottenReason(a)}">⏳</span>` : ""}</strong>${tagChips(a)}<span class="sub">${esc(a.artista)}</span></td><td><button type="button" class="genre-cell${a.generos ? " has-genre" : ""}" data-genres="${esc(a.generos)}" title="${esc(a.generos) || "Sem géneros"}" ${a.generos ? 'aria-label="Ver géneros separados"' : "disabled"}><span class="genre-clamp">${esc(a.generos) || "—"}</span></button></td><td class="date-col">${formatRelease(a)}</td><td><button type="button" class="origin-cell${a.origemRegisto ? " has-origin" : ""}" data-origin="${esc(a.origemRegisto)}" title="${esc(a.origemRegisto) || "Sem origem do registo"}" ${a.origemRegisto ? 'aria-label="Ver origem do registo completa"' : "disabled"}><span>${esc(a.origemRegisto) || "—"}</span></button></td><td>${sourceBadges(a)}</td><td class="spotify-col"><span class="spotify-status ${a.disponivelSpotify !== false ? "available" : "unavailable"}" title="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}" aria-label="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}">${a.disponivelSpotify !== false ? "✓" : "×"}</span></td><td class="rating-col"><span class="stars${a.avaliacao ? " rating-" + a.avaliacao : ""}" title="${a.avaliacao || "Sem"} avaliação">${a.avaliacao ? "★".repeat(a.avaliacao) + "☆".repeat(5 - a.avaliacao) : "—"}</span></td><td class="soon-col"><span class="soon-cell-wrap"><input class="soon-toggle" type="checkbox" data-id="${esc(a.id)}" ${a.ouvirBrevemente ? "checked" : ""} title="Adicionar ou remover da fila de audição" aria-label="Álbum na fila de audição">${a.ouvirBrevemente ? `<span class="soon-rank" title="Posição ${queuePosition.get(a.id) || "—"} nos próximos">#${queuePosition.get(a.id) || "—"}</span>` : ""}</span></td><td class="state-col">${(() => {
                         const age = listeningAge(a),
                            tip = [
                               age.label,
@@ -5209,7 +5272,7 @@ dialog::backdrop {
                               `Adicionado em: ${dateLabel(a.createdAt)}`,
                            ].join("\n");
                         return `<span class="state-icon ${isHeard(a) ? "heard" : ""}" title="${esc(tip)}" aria-label="${esc(tip)}">${age.symbol}</span>`;
-                     })()}</td><td><div class="row-actions"><button class="icon heard-today" data-id="${esc(a.id)}" title="Ouvi hoje">♫</button><button class="icon edit" data-id="${esc(a.id)}" title="Editar">✎</button><button class="icon delete" data-id="${esc(a.id)}" title="Apagar">×</button></div></td></tr>`,
+                     })()}</td><td><div class="row-actions"><button class="icon heard-today" data-id="${esc(a.id)}" title="Ouvi hoje">✓</button><button class="icon edit" data-id="${esc(a.id)}" title="Editar">✎</button><button class="icon delete" data-id="${esc(a.id)}" title="Apagar">×</button></div></td></tr>`,
                )
                .join("");
             $("#empty").style.display = view.length ? "none" : "block";
@@ -5246,6 +5309,10 @@ dialog::backdrop {
                   }
                }
             });
+         }
+         function markQueueChanged(time = new Date().toISOString()) {
+            queueUpdatedAt = time;
+            return time;
          }
          function setQueuePlacement(value) {
             const valid = ["none", "end", "top"].includes(value)
@@ -5362,7 +5429,8 @@ dialog::backdrop {
             };
             if (!data.album || !data.artista) return;
             const moveToTop =
-               data.ouvirBrevemente && $("#moveQueueTop").checked;
+               data.ouvirBrevemente && $("#moveQueueTop").checked,
+               queueChangedInEditor = data.ouvirBrevemente !== old.ouvirBrevemente || moveToTop;
             if (
                editingId &&
                !albumChanged(old, data) &&
@@ -5385,7 +5453,7 @@ dialog::backdrop {
                albums = albums.map((a) => (a.id === editingId ? data : a));
             else albums = [...albums, data];
             if (moveToTop) {
-               const now = new Date().toISOString(),
+               const now = markQueueChanged(),
                   targetId = data.id;
                albums
                   .filter((a) => a.ouvirBrevemente && a.id !== targetId)
@@ -5404,6 +5472,7 @@ dialog::backdrop {
                      : a,
                );
             }
+            if (queueChangedInEditor) markQueueChanged();
             if (!persist()) {
                albums = previous;
                return;
@@ -5563,6 +5632,7 @@ dialog::backdrop {
                     }
                   : a,
             );
+            markQueueChanged();
             if (!persist()) {
                albums = previous;
                box.checked = !checked;
@@ -5581,6 +5651,11 @@ dialog::backdrop {
                else openTagDetails(JSON.parse(chip.dataset.tags || "[]"));
                return;
             }
+            const genre = e.target.closest(".genre-cell.has-genre");
+            if (genre) {
+               openTextDetails("Géneros", genre.dataset.genres, /\s*\/\s*/);
+               return;
+            }
             const origin = e.target.closest(".origin-cell.has-origin");
             if (origin) {
                openOriginDetails(origin.dataset.origin || "");
@@ -5595,36 +5670,50 @@ dialog::backdrop {
             const b = e.target.closest("button");
             if (!b || !lockButton(b)) return;
             if (b.classList.contains("heard-today")) {
-               const id = b.dataset.id,
-                  today = localDateToday(),
-                  previous = albums;
-               const wasQueued = albums.find((a) => a.id === id)?.ouvirBrevemente;
-               albums = albums.map((a) =>
-                  a.id === id
-                     ? {
-                          ...a,
-                          ultimaAudicao: today,
-                          ouvirBrevemente: false,
-                          proximoRank: 0,
-                          proximoAddedAt: "",
-                          updatedAt: new Date().toISOString(),
-                       }
-                     : a,
-               );
-               if (!persist()) {
-                  albums = previous;
-                  return;
-               }
-               toast(
-                  wasQueued
-                     ? "Marcado como ouvido e retirado da fila."
-                     : "Marcado como ouvido hoje.",
-               );
+               openHeardToday(b.dataset.id);
                return;
             }
             if (b.classList.contains("edit")) openAlbum(b.dataset.id);
             if (b.classList.contains("delete")) askDelete(b.dataset.id);
          };
+         function openHeardToday(id) {
+            const a = albums.find((x) => x.id === id);
+            if (!a) return;
+            heardTodayId = id;
+            $("#heardTodayAlbum").textContent = `${a.album} · ${a.artista}`;
+            $("#heardTodayError").textContent = "";
+            document.querySelectorAll('[name="heardRating"]').forEach(
+               (x) => (x.checked = Number(x.value) === Number(a.avaliacao)),
+            );
+            const selected = new Set(a.tags || []);
+            $("#heardTodayTags").innerHTML = tagDefinitions.length
+               ? tagDefinitions.map((d) => `<label class="source-check"><input type="checkbox" value="${esc(d.id)}" ${selected.has(d.id) ? "checked" : ""}> ${esc(d.emoji)} ${esc(d.name)}</label>`).join("")
+               : '<span class="hint">Ainda não há tags.</span>';
+            $("#heardTodayDialog").showModal();
+            focusDialogAnchor("#heardTodayDialog", "#heardTodayTitle");
+         }
+         $("#heardTodayForm").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const rating = Number(document.querySelector('[name="heardRating"]:checked')?.value);
+            if (!rating) {
+               $("#heardTodayError").textContent = "Escolhe uma avaliação antes de guardar.";
+               return;
+            }
+            const id = heardTodayId, previous = cloneData(albums), a = albums.find((x) => x.id === id);
+            if (!a) return;
+            const wasQueued = a.ouvirBrevemente, now = new Date().toISOString(),
+               tags = [...document.querySelectorAll("#heardTodayTags input:checked")].map((x) => x.value);
+            albums = albums.map((x) => x.id === id ? { ...x, avaliacao: rating, tags, ultimaAudicao: localDateToday(), ouvirBrevemente: false, proximoRank: 0, proximoAddedAt: "", updatedAt: now } : x);
+            if (wasQueued) markQueueChanged(now);
+            normalizeQueueRanks();
+            if (!persist()) { albums = previous; return; }
+            $("#heardTodayDialog").close();
+            toast(wasQueued ? "Audição guardada e álbum retirado da fila." : "Audição guardada.");
+         });
+         $("#heardTodayDialog").addEventListener("close", () => {
+            heardTodayId = null;
+            $("#heardTodayError").textContent = "";
+         });
          $("#confirmDialog").addEventListener("close", () => {
             if ($("#confirmDialog").returnValue === "confirm" && deleteId) {
                const removed = albums.find((a) => a.id === deleteId),
@@ -6403,6 +6492,7 @@ dialog::backdrop {
                }
             });
             if (!changed) return true;
+            markQueueChanged(now);
             if (!writeLocalChange()) {
                albums = previous;
                return false;
@@ -6661,6 +6751,7 @@ dialog::backdrop {
             deletedSources = payload.deletedSources || {};
             tagDefinitions = payload.tagDefinitions || [];
             deletedTags = payload.deletedTags || {};
+            queueUpdatedAt = payload.queueUpdatedAt || "";
             const prefs = normalizePreferences(payload.preferences, {
                sortKey,
                sortDir,
@@ -7422,9 +7513,14 @@ dialog::backdrop {
                .filter(Boolean)
                .join("\n");
          }
-         function openOriginDetails(text) {
-            $("#originDetailsText").textContent = formatOriginForDisplay(text);
+         function openTextDetails(title, text, separator) {
+            $("#originDetailsTitle").textContent = title;
+            $("#originDetailsText").textContent = String(text || "")
+               .split(separator).map((x) => x.trim()).filter(Boolean).join("\n");
             $("#originDetailsDialog").showModal();
+         }
+         function openOriginDetails(text) {
+            openTextDetails("Origem do registo", text, /\s+\+\s+/);
          }
          $("#tbody").addEventListener("keydown", (e) => {
             const box = e.target.closest(".source-badges.has-more");
@@ -7710,6 +7806,10 @@ dialog::backdrop {
                   normalize({ id: "q2", album: "B", artista: "Y", ouvirBrevemente: true, proximoRank: 1 }),
                ];
                check(queueSample.sort((a,b) => a.proximoRank-b.proximoRank)[0].id === "q2", "ordem da fila");
+               const queueBase = { ...base, albums: queueSample, queueOrder: ["q2", "q1"], queueUpdatedAt: now };
+               const queueLocal = { ...queueBase, queueOrder: ["q1", "q2"], queueUpdatedAt: later };
+               const queueMerged = mergePayloads(queueLocal, queueBase, queueBase).payload;
+               check(queueMerged.queueOrder.join() === "q1,q2", "fila local vence Gist antigo");
                const tag = { id: "t", name: "T", emoji: "🌙", position: 1, updatedAt: now };
                const tagsMerged = mergePayloads(
                   { ...base, tagDefinitions: [], deletedTags: { t: later } },
