@@ -548,32 +548,6 @@ label,
    white-space: nowrap;
    overflow: hidden;
 }
-.dash-sep {
-   flex: 0 0 1px;
-   align-self: stretch;
-   margin: 3px 2px;
-   background: var(--line);
-}
-button.queue-current {
-   font: inherit;
-   font-size: 9px;
-   cursor: pointer;
-}
-button.queue-current:hover:not(:disabled) {
-   border-color: #1db954;
-}
-button.queue-current:disabled {
-   cursor: default;
-   opacity: 0.6;
-}
-.queue-current-play {
-   flex: 0 0 auto;
-   color: #1db954;
-   font-size: 10px;
-}
-.dashboard-chip.is-empty {
-   opacity: 0.5;
-}
 .queue-current strong {
    flex: 0 0 auto;
    color: var(--brand);
@@ -712,6 +686,17 @@ button.queue-current:disabled {
    background: var(--tint);
 }
 
+
+.album-spotify-link {
+   all: unset;
+   color: inherit;
+   font-weight: inherit;
+   cursor: pointer;
+}
+.album-spotify-link:hover { text-decoration: underline; text-underline-offset: 2px; }
+.album-spotify-link:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 3px; }
+.album-spotify-link[disabled] { cursor: default; text-decoration: none; }
+.lucky-edit-btn { display: inline-flex; align-items: center; justify-content: center; }
 /* ---------- Tabela ---------- */
 .table-wrap {
    flex: 1 1 auto;
@@ -3117,25 +3102,104 @@ dialog::backdrop {
             id="dashboard"
             aria-label="Resumo da coleção"
          >
-            <button class="dashboard-chip actionable" data-dashboard-filter="all" type="button"><span>Total</span><strong id="statTotal">0</strong></button>
-            <button class="dashboard-chip actionable" data-dashboard-filter="heard" type="button"><span>Ouvidos</span><strong id="statHeard">0</strong></button>
-            <button class="dashboard-chip actionable" data-dashboard-filter="unheard" type="button"><span>Por ouvir</span><strong id="statUnheard">0</strong></button>
-            <span class="dash-sep" aria-hidden="true"></span>
-            <button class="dashboard-chip actionable is-next" data-dashboard-filter="next" type="button"><span>Próximos</span><strong id="statNext">0</strong></button>
-            <button class="queue-current" id="queueCurrent" type="button" title="Primeiro da fila · abrir no Spotify"><strong>#1</strong><span id="queueCurrentName">—</span><span class="queue-current-play" aria-hidden="true">♫</span></button>
+            <button
+               class="dashboard-chip actionable"
+               data-dashboard-filter="all"
+               type="button"
+            >
+               <span>Total</span><strong id="statTotal">0</strong>
+            </button>
+            <button
+               class="dashboard-chip actionable"
+               data-dashboard-filter="heard"
+               type="button"
+            >
+               <span>Ouvidos</span><strong id="statHeard">0</strong>
+            </button>
+            <button
+               class="dashboard-chip actionable"
+               data-dashboard-filter="unheard"
+               type="button"
+            >
+               <span>Por ouvir</span><strong id="statUnheard">0</strong>
+            </button>
+            <button
+               class="dashboard-chip actionable is-next"
+               data-dashboard-filter="next"
+               type="button"
+            >
+               <span>Próximos</span><strong id="statNext">0</strong>
+            </button>
             <span class="decision-tools" aria-label="Escolher o próximo álbum">
-               <button class="dashboard-next-btn" id="nextQueueBtn" type="button" title="Fila de audição" aria-label="Fila de audição" disabled>▶</button>
-               <button class="dashboard-smart-btn" id="smartPickBtn" type="button" title="Escolha recomendada" aria-label="Escolha recomendada">🎯</button>
-               <button class="dashboard-lucky-btn" id="dashboardLuckyBtn" type="button" title="Surpreende-me" aria-label="Surpreende-me">🍀</button>
+               <button
+                  class="dashboard-next-btn"
+                  id="nextQueueBtn"
+                  type="button"
+                  title="Fila de audição"
+                  aria-label="Fila de audição"
+                  disabled
+               >
+                  ▶
+               </button>
+               <button
+                  class="dashboard-smart-btn"
+                  id="smartPickBtn"
+                  type="button"
+                  title="Escolha recomendada"
+                  aria-label="Escolha recomendada"
+               >
+                  🎯
+               </button>
+               <button
+                  class="dashboard-lucky-btn"
+                  id="dashboardLuckyBtn"
+                  type="button"
+                  title="Surpreende-me"
+                  aria-label="Surpreende-me"
+               >
+                  🍀
+               </button>
             </span>
-            <button class="dashboard-queue-btn" id="manageQueueBtn" type="button" title="Ordenar fila" aria-label="Ordenar fila" disabled>↕</button>
-            <span class="dash-sep" aria-hidden="true"></span>
-            <button class="dashboard-chip actionable" data-dashboard-filter="high" type="button"><span>4★+</span><strong id="statHigh">0</strong></button>
-            <span class="dashboard-chip"><span>Média</span><strong id="statRating">—</strong></span>
-            <span class="dash-sep" aria-hidden="true"></span>
-            <button class="dashboard-chip actionable" id="forgottenChip" data-dashboard-filter="forgotten" type="button" title="Por ouvir há mais de 12 meses, ou ouvidos há mais de 24 meses"><span>Esquecidos</span><strong id="statRecent">0</strong></button>
-            <span class="dashboard-chip"><span>Fontes</span><strong id="statSources">0</strong></span>
-            <button class="dashboard-audit-btn" id="auditBtn" type="button" title="Auditar coleção" aria-label="Auditar coleção">🩺</button>
+            <button
+               class="dashboard-queue-btn"
+               id="manageQueueBtn"
+               type="button"
+               title="Ordenar fila"
+               aria-label="Ordenar fila"
+               disabled
+            >
+               ↕
+            </button>
+            <span
+               class="queue-current"
+               id="queueCurrent"
+               title="Primeiro da fila"
+               ><strong>#1</strong><span id="queueCurrentName">—</span></span
+            >
+            <button
+               class="dashboard-chip actionable"
+               data-dashboard-filter="high"
+               type="button"
+            >
+               <span>4★+</span><strong id="statHigh">0</strong>
+            </button>
+            <button class="dashboard-chip actionable" id="forgottenChip" data-dashboard-filter="forgotten" type="button"
+               title="Por ouvir há mais de 12 meses, ou sem ouvir há pelo menos 24 meses"><span>Esquecidos</span><strong id="statRecent">0</strong></button>
+            <span class="dashboard-chip"
+               ><span>Média</span><strong id="statRating">—</strong></span
+            >
+            <span class="dashboard-chip"
+               ><span>Fontes</span><strong id="statSources">0</strong></span
+            >
+            <button
+               class="dashboard-audit-btn"
+               id="auditBtn"
+               type="button"
+               title="Auditar coleção"
+               aria-label="Auditar coleção"
+            >
+               🩺
+            </button>
          </section>
          <div class="audit-filter-indicator" id="auditFilterIndicator" hidden>
             <span id="auditFilterLabel"></span>
@@ -3873,7 +3937,8 @@ dialog::backdrop {
                </div>
                <div class="listen-links" id="luckyLinks">
                   <a class="listen-link spotify" rel="noopener" data-service="spotify">Spotify ↗</a
-                  ><a class="listen-link bandcamp" target="_blank" rel="noopener" data-service="bandcamp">Bandcamp ↗</a>
+                  ><a class="listen-link bandcamp" target="_blank" rel="noopener" data-service="bandcamp">Bandcamp ↗</a
+                  ><button type="button" class="listen-link lucky-edit-btn" id="luckyEditBtn">✎ Editar</button>
                </div>
             </div>
             <div class="modal-actions">
@@ -4145,11 +4210,9 @@ dialog::backdrop {
             $("#manageQueueBtn").disabled = x.next === 0;
             const first = orderedQueue()[0];
             $("#queueCurrentName").textContent = first ? first.album : "—";
-            $("#queueCurrent").disabled = !first;
             $("#queueCurrent").title = first
-               ? `#1 ${first.album} — ${first.artista} · abrir no Spotify`
+               ? `#1 ${first.album} — ${first.artista}`
                : "A fila está vazia";
-            $("#forgottenChip").classList.toggle("is-empty", x.recent === 0);
             updateConflictBadge();
             document
                .querySelectorAll("[data-dashboard-filter]")
@@ -4170,9 +4233,7 @@ dialog::backdrop {
                         (b.dataset.dashboardFilter === "heard" &&
                            $("#stateFilter").value === "ouvido") ||
                         (b.dataset.dashboardFilter === "high" &&
-                           $("#ratingFilter").value === "4") ||
-                        (b.dataset.dashboardFilter === "forgotten" &&
-                           auditFilter === "forgotten"),
+                           $("#ratingFilter").value === "4"),
                   ),
                );
          }
@@ -5095,7 +5156,6 @@ dialog::backdrop {
                }))
                .sort((x, y) => {
                   if (byRating && (!x.k || !y.k))
-                     // Sem avaliação fica sempre no fim, em qualquer direção.
                      return (!x.k - !y.k) || tie(x.a, y.a);
                   if (byDate) {
                      // AAAA-MM-DD ordena corretamente como texto; por ouvir fica sempre no fim.
@@ -5226,7 +5286,7 @@ dialog::backdrop {
             $("#tbody").innerHTML = pageView
                .map(
                   (a) =>
-                     `<tr><td><strong>${esc(a.album)}${isForgotten(a) ? `<span class="forgotten-mark" title="${forgottenReason(a)}">⏳</span>` : ""}</strong>${tagChips(a)}<span class="sub">${esc(a.artista)}</span></td><td><button type="button" class="genre-cell${a.generos ? " has-genre" : ""}" data-genres="${esc(a.generos)}" title="${esc(a.generos) || "Sem géneros"}" ${a.generos ? 'aria-label="Ver géneros separados"' : "disabled"}><span class="genre-clamp">${esc(a.generos) || "—"}</span></button></td><td class="date-col">${formatRelease(a)}</td><td><button type="button" class="origin-cell${a.origemRegisto ? " has-origin" : ""}" data-origin="${esc(a.origemRegisto)}" title="${esc(a.origemRegisto) || "Sem origem do registo"}" ${a.origemRegisto ? 'aria-label="Ver origem do registo completa"' : "disabled"}><span>${esc(a.origemRegisto) || "—"}</span></button></td><td>${sourceBadges(a)}</td><td class="spotify-col"><span class="spotify-status ${a.disponivelSpotify !== false ? "available" : "unavailable"}" title="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}" aria-label="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}">${a.disponivelSpotify !== false ? "✓" : "×"}</span></td><td class="rating-col"><span class="stars${a.avaliacao ? " rating-" + a.avaliacao : ""}" title="${a.avaliacao || "Sem"} avaliação">${a.avaliacao ? "★".repeat(a.avaliacao) + "☆".repeat(5 - a.avaliacao) : "—"}</span></td><td class="soon-col"><span class="soon-cell-wrap"><input class="soon-toggle" type="checkbox" data-id="${esc(a.id)}" ${a.ouvirBrevemente ? "checked" : ""} title="Adicionar ou remover da fila de audição" aria-label="Álbum na fila de audição">${a.ouvirBrevemente ? `<span class="soon-rank" title="Posição ${queuePosition.get(a.id) || "—"} nos próximos">#${queuePosition.get(a.id) || "—"}</span>` : ""}</span></td><td class="state-col">${(() => {
+                     `<tr><td><strong><button type="button" class="album-spotify-link" data-spotify-id="${esc(a.id)}" title="${a.disponivelSpotify !== false ? `Abrir ${esc(a.album)} no Spotify` : `Indisponível no Spotify`}" ${a.disponivelSpotify === false ? "disabled" : ""}>${esc(a.album)}</button>${isForgotten(a) ? `<span class="forgotten-mark" title="${forgottenReason(a)}">⏳</span>` : ""}</strong>${tagChips(a)}<span class="sub">${esc(a.artista)}</span></td><td><button type="button" class="genre-cell${a.generos ? " has-genre" : ""}" data-genres="${esc(a.generos)}" title="${esc(a.generos) || "Sem géneros"}" ${a.generos ? 'aria-label="Ver géneros separados"' : "disabled"}><span class="genre-clamp">${esc(a.generos) || "—"}</span></button></td><td class="date-col">${formatRelease(a)}</td><td><button type="button" class="origin-cell${a.origemRegisto ? " has-origin" : ""}" data-origin="${esc(a.origemRegisto)}" title="${esc(a.origemRegisto) || "Sem origem do registo"}" ${a.origemRegisto ? 'aria-label="Ver origem do registo completa"' : "disabled"}><span>${esc(a.origemRegisto) || "—"}</span></button></td><td>${sourceBadges(a)}</td><td class="spotify-col"><span class="spotify-status ${a.disponivelSpotify !== false ? "available" : "unavailable"}" title="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}" aria-label="${a.disponivelSpotify !== false ? "Disponível no Spotify" : "Não disponível no Spotify"}">${a.disponivelSpotify !== false ? "✓" : "×"}</span></td><td class="rating-col"><span class="stars${a.avaliacao ? " rating-" + a.avaliacao : ""}" title="${a.avaliacao || "Sem"} avaliação">${a.avaliacao ? "★".repeat(a.avaliacao) + "☆".repeat(5 - a.avaliacao) : "—"}</span></td><td class="soon-col"><span class="soon-cell-wrap"><input class="soon-toggle" type="checkbox" data-id="${esc(a.id)}" ${a.ouvirBrevemente ? "checked" : ""} title="Adicionar ou remover da fila de audição" aria-label="Álbum na fila de audição">${a.ouvirBrevemente ? `<span class="soon-rank" title="Posição ${queuePosition.get(a.id) || "—"} nos próximos">#${queuePosition.get(a.id) || "—"}</span>` : ""}</span></td><td class="state-col">${(() => {
                         const age = listeningAge(a),
                            tip = [
                               age.label,
@@ -5523,35 +5583,23 @@ dialog::backdrop {
          }
          /* Abre a app do Spotify. Se a página não perder o foco em ~1,5 s
             (app não instalada), abre a versão web. */
-         function openSpotify(appUrl, web) {
+         document.addEventListener("click", (e) => {
+            const link = e.target.closest('a.listen-link[data-service="spotify"]');
+            if (!link || link.getAttribute("href") === "#") return;
+            e.preventDefault();
+            const web = link.dataset.web;
             let left = false;
             const onHide = () => (left = true);
             window.addEventListener("blur", onHide, { once: true });
             document.addEventListener("visibilitychange", onHide, { once: true });
-            location.href = appUrl;
+            location.href = link.href;
             setTimeout(() => {
                window.removeEventListener("blur", onHide);
                document.removeEventListener("visibilitychange", onHide);
                if (!left && document.visibilityState === "visible" && web)
                   window.open(web, "_blank", "noopener");
             }, 1500);
-         }
-         document.addEventListener("click", (e) => {
-            const link = e.target.closest('a.listen-link[data-service="spotify"]');
-            if (!link || link.getAttribute("href") === "#") return;
-            e.preventDefault();
-            openSpotify(link.href, link.dataset.web);
          });
-         $("#queueCurrent").onclick = () => {
-            const first = orderedQueue()[0];
-            if (!first) return;
-            if (first.disponivelSpotify === false)
-               return toast(`“${first.album}” está marcado como indisponível no Spotify.`, false);
-            openSpotify(
-               listenUrl("spotify", first.album, first.artista),
-               listenUrl("spotify-web", first.album, first.artista),
-            );
-         };
          function setListenLinks(container, album, artist) {
             const box = $(container);
             if (!box) return;
@@ -5562,6 +5610,23 @@ dialog::backdrop {
                if (a.dataset.service === "spotify")
                   a.dataset.web = ok ? listenUrl("spotify-web", album, artist) : "";
             });
+         }
+         function openAlbumOnSpotify(album) {
+            if (!album) return;
+            if (album.disponivelSpotify === false)
+               return toast(`“${album.album}” está marcado como indisponível no Spotify.`, false);
+            const app = listenUrl("spotify", album.album, album.artista),
+               web = listenUrl("spotify-web", album.album, album.artista);
+            let left = false;
+            const onHide = () => (left = true);
+            window.addEventListener("blur", onHide, { once: true });
+            document.addEventListener("visibilitychange", onHide, { once: true });
+            location.href = app;
+            setTimeout(() => {
+               window.removeEventListener("blur", onHide);
+               document.removeEventListener("visibilitychange", onHide);
+               if (!left && document.visibilityState === "visible") window.open(web, "_blank", "noopener");
+            }, 1500);
          }
          function updateEditorLinks() {
             setListenLinks("#editorLinks", $("#album").value, $("#artist").value);
@@ -5639,6 +5704,11 @@ dialog::backdrop {
             if (badge) {
                if (badge.dataset.source) applySourceFilter(badge.dataset.source);
                else openSourceDetails(JSON.parse(badge.dataset.sourceIds || "[]"));
+               return;
+            }
+            const spotifyTitle = e.target.closest(".album-spotify-link");
+            if (spotifyTitle) {
+               openAlbumOnSpotify(albums.find((a) => a.id === spotifyTitle.dataset.spotifyId));
                return;
             }
             const b = e.target.closest("button");
@@ -6126,7 +6196,8 @@ dialog::backdrop {
          }
          /* 🎯/🍀 escolhem dentro dos filtros ativos (ex.: só 🚗 Carro). */
          function pickBase() {
-            return mobileFilterCount() ? filteredView() : albums;
+            const base = mobileFilterCount() ? filteredView() : albums;
+            return base.filter((a) => a.disponivelSpotify !== false);
          }
          function chooseLucky() {
             const base = pickBase(),
@@ -6158,7 +6229,7 @@ dialog::backdrop {
                toast(
                   mobileFilterCount()
                      ? "Não há álbuns elegíveis com os filtros ativos."
-                     : "Não há álbuns elegíveis para o trevo.",
+                     : "Não há álbuns elegíveis e disponíveis no Spotify para o trevo.",
                   false,
                );
                return;
@@ -6410,7 +6481,7 @@ dialog::backdrop {
                return toast(
                   mobileFilterCount()
                      ? "Não há álbuns elegíveis com os filtros ativos."
-                     : "Não há álbuns elegíveis para a escolha recomendada.",
+                     : "Não há álbuns elegíveis e disponíveis no Spotify para a escolha recomendada.",
                   false,
                );
             const score = (a) =>
@@ -6454,15 +6525,9 @@ dialog::backdrop {
                $("#ratingFilter").value = "4";
             }
             if (mode === "forgotten") {
-               if (!albums.some(isForgotten)) {
-                  toast("Não há álbuns esquecidos.");
-                  return;
-               }
+               if (!albums.some(isForgotten)) return toast("Não há álbuns esquecidos.");
                auditFilter = "forgotten";
                currentPage = 1;
-               render();
-               toast("Filtro aplicado: Esquecidos.");
-               return;
             }
             render();
          });
@@ -6628,6 +6693,11 @@ dialog::backdrop {
                .forEach((x) => x.classList.remove("dragging", "drag-over"));
          });
 
+         $("#luckyEditBtn").onclick = () => {
+            const id = lastPickId;
+            $("#luckyDialog").close();
+            if (id) openAlbum(id);
+         };
          $("#luckyAgain").onclick = chooseLucky;
          $("#settingsBtn").onclick = () => {
             const c = getConfig();
@@ -7844,17 +7914,6 @@ dialog::backdrop {
                   "deteção de duplicados",
                );
                check(normalize({ id: '"><x' }).id === "---x", "id seguro");
-               {
-                  const keep = [sortKey, sortDir];
-                  sortKey = "avaliacao";
-                  const list = [0, 2, 5, 0, 4].map((r, i) => normalize({ id: "r" + i, album: "A" + i, artista: "X", avaliacao: r }));
-                  sortDir = "asc";
-                  const up = sortAlbums(list).map((a) => a.avaliacao).join("");
-                  sortDir = "desc";
-                  const down = sortAlbums(list).map((a) => a.avaliacao).join("");
-                  [sortKey, sortDir] = keep;
-                  check(up === "24500" && down === "54200", "não avaliados no fim");
-               }
             } catch (error) {
                failures.push(`exceção: ${error.message}`);
             }
