@@ -533,6 +533,9 @@ label,
    cursor: default;
 }
 .queue-current {
+   appearance: none;
+   font-family: inherit;
+   cursor: pointer;
    display: inline-flex;
    align-items: center;
    gap: 4px;
@@ -555,6 +558,18 @@ label,
 .queue-current span {
    overflow: hidden;
    text-overflow: ellipsis;
+}
+.queue-current:hover:not(:disabled) {
+   border-color: var(--brand);
+   background: var(--brand-tint);
+}
+.queue-current:focus-visible {
+   outline: 2px solid var(--brand);
+   outline-offset: 2px;
+}
+.queue-current:disabled {
+   cursor: default;
+   opacity: 0.55;
 }
 
 /* ---------- Avisos ---------- */
@@ -3170,11 +3185,14 @@ dialog::backdrop {
             >
                ↕
             </button>
-            <span
+            <button
                class="queue-current"
                id="queueCurrent"
-               title="Primeiro da fila"
-               ><strong>#1</strong><span id="queueCurrentName">—</span></span
+               type="button"
+               title="Abrir o primeiro da fila no Spotify"
+               aria-label="Abrir o primeiro álbum da fila no Spotify"
+               disabled
+               ><strong>#1</strong><span id="queueCurrentName">—</span></button
             >
             <button
                class="dashboard-chip actionable"
@@ -3938,7 +3956,8 @@ dialog::backdrop {
                <div class="listen-links" id="luckyLinks">
                   <a class="listen-link spotify" rel="noopener" data-service="spotify">Spotify ↗</a
                   ><a class="listen-link bandcamp" target="_blank" rel="noopener" data-service="bandcamp">Bandcamp ↗</a
-                  ><button type="button" class="listen-link lucky-edit-btn" id="luckyEditBtn">✎ Editar</button>
+                  ><button type="button" class="listen-link lucky-heard-btn" id="luckyHeardBtn">✓ Ouvi agora</button>
+                  <button type="button" class="listen-link lucky-edit-btn" id="luckyEditBtn">✎ Editar</button>
                </div>
             </div>
             <div class="modal-actions">
@@ -4210,9 +4229,16 @@ dialog::backdrop {
             $("#manageQueueBtn").disabled = x.next === 0;
             const first = orderedQueue()[0];
             $("#queueCurrentName").textContent = first ? first.album : "—";
+            $("#queueCurrent").disabled = !first;
             $("#queueCurrent").title = first
-               ? `#1 ${first.album} — ${first.artista}`
+               ? `Abrir #1 no Spotify: ${first.album} — ${first.artista}`
                : "A fila está vazia";
+            $("#queueCurrent").setAttribute(
+               "aria-label",
+               first
+                  ? `Abrir ${first.album}, de ${first.artista}, no Spotify`
+                  : "A fila de audição está vazia",
+            );
             updateConflictBadge();
             document
                .querySelectorAll("[data-dashboard-filter]")
@@ -6576,6 +6602,10 @@ dialog::backdrop {
          $("#nextQueueBtn").onclick = (e) => {
             if (lockButton(e.currentTarget)) queueFirst();
          };
+         $("#queueCurrent").onclick = () => {
+            const first = orderedQueue()[0];
+            if (first) openAlbumOnSpotify(first);
+         };
 
          $("#clearQueueBtn").onclick = () => {
             const queueCount = orderedQueue().length;
@@ -6693,6 +6723,11 @@ dialog::backdrop {
                .forEach((x) => x.classList.remove("dragging", "drag-over"));
          });
 
+         $("#luckyHeardBtn").onclick = () => {
+            const id = lastPickId;
+            $("#luckyDialog").close();
+            if (id) openHeardToday(id);
+         };
          $("#luckyEditBtn").onclick = () => {
             const id = lastPickId;
             $("#luckyDialog").close();
