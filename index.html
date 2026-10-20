@@ -716,6 +716,15 @@ label,
 .reference-editor { display:flex; flex-direction:column; gap:8px; }
 .reference-row { display:grid; grid-template-columns:minmax(110px,.34fr) minmax(0,1fr) 36px; gap:8px; align-items:center; }
 .reference-row select,.reference-row input,.origin-manager-tools input,.origin-manager-tools select { width:100%; min-width:0; border:1px solid var(--line); background:var(--card); color:var(--ink); padding:9px 10px; border-radius:9px; font:inherit; }
+.reference-origin-wrap { position:relative; min-width:0; }
+.reference-origin { padding-right:42px !important; }
+.reference-origin-toggle { position:absolute; top:1px; right:1px; width:38px; height:34px; padding:0; border:0; border-left:1px solid var(--line); border-radius:0 8px 8px 0; background:var(--card); color:var(--muted); font-size:15px; }
+.reference-origin-menu { position:fixed; z-index:250; display:none; max-height:min(260px,42dvh); overflow:auto; overscroll-behavior:contain; padding:5px; border:1px solid var(--line); border-radius:11px; background:var(--card); box-shadow:0 18px 50px rgba(0,0,0,.38); }
+.reference-origin-menu.open { display:block; }
+.reference-origin-option { display:block; width:100%; min-height:40px; padding:9px 10px; border:0; border-radius:8px; background:transparent; color:var(--ink); text-align:left; font:inherit; white-space:normal; overflow-wrap:anywhere; }
+.reference-origin-option:hover,.reference-origin-option:focus { background:var(--brand-tint); outline:none; }
+.reference-origin-option.selected { color:var(--brand); font-weight:750; }
+.reference-origin-no-results { padding:11px; color:var(--muted); font-size:11px; text-align:center; }
 .reference-remove { width:36px; height:36px; padding:0; }
 .reference-empty { color:var(--muted); font-size:11px; }
 .reference-actions { display:flex; justify-content:flex-start; margin-top:8px; }
@@ -729,6 +738,8 @@ label,
 .audit-variant { padding:8px 10px; border:1px solid var(--line); border-radius:9px; font-size:11px; }
 @media (max-width:760px) {
  .reference-row { grid-template-columns:92px minmax(0,1fr) 36px; gap:6px; }
+ .reference-origin-menu { max-height:min(300px,45dvh); }
+ .reference-origin-option { min-height:44px; font-size:16px; }
  .origin-manager-tools { grid-template-columns:1fr; }
  .origin-manager-row { grid-template-columns:minmax(0,1fr) auto; }
  .origin-manager-row .origin-edit { grid-column:1/-1; }
@@ -4008,7 +4019,6 @@ dialog::backdrop {
          const $ = (s) => document.querySelector(s);
          const STORE = "albumDiary.data.v1",
             SOURCES_STORE = "albumDiary.sources.v2",
-            OLD_MIGRATION_BACKUP = "albumDiary.preMigrationBackup.v1",
             CFG = "albumDiary.config.v1",
             TOKEN = "albumDiary.token.v1",
             SYNC_META = "albumDiary.syncMeta.v1",
@@ -4921,8 +4931,6 @@ dialog::backdrop {
                   basePayload = storedBase;
                }
             }
-            // A cópia pré-migração deixou de ser usada: liberta o espaço.
-            localStorage.removeItem(OLD_MIGRATION_BACKUP);
             // Versões anteriores guardavam fontes e eliminações em chaves separadas.
             const input =
                raw && typeof raw === "object" && !Array.isArray(raw)
@@ -5376,6 +5384,67 @@ dialog::backdrop {
             if (el) el.textContent = String($("#recordOrigin").value.length);
          }
          $("#recordOrigin").addEventListener("input", updateRecordOriginCount);
+         let referenceOriginMenu = null, referenceOriginInput = null;
+         function closeReferenceOriginMenu() {
+            if (referenceOriginMenu) referenceOriginMenu.remove();
+            if (referenceOriginInput) referenceOriginInput.setAttribute("aria-expanded", "false");
+            referenceOriginMenu = referenceOriginInput = null;
+         }
+         function positionReferenceOriginMenu() {
+            if (!referenceOriginMenu || !referenceOriginInput) return;
+            const rect = referenceOriginInput.getBoundingClientRect(), gap = 5,
+               below = window.innerHeight - rect.bottom, preferred = Math.min(300, window.innerHeight * .45),
+               openAbove = below < 150 && rect.top > below;
+            referenceOriginMenu.style.left = `${Math.max(8, rect.left)}px`;
+            referenceOriginMenu.style.width = `${Math.min(rect.width, window.innerWidth - Math.max(8, rect.left) - 8)}px`;
+            referenceOriginMenu.style.top = openAbove ? "auto" : `${rect.bottom + gap}px`;
+            referenceOriginMenu.style.bottom = openAbove ? `${window.innerHeight - rect.top + gap}px` : "auto";
+            referenceOriginMenu.style.maxHeight = `${Math.max(120, Math.min(preferred, openAbove ? rect.top - 20 : below - 20))}px`;
+         }
+         function renderReferenceOriginOptions(query = "") {
+            if (!referenceOriginMenu || !referenceOriginInput) return;
+            const row=referenceOriginInput.closest(".reference-row"), source=row.querySelector(".reference-source").value,
+               q=searchable(query), values=originsForSource(source).filter((x)=>!q || searchable(x).includes(q));
+            referenceOriginMenu.innerHTML = values.length ? values.map((x)=>`<button type="button" class="reference-origin-option${COLLATOR.compare(x, referenceOriginInput.value)===0 ? " selected" : ""}" data-value="${esc(x)}">${esc(x)}</button>`).join("") : '<div class="reference-origin-no-results">Sem origens correspondentes. Podes escrever uma nova.</div>';
+         }
+         function openReferenceOriginMenu(input, { hideKeyboard = false } = {}) {
+            closeReferenceOriginMenu();
+            referenceOriginInput = input;
+            referenceOriginMenu = document.createElement("div");
+            referenceOriginMenu.className = "reference-origin-menu open";
+            referenceOriginMenu.setAttribute("role", "listbox");
+            document.body.append(referenceOriginMenu);
+            input.setAttribute("aria-expanded", "true");
+            renderReferenceOriginOptions(input.value);
+            positionReferenceOriginMenu();
+            if (hideKeyboard) input.blur();
+         }
+         $("#referenceEditor").addEventListener("click", (e) => {
+            const toggle=e.target.closest(".reference-origin-toggle");
+            if (!toggle) return;
+            e.preventDefault(); e.stopPropagation();
+            const input=toggle.closest(".reference-origin-wrap").querySelector(".reference-origin");
+            if (referenceOriginInput === input) closeReferenceOriginMenu();
+            else openReferenceOriginMenu(input, { hideKeyboard: true });
+         });
+         $("#referenceEditor").addEventListener("focusin", (e) => {
+            if (e.target.matches(".reference-origin")) openReferenceOriginMenu(e.target);
+         });
+         $("#referenceEditor").addEventListener("input", (e) => {
+            if (e.target.matches(".reference-origin")) {
+               if (referenceOriginInput !== e.target) openReferenceOriginMenu(e.target);
+               else renderReferenceOriginOptions(e.target.value);
+            }
+         });
+         document.addEventListener("pointerdown", (e) => {
+            if (referenceOriginMenu && !referenceOriginMenu.contains(e.target) && !e.target.closest(".reference-origin-wrap")) closeReferenceOriginMenu();
+         });
+         document.addEventListener("scroll", positionReferenceOriginMenu, true);
+         window.addEventListener("resize", positionReferenceOriginMenu);
+         document.addEventListener("click", (e) => {
+            const option=e.target.closest(".reference-origin-option"); if(!option || !referenceOriginInput)return;
+            referenceOriginInput.value=option.dataset.value; syncReferenceLegacyInputs(); closeReferenceOriginMenu();
+         });
          $("#addReferenceBtn").onclick = () => {
             const box = $("#referenceEditor"), empty = box.querySelector(".reference-empty");
             if (empty) empty.remove();
@@ -5392,9 +5461,9 @@ dialog::backdrop {
          $("#referenceEditor").addEventListener("change", (e) => {
             const row=e.target.closest(".reference-row"); if(!row)return;
             if(e.target.matches(".reference-source")) {
-               const input=row.querySelector(".reference-origin"), source=e.target.value, listId=originDatalistId(source);
-               input.setAttribute("list",listId); row.querySelector("datalist").id=listId;
-               row.querySelector("datalist").innerHTML=originsForSource(source).map((x)=>`<option value="${esc(x)}"></option>`).join("");
+               closeReferenceOriginMenu();
+               const input=row.querySelector(".reference-origin");
+               if (input.value && !originsForSource(e.target.value).some((x) => COLLATOR.compare(x, input.value) === 0)) input.value = "";
             }
             syncReferenceLegacyInputs();
          });
@@ -5434,6 +5503,7 @@ dialog::backdrop {
             );
          }
          function openAlbum(id = null) {
+            closeReferenceOriginMenu();
             editingId = id;
             const a = id
                ? albums.find((x) => x.id === id)
@@ -5484,6 +5554,7 @@ dialog::backdrop {
          }
          $("#albumForm").addEventListener("submit", (e) => {
             e.preventDefault();
+            closeReferenceOriginMenu();
             const old = editingId
                ? albums.find((a) => a.id === editingId)
                : normalize({ fontes: {} });
@@ -5690,11 +5761,9 @@ dialog::backdrop {
             }));
             return [...new Set(values)].sort(COLLATOR.compare);
          }
-         function originDatalistId(sourceId) { return "origin-list-" + safeId(sourceId); }
          function referenceRowHtml(ref = {}) {
             const source = ref.fonteId || sourceDefinitions[0]?.id || "", options = sourceDefinitions.map((d) => `<option value="${esc(d.id)}" ${d.id === source ? "selected" : ""}>${esc(d.shortName)} · ${esc(d.name)}</option>`).join("");
-            const listId = originDatalistId(source), origins = originsForSource(source);
-            return `<div class="reference-row"><select class="reference-source" aria-label="Fonte">${options}</select><span><input class="reference-origin" maxlength="300" list="${esc(listId)}" value="${esc(ref.origem || "")}" placeholder="Origem do registo"><datalist id="${esc(listId)}">${origins.map((x) => `<option value="${esc(x)}"></option>`).join("")}</datalist></span><button type="button" class="btn danger reference-remove" title="Remover">×</button></div>`;
+            return `<div class="reference-row"><select class="reference-source" aria-label="Fonte">${options}</select><span class="reference-origin-wrap"><input class="reference-origin" maxlength="300" value="${esc(ref.origem || "")}" placeholder="Origem do registo" autocomplete="off" autocorrect="off" spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false"><button type="button" class="reference-origin-toggle" title="Mostrar origens" aria-label="Mostrar origens">▾</button></span><button type="button" class="btn danger reference-remove" title="Remover">×</button></div>`;
          }
          function renderReferenceEditor(refs = []) {
             const box = $("#referenceEditor");
