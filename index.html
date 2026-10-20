@@ -2199,7 +2199,7 @@ dialog::backdrop {
    }
    .mobile-filter-bar {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 40px 40px;
+      grid-template-columns: minmax(0, 1fr) 40px 40px 40px;
       gap: 6px;
    }
    .mobile-filter-bar .btn {
@@ -2207,11 +2207,24 @@ dialog::backdrop {
       padding: 8px 12px;
       font: 700 13px/20px var(--font);
    }
-   #mobileFiltersBtn {
-      min-width: 0;
-      white-space: nowrap;
-      overflow: hidden;
+   .mobile-search-wrap { min-width: 0; }
+   .mobile-search-wrap > input {
+      width: 100%; height: 40px; min-width: 0; padding: 8px 34px 8px 11px;
+      border: 1px solid var(--line); border-radius: 10px; background: var(--card); color: var(--ink);
    }
+   #mobileClearSearchBtn {
+      position:absolute; right:6px; top:50%; transform:translateY(-50%); display:none;
+      width:26px; height:26px; padding:0; border:0; border-radius:50%; background:rgba(152,162,179,.16); color:var(--muted); font:600 17px/26px system-ui;
+   }
+   .mobile-search-wrap.has-value #mobileClearSearchBtn { display:block; }
+   #mobileFiltersBtn {
+      position:relative; display:grid; place-items:center; min-width:0; padding:0; overflow:visible; font-size:15px;
+   }
+   .mobile-filter-count {
+      position:absolute; top:-5px; right:-5px; display:none; min-width:17px; height:17px; padding:0 4px;
+      border-radius:999px; background:var(--brand); color:#fff; font:800 9px/17px system-ui; text-align:center;
+   }
+   #mobileFiltersBtn.has-filters .mobile-filter-count { display:block; }
    .mobile-filter-bar .mobile-quick-action {
       display: grid;
       place-items: center;
@@ -2940,11 +2953,11 @@ dialog::backdrop {
                   </button>
                </div>
                <div class="actions" id="mainActions">
-                  <button class="btn" id="settingsBtn">⚙ Gist</button
+                  <button class="btn" id="tagsManagerBtn">🏷 Tags</button
+                  ><button class="btn" id="originsManagerBtn">⌁ Origens</button
                   ><button class="btn" id="sourcesManagerBtn">
                      ☑ Fontes</button
-                  ><button class="btn" id="tagsManagerBtn">🏷 Tags</button
-                  ><button class="btn" id="originsManagerBtn">⌁ Origens</button
+                  ><button class="btn" id="settingsBtn">⚙ Gist</button
                   ><button class="btn" id="loadBtn">↓ Ler do Gist</button
                   ><button class="btn primary" id="saveBtn">
                      ↑ Gravar no Gist
@@ -2971,14 +2984,19 @@ dialog::backdrop {
             </section>
             <section class="toolbar card">
                <div class="mobile-filter-bar">
+                  <div class="search-wrap mobile-search-wrap">
+                     <input id="mobileSearch" type="search" placeholder="Pesquisar álbum, artista ou género…" aria-label="Pesquisar álbum, artista ou género" />
+                     <button type="button" id="mobileClearSearchBtn" aria-label="Limpar pesquisa">×</button>
+                  </div>
                   <button
-                     class="btn"
+                     class="btn mobile-filter-compact"
                      id="mobileFiltersBtn"
                      type="button"
                      aria-expanded="false"
+                     title="Filtros"
+                     aria-label="Abrir filtros"
                   >
-                     <span>Filtros</span><span class="filter-sep">·</span
-                     ><span id="mobileFilterCount">0</span></button
+                     <span aria-hidden="true">☰</span><span class="mobile-filter-count" id="mobileFilterCount">0</span></button
                   ><button
                      class="btn mobile-quick-action"
                      id="mobileClearFiltersBtn"
@@ -6023,6 +6041,7 @@ dialog::backdrop {
             const n = mobileFilterCount();
             if ($("#mobileFilterCount"))
                $("#mobileFilterCount").textContent = String(n);
+            $("#mobileFiltersBtn")?.classList.toggle("has-filters", n > 0);
             if ($("#mobileClearFiltersBtn"))
                $("#mobileClearFiltersBtn").disabled = n === 0;
             if ($("#desktopClearFiltersBtn"))
@@ -6050,6 +6069,7 @@ dialog::backdrop {
          function clearAllFilters() {
             if (!mobileFilterCount()) return;
             $("#search").value = "";
+            if ($("#mobileSearch")) $("#mobileSearch").value = "";
             $("#stateFilter").value = "";
             $("#ratingFilter").value = "";
             $("#spotifyFilter").value = "";
@@ -6077,9 +6097,26 @@ dialog::backdrop {
          }
          $("#clearSearchBtn").onclick = () => {
             $("#search").value = "";
+            if ($("#mobileSearch")) $("#mobileSearch").value = "";
             updateSearchClear();
             render();
             $("#search").focus();
+         };
+         function syncMobileSearch(value) {
+            $("#search").value = value;
+            updateSearchClear();
+            clearTimeout(searchDebounceTimer);
+            searchDebounceTimer = setTimeout(render, 140);
+         }
+         $("#mobileSearch").addEventListener("input", (e) => {
+            e.currentTarget.parentElement.classList.toggle("has-value", !!e.currentTarget.value);
+            syncMobileSearch(e.currentTarget.value);
+         });
+         $("#mobileClearSearchBtn").onclick = () => {
+            $("#mobileSearch").value = "";
+            $("#mobileSearch").parentElement.classList.remove("has-value");
+            syncMobileSearch("");
+            $("#mobileSearch").focus();
          };
          function renderAlbumSourceChecks(selected = []) {
             const set = new Set(selected);
@@ -6279,6 +6316,10 @@ dialog::backdrop {
             }
          });
          $("#search").addEventListener("input", () => {
+            if ($("#mobileSearch") && $("#mobileSearch").value !== $("#search").value) {
+               $("#mobileSearch").value = $("#search").value;
+               $("#mobileSearch").parentElement.classList.toggle("has-value", !!$("#search").value);
+            }
             updateSearchClear();
             clearTimeout(searchDebounceTimer);
             searchDebounceTimer = setTimeout(render, 140);
