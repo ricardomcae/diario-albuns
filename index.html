@@ -712,6 +712,27 @@ label,
 .album-spotify-link:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 3px; }
 .album-spotify-link[disabled] { cursor: default; text-decoration: none; }
 .lucky-edit-btn { display: inline-flex; align-items: center; justify-content: center; }
+/* ---------- Fontes e origens estruturadas ---------- */
+.reference-editor { display:flex; flex-direction:column; gap:8px; }
+.reference-row { display:grid; grid-template-columns:minmax(110px,.34fr) minmax(0,1fr) 36px; gap:8px; align-items:center; }
+.reference-row select,.reference-row input,.origin-manager-tools input,.origin-manager-tools select { width:100%; min-width:0; border:1px solid var(--line); background:var(--card); color:var(--ink); padding:9px 10px; border-radius:9px; font:inherit; }
+.reference-remove { width:36px; height:36px; padding:0; }
+.reference-empty { color:var(--muted); font-size:11px; }
+.reference-actions { display:flex; justify-content:flex-start; margin-top:8px; }
+.origin-manager-tools { display:grid; grid-template-columns:150px minmax(0,1fr); gap:8px; margin:14px 0 10px; }
+.origin-manager-list { display:flex; flex-direction:column; gap:7px; max-height:52dvh; overflow:auto; }
+.origin-manager-row { display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:8px; align-items:center; padding:9px 10px; border:1px solid var(--line); border-radius:10px; }
+.origin-manager-name { min-width:0; }
+.origin-manager-name strong,.origin-manager-name small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.origin-manager-name small { color:var(--muted); }
+.audit-variant-list { margin-top:10px; display:grid; gap:6px; }
+.audit-variant { padding:8px 10px; border:1px solid var(--line); border-radius:9px; font-size:11px; }
+@media (max-width:760px) {
+ .reference-row { grid-template-columns:92px minmax(0,1fr) 36px; gap:6px; }
+ .origin-manager-tools { grid-template-columns:1fr; }
+ .origin-manager-row { grid-template-columns:minmax(0,1fr) auto; }
+ .origin-manager-row .origin-edit { grid-column:1/-1; }
+}
 /* ---------- Tabela ---------- */
 .table-wrap {
    flex: 1 1 auto;
@@ -1072,6 +1093,7 @@ dialog::backdrop {
 #heardTodayDialog,
 #sourcesManagerDialog,
 #tagsManagerDialog,
+#originsManagerDialog,
 #sourceDetailsDialog {
    position: fixed;
    inset: 0;
@@ -1096,6 +1118,7 @@ dialog::backdrop {
 #heardTodayDialog[open],
 #sourcesManagerDialog[open],
 #tagsManagerDialog[open],
+#originsManagerDialog[open],
 #sourceDetailsDialog[open] {
    display: grid;
    place-items: center;
@@ -2555,7 +2578,8 @@ dialog::backdrop {
       border-radius: 16px;
    }
    #sourcesManagerDialog,
-   #tagsManagerDialog {
+   #tagsManagerDialog,
+   #originsManagerDialog {
       padding: 10px;
    }
    /* 5 botões em 2 colunas: o último (Gravar) ocupa a linha toda. */
@@ -2909,6 +2933,7 @@ dialog::backdrop {
                   ><button class="btn" id="sourcesManagerBtn">
                      ☑ Fontes</button
                   ><button class="btn" id="tagsManagerBtn">🏷 Tags</button
+                  ><button class="btn" id="originsManagerBtn">⌁ Origens</button
                   ><button class="btn" id="loadBtn">↓ Ler do Gist</button
                   ><button class="btn primary" id="saveBtn">
                      ↑ Gravar no Gist
@@ -3377,21 +3402,16 @@ dialog::backdrop {
                            >
                         </div>
                         <div class="field">
-                           <label for="recordOrigin">Origem do registo</label
-                           ><textarea
-                              id="recordOrigin"
-                              maxlength="1000"
-                              rows="3"
-                              placeholder="Ex.: BC Album of the Day + PF Best New Album"
-                           ></textarea
-                           ><span class="hint"
-                              ><span id="recordOriginCount">0</span> / 1000
-                              caracteres</span
-                           >
+                           <label>Fontes e origens do registo</label>
+                           <input id="recordOrigin" type="hidden" />
+                           <div class="reference-editor" id="referenceEditor"></div>
+                           <div class="reference-actions"><button type="button" class="btn" id="addReferenceBtn">＋ Adicionar fonte/origem</button></div>
+                           <span class="hint">Escolhe uma fonte e reutiliza uma origem existente, ou edita-a para criar uma nova. “+” e “/” são aceites; ao guardar ficam uniformizados com “ / ”.</span>
+                           <span id="recordOriginCount" hidden>0</span>
                         </div>
                      </div>
                   </div>
-                  <div class="form-section">
+                  <div class="form-section" hidden aria-hidden="true">
                      <span class="form-section-title"
                         >Fontes de recomendação</span
                      >
@@ -3657,6 +3677,14 @@ dialog::backdrop {
                   Fechar
                </button>
             </div>
+         </div>
+      </dialog>
+      <dialog id="originsManagerDialog">
+         <div class="modal sources-manager-modal overlay-card">
+            <div class="manager-head"><div><h2 id="originsManagerTitle" class="dialog-focus-anchor" tabindex="-1">Gerir origens</h2><p class="muted">Pesquisa, corrige ou funde nomenclaturas por fonte.</p></div><button type="button" class="drawer-close" data-close="originsManagerDialog" aria-label="Fechar">×</button></div>
+            <div class="origin-manager-tools"><select id="originManagerSource"></select><input id="originManagerSearch" type="search" placeholder="Pesquisar origens…"></div>
+            <div class="origin-manager-list" id="originManagerList"></div>
+            <div class="modal-actions"><button type="button" class="btn" data-close="originsManagerDialog">Fechar</button></div>
          </div>
       </dialog>
       <dialog id="originDetailsDialog">
@@ -4309,7 +4337,7 @@ dialog::backdrop {
          function clearStorageError() {
             $("#storageAlert").classList.remove("show");
          }
-         const CURRENT_SCHEMA_VERSION = 3,
+         const CURRENT_SCHEMA_VERSION = 4,
             MAX_IMPORT_BYTES = 10 * 1024 * 1024,
             MAX_IMPORT_ALBUMS = 25000,
             MAX_IMPORT_SOURCES = 500,
@@ -4567,6 +4595,7 @@ dialog::backdrop {
             "lancamento",
             "origemRegisto",
             "fontes",
+            "referencias",
             "tags",
             "disponivelSpotify",
             "avaliacao",
@@ -4839,7 +4868,7 @@ dialog::backdrop {
          }
          function normalize(a) {
             const rating = Math.round(Number(a.avaliacao) || 0);
-            return {
+            return syncLegacyReferenceFields({
                schemaVersion: CURRENT_SCHEMA_VERSION,
                id: safeId(a.id) || uid(),
                album: String(a.album || ""),
@@ -4864,7 +4893,8 @@ dialog::backdrop {
                   a.createdAt || a.adicionadoEm || new Date().toISOString(),
                ),
                updatedAt: String(a.updatedAt || new Date().toISOString()),
-            };
+               referencias: Array.isArray(a.referencias) ? a.referencias : [],
+            });
          }
          /* Lê do IndexedDB; na primeira vez migra o que estava no localStorage. */
          async function loadLocal() {
@@ -5275,7 +5305,8 @@ dialog::backdrop {
                         (auditFilter === "nogenre" && !a.generos.trim()) ||
                         (auditFilter === "noorigin" && !a.origemRegisto.trim()) ||
                         (auditFilter === "nosources" && !(a.fontes || []).length) ||
-                        (auditFilter === "forgotten" && isForgotten(a))),
+                        (auditFilter === "forgotten" && isForgotten(a)) ||
+                        (auditFilter === "originmismatch" && originIssues(a).length)),
                ),
             );
             viewCache = { key: cacheKey, items: view };
@@ -5345,6 +5376,29 @@ dialog::backdrop {
             if (el) el.textContent = String($("#recordOrigin").value.length);
          }
          $("#recordOrigin").addEventListener("input", updateRecordOriginCount);
+         $("#addReferenceBtn").onclick = () => {
+            const box = $("#referenceEditor"), empty = box.querySelector(".reference-empty");
+            if (empty) empty.remove();
+            box.insertAdjacentHTML("beforeend", referenceRowHtml({}));
+            syncReferenceLegacyInputs();
+            box.querySelector(".reference-row:last-child .reference-source")?.focus();
+         };
+         $("#referenceEditor").addEventListener("click", (e) => {
+            const b=e.target.closest(".reference-remove"); if(!b)return;
+            b.closest(".reference-row").remove();
+            if(!$("#referenceEditor").children.length) $("#referenceEditor").innerHTML='<span class="reference-empty">Sem fontes/origens. Adiciona a primeira.</span>';
+            syncReferenceLegacyInputs();
+         });
+         $("#referenceEditor").addEventListener("change", (e) => {
+            const row=e.target.closest(".reference-row"); if(!row)return;
+            if(e.target.matches(".reference-source")) {
+               const input=row.querySelector(".reference-origin"), source=e.target.value, listId=originDatalistId(source);
+               input.setAttribute("list",listId); row.querySelector("datalist").id=listId;
+               row.querySelector("datalist").innerHTML=originsForSource(source).map((x)=>`<option value="${esc(x)}"></option>`).join("");
+            }
+            syncReferenceLegacyInputs();
+         });
+         $("#referenceEditor").addEventListener("input", syncReferenceLegacyInputs);
          function focusDialogAnchor(dialogId, anchorId) {
             requestAnimationFrame(() => {
                const d = $(dialogId),
@@ -5399,6 +5453,7 @@ dialog::backdrop {
             $("#recordOrigin").value = a.origemRegisto;
             updateRecordOriginCount();
             renderAlbumSourceChecks(a.fontes || []);
+            renderReferenceEditor(normalizeReferences(a.referencias, a.origemRegisto, a.fontes));
             renderAlbumTagChecks(a.tags || []);
             $("#spotifyAvailable").checked = a.disponivelSpotify !== false;
             updateSpotifyStateDisplay();
@@ -5438,19 +5493,16 @@ dialog::backdrop {
                ...old,
                album: capitalizeWords($("#album").value.trim()),
                artista: capitalizeWords($("#artist").value.trim()),
-               generos: capitalizeWords($("#genres").value.trim()),
+               generos: normalizeJoinedList($("#genres").value, true),
                lancamento: (() => {
                   const v = $("#releaseDate").value;
                   if (!v) return { mes: "", ano: "" };
                   const [ano, mes] = v.split("-");
                   return { mes: String(Number(mes)), ano };
                })(),
-               origemRegisto: capitalizeWords($("#recordOrigin").value.trim()),
-               fontes: [
-                  ...document.querySelectorAll(
-                     "#albumSourceChecks input:checked",
-                  ),
-               ].map((x) => x.value),
+               origemRegisto: editorReferences().map((r) => r.origem).join(" / "),
+               fontes: [...new Set(editorReferences().map((r) => r.fonteId))],
+               referencias: editorReferences(),
                tags: [
                   ...document.querySelectorAll("#albumTagChecks input:checked"),
                ].map((x) => x.value),
@@ -5588,6 +5640,84 @@ dialog::backdrop {
                   return before + letter.toLocaleUpperCase("pt-PT");
                },
             );
+         }
+         function splitListValues(text, genre = false) {
+            const raw = String(text || "").trim();
+            if (!raw) return [];
+            const pattern = genre ? /\s*(?:\+|\/)\s*/ : /\s+(?:\+|\/)\s+/;
+            return [...new Set(raw.split(pattern).map((x) => x.trim()).filter(Boolean))];
+         }
+         function normalizeJoinedList(text, genre = false) {
+            return splitListValues(text, genre).map(capitalizeWords).join(" / ");
+         }
+         function sourcePrefixMap() {
+            return new Map(sourceDefinitions.map((d) => [d.shortName.toLocaleUpperCase("pt-PT"), d.id]));
+         }
+         function inferReferences(origin, sources = []) {
+            const prefixes = sourcePrefixMap(), fallback = sources.length === 1 ? sources[0] : "";
+            return splitListValues(origin).map((value) => {
+               const prefix = value.trim().split(/\s+/)[0].toLocaleUpperCase("pt-PT");
+               return { fonteId: prefixes.get(prefix) || fallback || "", origem: capitalizeWords(value) };
+            }).filter((r) => r.fonteId || r.origem);
+         }
+         function normalizeReferences(refs, origin = "", sources = []) {
+            const known = new Set(sourceDefinitions.map((d) => d.id)), out = [], seen = new Set();
+            const input = Array.isArray(refs) && refs.length ? refs : inferReferences(origin, sources);
+            input.forEach((r) => {
+               const fonteId = safeId(r?.fonteId || r?.sourceId || ""), origem = normalizeJoinedList(r?.origem || r?.origin || "");
+               if (!known.has(fonteId) || !origem) return;
+               const key = fonteId + "|" + searchable(origem);
+               if (!seen.has(key)) { seen.add(key); out.push({ fonteId, origem }); }
+            });
+            return out;
+         }
+         function syncLegacyReferenceFields(a) {
+            a.referencias = normalizeReferences(a.referencias, a.origemRegisto, a.fontes);
+            if (a.referencias.length) {
+               a.fontes = [...new Set(a.referencias.map((r) => r.fonteId))];
+               a.origemRegisto = a.referencias.map((r) => r.origem).join(" / ");
+            } else {
+               a.fontes = legacySources(a.fontes);
+               a.origemRegisto = normalizeJoinedList(a.origemRegisto);
+            }
+            a.generos = normalizeJoinedList(a.generos, true);
+            return a;
+         }
+         function originsForSource(sourceId) {
+            const values = [];
+            albums.forEach((a) => (a.referencias || inferReferences(a.origemRegisto, a.fontes)).forEach((r) => {
+               if (r.fonteId === sourceId && r.origem) values.push(r.origem);
+            }));
+            return [...new Set(values)].sort(COLLATOR.compare);
+         }
+         function originDatalistId(sourceId) { return "origin-list-" + safeId(sourceId); }
+         function referenceRowHtml(ref = {}) {
+            const source = ref.fonteId || sourceDefinitions[0]?.id || "", options = sourceDefinitions.map((d) => `<option value="${esc(d.id)}" ${d.id === source ? "selected" : ""}>${esc(d.shortName)} · ${esc(d.name)}</option>`).join("");
+            const listId = originDatalistId(source), origins = originsForSource(source);
+            return `<div class="reference-row"><select class="reference-source" aria-label="Fonte">${options}</select><span><input class="reference-origin" maxlength="300" list="${esc(listId)}" value="${esc(ref.origem || "")}" placeholder="Origem do registo"><datalist id="${esc(listId)}">${origins.map((x) => `<option value="${esc(x)}"></option>`).join("")}</datalist></span><button type="button" class="btn danger reference-remove" title="Remover">×</button></div>`;
+         }
+         function renderReferenceEditor(refs = []) {
+            const box = $("#referenceEditor");
+            box.innerHTML = refs.length ? refs.map(referenceRowHtml).join("") : '<span class="reference-empty">Sem fontes/origens. Adiciona a primeira.</span>';
+            syncReferenceLegacyInputs();
+         }
+         function editorReferences() {
+            return [...document.querySelectorAll("#referenceEditor .reference-row")].map((row) => ({ fonteId: row.querySelector(".reference-source").value, origem: normalizeJoinedList(row.querySelector(".reference-origin").value) })).filter((r) => r.fonteId && r.origem);
+         }
+         function syncReferenceLegacyInputs() {
+            const refs = editorReferences();
+            $("#recordOrigin").value = refs.map((r) => r.origem).join(" / ");
+            const chosen = new Set(refs.map((r) => r.fonteId));
+            document.querySelectorAll("#albumSourceChecks input").forEach((x) => x.checked = chosen.has(x.value));
+            updateRecordOriginCount();
+         }
+         function comparisonOrigin(value) {
+            return searchable(value).replace(/[–—-]/g," ").replace(/\bthe\b/g," ").replace(/\balbums?\b/g,"album").replace(/\bof\b/g," ").replace(/[^a-z0-9]+/g," ").trim();
+         }
+         function levenshtein(a,b) { const m=a.length,n=b.length,d=Array.from({length:m+1},(_,i)=>[i]); for(let j=1;j<=n;j++)d[0][j]=j; for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1)); return d[m][n]; }
+         function originSimilarity(a,b) { a=comparisonOrigin(a); b=comparisonOrigin(b); if(!a||!b)return 0; const numsA=(a.match(/\d+/g)||[]).join("|"),numsB=(b.match(/\d+/g)||[]).join("|"); if(numsA!==numsB)return 0; return 1-levenshtein(a,b)/Math.max(a.length,b.length,1); }
+         function originVariantPairs() {
+            const out=[]; sourceDefinitions.forEach((d)=>{ const list=originsForSource(d.id); for(let i=0;i<list.length;i++)for(let j=i+1;j<list.length;j++){ const score=originSimilarity(list[i],list[j]); if(score>=.88) out.push({sourceId:d.id,a:list[i],b:list[j],score}); }}); return out.sort((x,y)=>y.score-x.score);
          }
          /* Duplicado = mesmo álbum e artista, ignorando acentos, maiúsculas e pontuação. */
          const dupPart = (v) =>
@@ -6278,6 +6408,7 @@ dialog::backdrop {
                noorigin: "Sem origem",
                nosources: "Sem fontes",
                forgotten: "Esquecidos",
+               originmismatch: "Origem/fonte incoerente",
             };
 
             const indicator = $("#auditFilterIndicator");
@@ -6296,6 +6427,12 @@ dialog::backdrop {
             toast("Filtro de auditoria removido.");
          };
 
+         function originIssues(a) {
+            const refs=normalizeReferences(a.referencias,a.origemRegisto,a.fontes), issues=[];
+            if((a.fontes||[]).length && !refs.length) issues.push("Fonte sem origem associada");
+            refs.forEach((r)=>{ const d=sourceById.get(r.fonteId); if(d && !searchable(r.origem).startsWith(searchable(d.shortName)+" ")) issues.push(`“${r.origem}” não começa por ${d.shortName}`); });
+            return issues;
+         }
          function collectionIntegrityReport(payload = currentPayload()) {
             const list = Array.isArray(payload.albums) ? payload.albums : [],
                defs = Array.isArray(payload.sourceDefinitions)
@@ -6382,6 +6519,11 @@ dialog::backdrop {
                   count: albums.filter(isForgotten).length,
                   filter: "forgotten",
                },
+               {
+                  label: "Origem/fonte incoerente",
+                  count: albums.filter((a) => originIssues(a).length).length,
+                  filter: "originmismatch",
+               },
             ];
             $("#auditList").innerHTML = items
                .map(
@@ -6389,6 +6531,9 @@ dialog::backdrop {
                      `<div class="audit-row"><button type="button" data-audit-filter="${x.filter}" ${x.count ? "" : "disabled"}><span>${x.label}</span><strong>${x.count}</strong>${x.count ? '<span class="audit-arrow">›</span>' : ""}</button></div>`,
                )
                .join("");
+            const variants = originVariantPairs();
+            $("#auditList").insertAdjacentHTML("beforeend", `<div class="audit-row"><button type="button" id="auditOriginVariants" ${variants.length ? "" : "disabled"}><span>Origens possivelmente duplicadas</span><strong>${variants.length}</strong>${variants.length ? '<span class="audit-arrow">›</span>' : ""}</button></div>`);
+            $("#auditOriginVariants")?.addEventListener("click", () => { $("#auditDialog").close(); openOriginsManager(true); });
             renderSourceStats();
             renderIntegrityReport();
             $("#auditDialog").showModal();
@@ -6734,6 +6879,28 @@ dialog::backdrop {
             if (id) openAlbum(id);
          };
          $("#luckyAgain").onclick = chooseLucky;
+         function originUsage(sourceId, origin) { return albums.filter((a)=>normalizeReferences(a.referencias,a.origemRegisto,a.fontes).some((r)=>r.fonteId===sourceId && COLLATOR.compare(r.origem,origin)===0)).length; }
+         function replaceOriginEverywhere(sourceId, oldValue, newValue) {
+            const normalized=normalizeJoinedList(newValue); if(!normalized)return false; const now=new Date().toISOString(); let changed=false;
+            albums=albums.map((a)=>{ const refs=normalizeReferences(a.referencias,a.origemRegisto,a.fontes); let hit=false; refs.forEach((r)=>{if(r.fonteId===sourceId&&COLLATOR.compare(r.origem,oldValue)===0){r.origem=normalized;hit=true;}}); if(!hit)return a; changed=true; return syncLegacyReferenceFields({...a,referencias:refs,updatedAt:now}); });
+            if(changed) persist(); return changed;
+         }
+         function renderOriginsManager(showVariants=false) {
+            const select=$("#originManagerSource"), current=select.value || sourceDefinitions[0]?.id || "";
+            select.innerHTML=sourceDefinitions.map((d)=>`<option value="${esc(d.id)}" ${d.id===current?"selected":""}>${esc(d.shortName)} · ${esc(d.name)}</option>`).join("");
+            const sourceId=select.value, q=searchable($("#originManagerSearch").value), variants=originVariantPairs();
+            let values=originsForSource(sourceId).filter((x)=>!q||searchable(x).includes(q));
+            if(showVariants) { const set=new Set(variants.filter((v)=>v.sourceId===sourceId).flatMap((v)=>[v.a,v.b])); values=values.filter((x)=>set.has(x)); }
+            $("#originManagerList").innerHTML=values.length?values.map((x)=>`<div class="origin-manager-row" data-origin="${esc(x)}"><span class="origin-manager-name"><strong>${esc(x)}</strong><small>${originUsage(sourceId,x)} álbum${originUsage(sourceId,x)===1?"":"s"}</small></span><button type="button" class="btn origin-edit">Editar</button><button type="button" class="btn origin-merge">Fundir…</button></div>`).join(""):'<p class="muted">Sem origens para esta fonte.</p>';
+         }
+         function openOriginsManager(showVariants=false){ renderOriginsManager(showVariants); $("#originsManagerDialog").showModal(); focusDialogAnchor("#originsManagerDialog","#originsManagerTitle"); }
+         $("#originsManagerBtn").onclick=()=>openOriginsManager(false);
+         $("#originManagerSource").onchange=()=>renderOriginsManager(false);
+         $("#originManagerSearch").oninput=()=>renderOriginsManager(false);
+         $("#originManagerList").onclick=(e)=>{ const row=e.target.closest(".origin-manager-row"); if(!row)return; const source=$("#originManagerSource").value, old=row.dataset.origin;
+            if(e.target.closest(".origin-edit")){ const value=prompt("Novo nome da origem:",old); if(value!==null&&normalizeJoinedList(value)!==old){replaceOriginEverywhere(source,old,value);renderOriginsManager(false);toast("Origem atualizada em todos os álbuns.");}}
+            if(e.target.closest(".origin-merge")){ const choices=originsForSource(source).filter((x)=>x!==old); const value=prompt("Fundir com qual origem? Escreve ou cola o nome exato:\n\n"+choices.slice(0,30).join("\n"),choices[0]||""); if(value&&choices.some((x)=>COLLATOR.compare(x,value)===0)){replaceOriginEverywhere(source,old,value);renderOriginsManager(false);toast("Origens fundidas.");} else if(value) toast("A origem de destino não existe nesta fonte.",false); }
+         };
          $("#settingsBtn").onclick = () => {
             const c = getConfig();
             $("#gistId").value = c.gistId || "";
@@ -7118,7 +7285,7 @@ dialog::backdrop {
             const c = getConfig();
             if (!c.autoSync || !dirty) return;
             // Em "Gerir fontes/tags" grava-se no Gist só ao fechar o ecrã.
-            if ($("#sourcesManagerDialog").open || $("#tagsManagerDialog").open)
+            if ($("#sourcesManagerDialog").open || $("#tagsManagerDialog").open || $("#originsManagerDialog").open)
                return;
             if (syncBusy) {
                autoSyncPending = true;
@@ -7222,6 +7389,8 @@ dialog::backdrop {
                      ? {
                           ...a,
                           fontes: a.fontes.filter((x) => x !== id),
+                          referencias: (a.referencias || []).filter((r) => r.fonteId !== id),
+                          origemRegisto: (a.referencias || []).filter((r) => r.fonteId !== id).map((r) => r.origem).join(" / "),
                           updatedAt: deletedAt,
                        }
                      : a,
@@ -7395,6 +7564,7 @@ dialog::backdrop {
          $("#tagsManagerDialog").addEventListener("close", () =>
             closeManager("#tagManagerList", commitTagRow),
          );
+         $("#originsManagerDialog").addEventListener("close", () => { if (dirty) requestAutoSync(); });
          function uniqueSlug(name, list, fallback) {
             const base =
                name
@@ -7604,7 +7774,7 @@ dialog::backdrop {
          }
          function formatOriginForDisplay(text) {
             return String(text || "")
-               .split(/\s+\+\s+/)
+               .split(/\s+(?:\+|\/)\s+/)
                .map((part) => part.trim())
                .filter(Boolean)
                .join("\n");
@@ -7616,7 +7786,7 @@ dialog::backdrop {
             $("#originDetailsDialog").showModal();
          }
          function openOriginDetails(text) {
-            openTextDetails("Origem do registo", text, /\s+\+\s+/);
+            openTextDetails("Origem do registo", text, /\s+(?:\+|\/)\s+/);
          }
          $("#tbody").addEventListener("keydown", (e) => {
             const box = e.target.closest(".source-badges.has-more");
@@ -7949,6 +8119,8 @@ dialog::backdrop {
                   "deteção de duplicados",
                );
                check(normalize({ id: '"><x' }).id === "---x", "id seguro");
+               check(normalizeJoinedList("Jazz + Soul / Funk", true) === "Jazz / Soul / Funk", "separadores uniformizados");
+               check(normalizeJoinedList("OF Rotation Albums - 2026/10 + PF Best New Album") === "OF Rotation Albums - 2026/10 / PF Best New Album", "datas nas origens preservadas");
             } catch (error) {
                failures.push(`exceção: ${error.message}`);
             }
